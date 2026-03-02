@@ -1,7 +1,7 @@
-const CACHE_NAME = 'brakefast-v1';
+const CACHE_NAME = 'brakefast-v2';
 const ASSETS_TO_CACHE = [
-  '/brakefast/assets/style.css',
-  '/brakefast/assets/manifest.json'
+  '/assets/style.css',
+  '/assets/manifest.json'
 ];
 
 self.addEventListener('install', event => {
@@ -24,7 +24,7 @@ self.addEventListener('fetch', event => {
   const url = new URL(event.request.url);
 
   // Cache-first for static assets
-  if (url.pathname.startsWith('/brakefast/assets/')) {
+  if (url.pathname.startsWith('/assets/')) {
     event.respondWith(
       caches.match(event.request).then(cached => cached || fetch(event.request))
     );

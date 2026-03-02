@@ -2,20 +2,20 @@
   "name": "BrakeFast",
   "short_name": "BrakeFast",
   "description": "Deine persoenliche Morgenzeitung von Otto",
-  "start_url": "/brakefast/latest/index.html",
-  "scope": "/brakefast/",
+  "start_url": "/latest/index.html",
+  "scope": "/",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#faf8f5",
   "theme_color": "#1a1a1a",
   "icons": [
     {
-      "src": "/brakefast/assets/icon-192.png",
+      "src": "/assets/icon-192.png",
       "sizes": "192x192",
       "type": "image/png"
     },
     {
-      "src": "/brakefast/assets/icon-512.png",
+      "src": "/assets/icon-512.png",
       "sizes": "512x512",
       "type": "image/png"
     }

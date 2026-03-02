@@ -126,9 +126,9 @@ page_html = f'''<!DOCTYPE html>
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="theme-color" content="#1a1a1a">
   <title>BrakeFast — {today_display}</title>
-  <link rel="stylesheet" href="/brakefast/assets/style.css">
-  <link rel="manifest" href="/brakefast/assets/manifest.json">
-  <link rel="apple-touch-icon" href="/brakefast/assets/icon-192.png">
+  <link rel="stylesheet" href="/assets/style.css">
+  <link rel="manifest" href="/assets/manifest.json">
+  <link rel="apple-touch-icon" href="/assets/icon-192.png">
 </head>
 <body>
 
@@ -157,7 +157,7 @@ page_html = f'''<!DOCTYPE html>
     <div class="footer-logo">Brake<span>Fast</span></div>
     <p>Kuratiert von Otto fuer Gerhard</p>
     <p style="margin-top: 8px;">
-      <a class="archive-link" href="/brakefast/archiv/">Archiv</a>
+      <a class="archive-link" href="/archiv/">Archiv</a>
     </p>
     <p style="margin-top: 12px; font-size: 0.65rem;">
       Ausgabe #{edition_num:0>3} &middot; Generiert am {today_display} um {timestamp}
@@ -166,7 +166,7 @@ page_html = f'''<!DOCTYPE html>
 
   <script>
     if ('serviceWorker' in navigator) {{
-      navigator.serviceWorker.register('/brakefast/assets/sw.js');
+      navigator.serviceWorker.register('/assets/sw.js');
     }}
   </script>
 

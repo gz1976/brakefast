@@ -3,7 +3,7 @@
 # Generates an index page listing all past editions
 set -euo pipefail
 
-EDITIONS_DIR="/docker/brakefast/editions"
+EDITIONS_DIR="/docker/editions"
 ARCHIVE_DIR="${EDITIONS_DIR}/archiv"
 mkdir -p "$ARCHIVE_DIR"
 
@@ -27,7 +27,7 @@ for root, dirs, files in os.walk(editions_dir):
             try:
                 year, month, day = parts
                 editions.append({
-                    'path': f'/brakefast/{rel}/index.html',
+                    'path': f'/{rel}/index.html',
                     'year': year,
                     'month': month,
                     'day': day,
@@ -72,8 +72,8 @@ page_html = f'''<!DOCTYPE html>
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="theme-color" content="#1a1a1a">
   <title>BrakeFast — Archiv</title>
-  <link rel="stylesheet" href="/brakefast/assets/style.css">
-  <link rel="manifest" href="/brakefast/assets/manifest.json">
+  <link rel="stylesheet" href="/assets/style.css">
+  <link rel="manifest" href="/assets/manifest.json">
 </head>
 <body>
 
@@ -82,7 +82,7 @@ page_html = f'''<!DOCTYPE html>
     <div class="masthead-tagline">Archiv</div>
     <div class="masthead-meta">
       <span>{len(editions)} Ausgaben</span>
-      <span><a class="archive-link" href="/brakefast/latest/index.html">Zur aktuellen Ausgabe</a></span>
+      <span><a class="archive-link" href="/latest/index.html">Zur aktuellen Ausgabe</a></span>
     </div>
   </header>
 
