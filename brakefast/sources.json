@@ -1,0 +1,44 @@
+{
+  "categories": [
+    {
+      "id": "ai",
+      "name": "AI & Machine Learning",
+      "emoji": "\ud83e\udd16",
+      "css_class": "category-header--ai",
+      "feeds": [
+        {"url": "https://news.ycombinator.com/rss", "name": "Hacker News", "maxItems": 5},
+        {"url": "https://feeds.arstechnica.com/arstechnica/technology-lab", "name": "Ars Technica", "maxItems": 3},
+        {"url": "https://openai.com/blog/rss.xml", "name": "OpenAI Blog", "maxItems": 2}
+      ]
+    },
+    {
+      "id": "security",
+      "name": "Security",
+      "emoji": "\ud83d\udd12",
+      "css_class": "category-header--security",
+      "feeds": [
+        {"url": "https://krebsonsecurity.com/feed/", "name": "Krebs on Security", "maxItems": 3},
+        {"url": "https://feeds.feedburner.com/TheHackersNews", "name": "The Hacker News", "maxItems": 3},
+        {"url": "https://www.heise.de/security/rss/news-atom.xml", "name": "Heise Security", "maxItems": 3}
+      ]
+    },
+    {
+      "id": "tech",
+      "name": "Tech & Dev",
+      "emoji": "\u26a1",
+      "css_class": "category-header--tech",
+      "feeds": [
+        {"url": "https://www.heise.de/rss/heise-atom.xml", "name": "Heise Online", "maxItems": 3},
+        {"url": "https://techcrunch.com/feed/", "name": "TechCrunch", "maxItems": 3},
+        {"url": "https://github.blog/feed/", "name": "GitHub Blog", "maxItems": 2}
+      ]
+    }
+  ],
+  "settings": {
+    "maxArticlesTotal": 12,
+    "maxArticlesPerCategory": 5,
+    "language": "de",
+    "summaryWords": 200,
+    "timezone": "Europe/Vienna"
+  }
+}

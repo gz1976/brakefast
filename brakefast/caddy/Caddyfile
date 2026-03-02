@@ -1,0 +1,22 @@
+clogzoehrer.ddns.net {
+    root * /srv/brakefast
+    file_server
+
+    handle / {
+        redir /latest/index.html
+    }
+
+    handle /latest/* {
+        file_server
+    }
+
+    handle /* {
+        file_server
+    }
+
+    header {
+        X-Content-Type-Options nosniff
+        X-Frame-Options DENY
+        Referrer-Policy strict-origin-when-cross-origin
+    }
+}
