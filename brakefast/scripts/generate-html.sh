@@ -69,12 +69,29 @@ if not weather_text and weather_fallback:
 def esc(text):
     return html.escape(str(text)) if text else ''
 
-# Build article HTML
+# Badge CSS class mapping
+badge_map = {
+    'category-header--ai': 'article-badge--ai',
+    'category-header--security': 'article-badge--security',
+    'category-header--tech': 'article-badge--tech',
+}
+
+# Collect all articles with their category info for hero selection
+all_articles_flat = []
+for cat_id, cat_data in categories.items():
+    css_class = cat_data.get('css_class', 'category-header--tech')
+    for art in cat_data.get('articles', []):
+        all_articles_flat.append((cat_id, cat_data, css_class, art))
+
+# Build article HTML with hero treatment for first article
 articles_html = ""
+is_first_article = True
+
 for cat_id, cat_data in categories.items():
     cat_name = esc(cat_data.get('name', cat_id))
     cat_emoji = cat_data.get('emoji', '')
     css_class = esc(cat_data.get('css_class', 'category-header--tech'))
+    badge_class = badge_map.get(cat_data.get('css_class', ''), 'article-badge--tech')
     articles = cat_data.get('articles', [])
 
     if not articles:
@@ -83,29 +100,56 @@ for cat_id, cat_data in categories.items():
     articles_html += f'<section class="category">\n'
     articles_html += f'  <div class="category-header {css_class}">{cat_emoji} {cat_name}</div>\n\n'
 
+    grid_articles = []
+
     for art in articles:
         title = esc(art.get('title', 'Ohne Titel'))
         link = esc(art.get('link', '#'))
         source = esc(art.get('source', ''))
         date = esc(art.get('date', ''))
-        # Use summary (curated) or description (raw)
         body = art.get('summary', art.get('description', ''))
         body = esc(body)
 
-        # Estimate reading time (~200 words/min)
         word_count = len(body.split())
         read_time = max(1, round(word_count / 200))
 
-        articles_html += f'''  <article class="article">
+        if is_first_article:
+            # Hero article
+            articles_html += f'''  <article class="article-hero">
+    <div class="article-badge {badge_class}">{cat_emoji} {cat_name}</div>
     <h2 class="article-title"><a href="{link}" target="_blank" rel="noopener">{title}</a></h2>
     <div class="article-meta">
       <span>{source}</span>
       <span>{date}</span>
-      <span>{read_time} Min. Lesezeit</span>
+      <span class="reading-time">{read_time} Min. Lesezeit</span>
     </div>
     <div class="article-body"><p>{body}</p></div>
-    <div class="article-source">Quelle: <a href="{link}" target="_blank" rel="noopener">{source}</a></div>
+    <div class="article-source">
+      <span>{source}</span>
+      <a href="{link}" target="_blank" rel="noopener" class="read-more">Weiterlesen</a>
+    </div>
   </article>\n\n'''
+            is_first_article = False
+        else:
+            grid_articles.append(f'''    <article class="article">
+      <div class="article-badge {badge_class}">{cat_emoji} {cat_name}</div>
+      <h2 class="article-title"><a href="{link}" target="_blank" rel="noopener">{title}</a></h2>
+      <div class="article-meta">
+        <span>{source}</span>
+        <span>{date}</span>
+        <span class="reading-time">{read_time} Min.</span>
+      </div>
+      <div class="article-body"><p>{body}</p></div>
+      <div class="article-source">
+        <span>{source}</span>
+        <a href="{link}" target="_blank" rel="noopener" class="read-more">Weiterlesen</a>
+      </div>
+    </article>''')
+
+    if grid_articles:
+        articles_html += '  <div class="article-grid">\n'
+        articles_html += '\n\n'.join(grid_articles)
+        articles_html += '\n  </div>\n'
 
     articles_html += '</section>\n\n'
 
@@ -114,8 +158,14 @@ weather_html = ''
 if weather_text:
     weather_html = f'''<div class="weather">
     <span class="weather-icon">&#9925;</span>
-    <div>{esc(weather_text)}</div>
+    <div>
+      <div class="weather-temp">{esc(weather_text.split(",")[0].split(":")[1].strip() if ":" in weather_text else weather_text)}</div>
+      <div class="weather-details">{esc(weather_text)}</div>
+    </div>
   </div>'''
+
+# Count total articles
+total_articles = sum(len(c.get('articles', [])) for c in categories.values())
 
 page_html = f'''<!DOCTYPE html>
 <html lang="de">
@@ -124,8 +174,9 @@ page_html = f'''<!DOCTYPE html>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="theme-color" content="#1a1a1a">
-  <title>BrakeFast — {today_display}</title>
+  <meta name="theme-color" content="#0f0f0f" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" content="#f8f7f4" media="(prefers-color-scheme: light)">
+  <title>BrakeFast &mdash; {today_display}</title>
   <link rel="stylesheet" href="/assets/style.css">
   <link rel="manifest" href="/assets/manifest.json">
   <link rel="apple-touch-icon" href="/assets/icon-192.png">
@@ -138,7 +189,7 @@ page_html = f'''<!DOCTYPE html>
     <div class="masthead-meta">
       <span>Ausgabe #{edition_num:0>3}</span>
       <span>{today_display}</span>
-      <span>Wien, Oesterreich</span>
+      <span>{total_articles} Artikel</span>
     </div>
   </header>
 
@@ -155,12 +206,12 @@ page_html = f'''<!DOCTYPE html>
 
   <footer class="footer">
     <div class="footer-logo">Brake<span>Fast</span></div>
-    <p>Kuratiert von Otto fuer Gerhard</p>
-    <p style="margin-top: 8px;">
+    <p class="footer-tagline">Kuratiert von Otto fuer Gerhard</p>
+    <div class="footer-links">
       <a class="archive-link" href="/archiv/">Archiv</a>
-    </p>
-    <p style="margin-top: 12px; font-size: 0.65rem;">
-      Ausgabe #{edition_num:0>3} &middot; Generiert am {today_display} um {timestamp}
+    </div>
+    <p class="footer-edition">
+      Ausgabe #{edition_num:0>3} &middot; {today_display} &middot; {timestamp}
     </p>
   </footer>
 

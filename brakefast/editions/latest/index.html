@@ -5,8 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="theme-color" content="#1a1a1a">
-  <title>BrakeFast — Deine Morgenzeitung</title>
+  <meta name="theme-color" content="#0f0f0f" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" content="#f8f7f4" media="(prefers-color-scheme: light)">
+  <title>BrakeFast &mdash; Deine Morgenzeitung</title>
   <link rel="stylesheet" href="/assets/style.css">
   <link rel="manifest" href="/assets/manifest.json">
   <link rel="apple-touch-icon" href="/assets/icon-192.png">
@@ -19,7 +20,7 @@
     <div class="masthead-meta">
       <span>Ausgabe #001</span>
       <span>2. Maerz 2026</span>
-      <span>Wien, Oesterreich</span>
+      <span>5 Artikel</span>
     </div>
   </header>
 
@@ -28,14 +29,14 @@
     Ab jetzt bekommst du jeden Morgen deine persoenlich kuratierte Zeitung
     mit den wichtigsten Tech-, AI- und Security-News. Lehn dich zurueck,
     trink deinen Kaffee und lass uns loslegen.
-    <span class="editorial-author">— Otto, dein persoenlicher Kurator</span>
+    <span class="editorial-author">&mdash; Otto, dein persoenlicher Kurator</span>
   </div>
 
   <div class="weather">
     <span class="weather-icon">&#9925;</span>
     <div>
-      <span class="weather-temp">7&#176;C</span>
-      <span>Wien — Bewoelkt, leichter Wind</span>
+      <div class="weather-temp">7&#176;C</div>
+      <div class="weather-details">Voitsberg &mdash; Bewoelkt, leichter Wind</div>
     </div>
   </div>
 
@@ -45,122 +46,138 @@
   <section class="category">
     <div class="category-header category-header--ai">&#129302; AI &amp; Machine Learning</div>
 
-    <article class="article">
+    <article class="article-hero">
+      <div class="article-badge article-badge--ai">&#129302; AI &amp; Machine Learning</div>
       <h2 class="article-title">
         <a href="#">Claude 4 setzt neue Massstaebe bei Reasoning-Benchmarks</a>
       </h2>
       <div class="article-meta">
         <span>Ars Technica</span>
         <span>2. Maerz 2026</span>
-        <span>4 Min. Lesezeit</span>
+        <span class="reading-time">4 Min. Lesezeit</span>
       </div>
       <div class="article-body">
         <p>Dies ist ein Platzhalter-Artikel fuer die erste Testausgabe der BrakeFast.
         Sobald die News-Pipeline aktiv ist, werden hier echte, von Otto kuratierte
-        und zusammengefasste Artikel erscheinen.</p>
-        <p>Jeder Artikel wird von Otto aus RSS-Feeds geholt, gelesen und auf Deutsch
-        zusammengefasst — keine bloessen Links, sondern echte Inhalte.</p>
+        und zusammengefasste Artikel erscheinen. Jeder Artikel wird von Otto aus
+        RSS-Feeds geholt, gelesen und auf Deutsch zusammengefasst &mdash; keine bloessen
+        Links, sondern echte Inhalte mit Kontext und Einordnung.</p>
       </div>
       <div class="article-source">
-        Quelle: <a href="#">arstechnica.com</a>
+        <span>Ars Technica</span>
+        <a href="#" class="read-more">Weiterlesen</a>
       </div>
     </article>
 
-    <article class="article">
-      <h2 class="article-title">
-        <a href="#">Open-Source LLM ueberholt GPT-5 in Code-Generation</a>
-      </h2>
-      <div class="article-meta">
-        <span>Hacker News</span>
-        <span>2. Maerz 2026</span>
-        <span>3 Min. Lesezeit</span>
-      </div>
-      <div class="article-body">
-        <p>Ein weiterer Platzhalter-Artikel. Die BrakeFast wird taeglich zwischen
-        8 und 12 Artikel aus den Bereichen AI, Security und Tech enthalten,
-        jeder sorgfaeltig ausgewaehlt und zusammengefasst.</p>
-      </div>
-      <div class="article-source">
-        Quelle: <a href="#">news.ycombinator.com</a>
-      </div>
-    </article>
+    <div class="article-grid">
+      <article class="article">
+        <div class="article-badge article-badge--ai">&#129302; AI</div>
+        <h2 class="article-title">
+          <a href="#">Open-Source LLM ueberholt GPT-5 in Code-Generation</a>
+        </h2>
+        <div class="article-meta">
+          <span>Hacker News</span>
+          <span>2. Maerz 2026</span>
+          <span class="reading-time">3 Min.</span>
+        </div>
+        <div class="article-body">
+          <p>Ein weiterer Platzhalter-Artikel. Die BrakeFast wird taeglich zwischen
+          8 und 12 Artikel aus den Bereichen AI, Security und Tech enthalten,
+          jeder sorgfaeltig ausgewaehlt und zusammengefasst.</p>
+        </div>
+        <div class="article-source">
+          <span>Hacker News</span>
+          <a href="#" class="read-more">Weiterlesen</a>
+        </div>
+      </article>
+    </div>
   </section>
 
   <!-- Security -->
   <section class="category">
     <div class="category-header category-header--security">&#128274; Security</div>
 
-    <article class="article">
-      <h2 class="article-title">
-        <a href="#">Kritische Schwachstelle in OpenSSH entdeckt — Patch verfuegbar</a>
-      </h2>
-      <div class="article-meta">
-        <span>Krebs on Security</span>
-        <span>1. Maerz 2026</span>
-        <span>5 Min. Lesezeit</span>
-      </div>
-      <div class="article-body">
-        <p>Platzhalter fuer Security-News. Otto wird hier taeglich die wichtigsten
-        Sicherheits-Meldungen zusammenfassen, inklusive CVE-Details und
-        konkreter Handlungsempfehlungen fuer deinen VPS.</p>
-      </div>
-      <div class="article-source">
-        Quelle: <a href="#">krebsonsecurity.com</a>
-      </div>
-    </article>
+    <div class="article-grid">
+      <article class="article">
+        <div class="article-badge article-badge--security">&#128274; Security</div>
+        <h2 class="article-title">
+          <a href="#">Kritische Schwachstelle in OpenSSH entdeckt &mdash; Patch verfuegbar</a>
+        </h2>
+        <div class="article-meta">
+          <span>Krebs on Security</span>
+          <span>1. Maerz 2026</span>
+          <span class="reading-time">5 Min.</span>
+        </div>
+        <div class="article-body">
+          <p>Platzhalter fuer Security-News. Otto wird hier taeglich die wichtigsten
+          Sicherheits-Meldungen zusammenfassen, inklusive CVE-Details und
+          konkreter Handlungsempfehlungen fuer deinen VPS.</p>
+        </div>
+        <div class="article-source">
+          <span>Krebs on Security</span>
+          <a href="#" class="read-more">Weiterlesen</a>
+        </div>
+      </article>
 
-    <article class="article">
-      <h2 class="article-title">
-        <a href="#">Ransomware-Gruppe nutzt neue Supply-Chain-Methode</a>
-      </h2>
-      <div class="article-meta">
-        <span>The Hacker News</span>
-        <span>2. Maerz 2026</span>
-        <span>4 Min. Lesezeit</span>
-      </div>
-      <div class="article-body">
-        <p>Dieser Platzhalter zeigt wie Security-Artikel in der BrakeFast
-        aussehen werden. Kompakte Zusammenfassungen mit den wichtigsten
-        Fakten und Links zur Originalquelle.</p>
-      </div>
-      <div class="article-source">
-        Quelle: <a href="#">thehackernews.com</a>
-      </div>
-    </article>
+      <article class="article">
+        <div class="article-badge article-badge--security">&#128274; Security</div>
+        <h2 class="article-title">
+          <a href="#">Ransomware-Gruppe nutzt neue Supply-Chain-Methode</a>
+        </h2>
+        <div class="article-meta">
+          <span>The Hacker News</span>
+          <span>2. Maerz 2026</span>
+          <span class="reading-time">4 Min.</span>
+        </div>
+        <div class="article-body">
+          <p>Dieser Platzhalter zeigt wie Security-Artikel in der BrakeFast
+          aussehen werden. Kompakte Zusammenfassungen mit den wichtigsten
+          Fakten und Links zur Originalquelle.</p>
+        </div>
+        <div class="article-source">
+          <span>The Hacker News</span>
+          <a href="#" class="read-more">Weiterlesen</a>
+        </div>
+      </article>
+    </div>
   </section>
 
   <!-- Tech & Dev -->
   <section class="category">
     <div class="category-header category-header--tech">&#9889; Tech &amp; Dev</div>
 
-    <article class="article">
-      <h2 class="article-title">
-        <a href="#">Docker Desktop 5.0 bringt native GPU-Unterstuetzung</a>
-      </h2>
-      <div class="article-meta">
-        <span>Heise Online</span>
-        <span>2. Maerz 2026</span>
-        <span>3 Min. Lesezeit</span>
-      </div>
-      <div class="article-body">
-        <p>Tech-News Platzhalter. Von Docker-Updates ueber neue Frameworks
-        bis hin zu GitHub-Releases — hier findest du alles was fuer
-        deinen Dev-Alltag relevant ist.</p>
-      </div>
-      <div class="article-source">
-        Quelle: <a href="#">heise.de</a>
-      </div>
-    </article>
+    <div class="article-grid">
+      <article class="article">
+        <div class="article-badge article-badge--tech">&#9889; Tech</div>
+        <h2 class="article-title">
+          <a href="#">Docker Desktop 5.0 bringt native GPU-Unterstuetzung</a>
+        </h2>
+        <div class="article-meta">
+          <span>Heise Online</span>
+          <span>2. Maerz 2026</span>
+          <span class="reading-time">3 Min.</span>
+        </div>
+        <div class="article-body">
+          <p>Tech-News Platzhalter. Von Docker-Updates ueber neue Frameworks
+          bis hin zu GitHub-Releases &mdash; hier findest du alles was fuer
+          deinen Dev-Alltag relevant ist.</p>
+        </div>
+        <div class="article-source">
+          <span>Heise Online</span>
+          <a href="#" class="read-more">Weiterlesen</a>
+        </div>
+      </article>
+    </div>
   </section>
 
   <footer class="footer">
     <div class="footer-logo">Brake<span>Fast</span></div>
-    <p>Kuratiert von Otto fuer Gerhard</p>
-    <p style="margin-top: 8px;">
+    <p class="footer-tagline">Kuratiert von Otto fuer Gerhard</p>
+    <div class="footer-links">
       <a class="archive-link" href="/archiv/">Archiv</a>
-    </p>
-    <p style="margin-top: 12px; font-size: 0.65rem;">
-      Ausgabe #001 &middot; Generiert am 2. Maerz 2026 um 06:15 MEZ
+    </div>
+    <p class="footer-edition">
+      Ausgabe #001 &middot; 2. Maerz 2026 &middot; 06:15 MEZ
     </p>
   </footer>
 

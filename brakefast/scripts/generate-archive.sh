@@ -48,6 +48,9 @@ for e in editions:
         months[key] = []
     months[key].append(e)
 
+# Day of week names for display
+day_names = {0: 'Mo', 1: 'Di', 2: 'Mi', 3: 'Do', 4: 'Fr', 5: 'Sa', 6: 'So'}
+
 # Build HTML
 archive_items = ""
 for month_key in sorted(months.keys(), reverse=True):
@@ -58,10 +61,16 @@ for month_key in sorted(months.keys(), reverse=True):
         '09': 'September', '10': 'Oktober', '11': 'November', '12': 'Dezember'
     }
     month_name = month_names.get(month, month)
-    archive_items += f'<h3 style="margin-top: 24px; font-family: var(--font-sans); color: var(--text-muted);">{month_name} {year}</h3>\n'
-    archive_items += '<ul class="archive-list">\n'
+    archive_items += f'<h3 class="archive-month-title">{month_name} {year}</h3>\n'
+    archive_items += '<ul class="archive-list archive-grid">\n'
     for e in months[month_key]:
-        archive_items += f'  <li><a href="{e["path"]}">{e["display"]}</a></li>\n'
+        from datetime import date
+        try:
+            d = date(int(e['year']), int(e['month']), int(e['day']))
+            weekday = day_names.get(d.weekday(), '')
+            archive_items += f'  <li><a href="{e["path"]}">{weekday}, {e["display"]}</a></li>\n'
+        except:
+            archive_items += f'  <li><a href="{e["path"]}">{e["display"]}</a></li>\n'
     archive_items += '</ul>\n'
 
 page_html = f'''<!DOCTYPE html>
@@ -70,8 +79,9 @@ page_html = f'''<!DOCTYPE html>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="theme-color" content="#1a1a1a">
-  <title>BrakeFast — Archiv</title>
+  <meta name="theme-color" content="#0f0f0f" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" content="#f8f7f4" media="(prefers-color-scheme: light)">
+  <title>BrakeFast &mdash; Archiv</title>
   <link rel="stylesheet" href="/assets/style.css">
   <link rel="manifest" href="/assets/manifest.json">
 </head>
@@ -82,9 +92,15 @@ page_html = f'''<!DOCTYPE html>
     <div class="masthead-tagline">Archiv</div>
     <div class="masthead-meta">
       <span>{len(editions)} Ausgaben</span>
-      <span><a class="archive-link" href="/latest/index.html">Zur aktuellen Ausgabe</a></span>
     </div>
   </header>
+
+  <div class="editorial">
+    Alle bisherigen Ausgaben der BrakeFast auf einen Blick.
+    <span class="editorial-author">
+      <a class="archive-link" href="/latest/index.html">Zur aktuellen Ausgabe &rarr;</a>
+    </span>
+  </div>
 
   <hr class="divider divider-thick">
 
@@ -92,7 +108,10 @@ page_html = f'''<!DOCTYPE html>
 
   <footer class="footer">
     <div class="footer-logo">Brake<span>Fast</span></div>
-    <p>Kuratiert von Otto fuer Gerhard</p>
+    <p class="footer-tagline">Kuratiert von Otto fuer Gerhard</p>
+    <div class="footer-links">
+      <a class="archive-link" href="/latest/index.html">Aktuelle Ausgabe</a>
+    </div>
   </footer>
 
 </body>
