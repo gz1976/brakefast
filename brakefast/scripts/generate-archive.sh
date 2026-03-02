@@ -3,7 +3,7 @@
 # Generates an index page listing all past editions
 set -euo pipefail
 
-EDITIONS_DIR="/docker/editions"
+EDITIONS_DIR="/docker/brakefast/editions"
 ARCHIVE_DIR="${EDITIONS_DIR}/archiv"
 mkdir -p "$ARCHIVE_DIR"
 

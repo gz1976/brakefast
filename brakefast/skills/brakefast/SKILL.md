@@ -63,7 +63,7 @@ Wenn du aufgefordert wirst die BrakeFast zu generieren:
    ```
 
 6. Sende Telegram-Benachrichtigung:
-   "Guten Morgen! Deine BrakeFast ist fertig: https://clogzoehrer.ddns.net/latest/index.html"
+   "Guten Morgen! Deine BrakeFast ist fertig: https://ottobot.net/latest/index.html"
 
 ### Manueller Modus
 

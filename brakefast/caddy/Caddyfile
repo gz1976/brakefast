@@ -1,4 +1,4 @@
-clogzoehrer.ddns.net {
+ottobot.net {
     root * /srv/brakefast
     file_server
 

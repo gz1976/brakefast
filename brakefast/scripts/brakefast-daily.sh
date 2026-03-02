@@ -59,4 +59,4 @@ find "$EDITIONS_DIR" -mindepth 1 -maxdepth 3 -type d -empty -delete 2>/dev/null 
 log "Step 5: Done"
 
 log "=== BrakeFast Daily Pipeline Complete ==="
-log "Edition available at: https://clogzoehrer.ddns.net/brakefast/latest/index.html"
+log "Edition available at: https://ottobot.net/latest/index.html"
