@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import type { NewspaperData } from '../types';
 
 interface Props {
@@ -7,6 +7,21 @@ interface Props {
 
 export function HeroBriefing({ data }: Props) {
   const [calendarRevealed, setCalendarRevealed] = useState(false);
+  const pressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const startPress = useCallback(() => {
+    pressTimer.current = setTimeout(() => {
+      setCalendarRevealed(prev => !prev);
+    }, 5000);
+  }, []);
+
+  const cancelPress = useCallback(() => {
+    if (pressTimer.current) {
+      clearTimeout(pressTimer.current);
+      pressTimer.current = null;
+    }
+  }, []);
+
   const weather = data.widgets?.weather;
   const dayInfo = data.widgets?.dayInfo;
   const calendar = data.widgets?.calendar || [];
@@ -94,7 +109,11 @@ export function HeroBriefing({ data }: Props) {
         >
           <div
             className="status-card-icon status-card-icon-tap"
-            onClick={() => setCalendarRevealed(!calendarRevealed)}
+            onMouseDown={startPress}
+            onMouseUp={cancelPress}
+            onMouseLeave={cancelPress}
+            onTouchStart={startPress}
+            onTouchEnd={cancelPress}
           >📅</div>
           <div className="status-card-label">Termine</div>
           <div className="status-card-value">
