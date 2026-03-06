@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import type { NewspaperData } from '../types';
 
 interface Props {
@@ -5,6 +6,7 @@ interface Props {
 }
 
 export function HeroBriefing({ data }: Props) {
+  const [calendarRevealed, setCalendarRevealed] = useState(false);
   const weather = data.widgets?.weather;
   const dayInfo = data.widgets?.dayInfo;
   const calendar = data.widgets?.calendar || [];
@@ -86,15 +88,20 @@ export function HeroBriefing({ data }: Props) {
           )}
         </div>
 
-        {/* 3. Termine — grün */}
-        <div className="status-card status-card-calendar">
-          <div className="status-card-icon">📅</div>
+        {/* 3. Termine — grün (blur privacy, hidden tap on icon) */}
+        <div
+          className={`status-card status-card-calendar${calendarRevealed ? '' : ' status-card-blurred'}`}
+        >
+          <div
+            className="status-card-icon status-card-icon-tap"
+            onClick={() => setCalendarRevealed(!calendarRevealed)}
+          >📅</div>
           <div className="status-card-label">Termine</div>
           <div className="status-card-value">
             {calendarCount > 0 ? `${calendarCount} heute` : 'Freier Tag'}
           </div>
           {calendar.length > 0 ? (
-            <div className="status-card-list">
+            <div className="status-card-list calendar-blur-target">
               {calendar.map((ev, i) => (
                 <div key={i} className="status-card-list-item">
                   <span className="status-card-list-time">{ev.time}</span>

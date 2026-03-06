@@ -416,6 +416,25 @@ a { color: inherit; text-decoration: none; }
   margin-top: 2px;
 }
 
+/* ─── Calendar Blur Privacy ─── */
+.status-card-blurred .calendar-blur-target {
+  filter: blur(6px);
+  user-select: none;
+  transition: filter 0.3s ease;
+}
+.status-card-blurred .status-card-value {
+  filter: blur(4px);
+  transition: filter 0.3s ease;
+}
+.status-card-calendar:not(.status-card-blurred) .calendar-blur-target,
+.status-card-calendar:not(.status-card-blurred) .status-card-value {
+  filter: none;
+  transition: filter 0.3s ease;
+}
+.status-card-icon-tap {
+  cursor: pointer;
+}
+
 .status-card-quote {
   font-size: 14px;
   font-style: italic;
