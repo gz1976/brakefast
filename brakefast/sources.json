@@ -7,8 +7,10 @@
       "css_class": "category-header--ai",
       "feeds": [
         {"url": "https://news.ycombinator.com/rss", "name": "Hacker News", "maxItems": 5},
-        {"url": "https://feeds.arstechnica.com/arstechnica/technology-lab", "name": "Ars Technica", "maxItems": 3},
-        {"url": "https://openai.com/blog/rss.xml", "name": "OpenAI Blog", "maxItems": 2}
+        {"url": "https://feeds.arstechnica.com/arstechnica/technology-lab", "name": "Ars Technica", "maxItems": 4},
+        {"url": "https://openai.com/blog/rss.xml", "name": "OpenAI Blog", "maxItems": 3},
+        {"url": "https://ai.meta.com/blog/rss/", "name": "Meta AI Blog", "maxItems": 3},
+        {"url": "https://blog.google/technology/ai/rss/", "name": "Google AI Blog", "maxItems": 3}
       ]
     },
     {
@@ -18,8 +20,9 @@
       "css_class": "category-header--security",
       "feeds": [
         {"url": "https://krebsonsecurity.com/feed/", "name": "Krebs on Security", "maxItems": 3},
-        {"url": "https://feeds.feedburner.com/TheHackersNews", "name": "The Hacker News", "maxItems": 3},
-        {"url": "https://www.heise.de/security/rss/news-atom.xml", "name": "Heise Security", "maxItems": 3}
+        {"url": "https://feeds.feedburner.com/TheHackersNews", "name": "The Hacker News", "maxItems": 4},
+        {"url": "https://www.heise.de/security/rss/news-atom.xml", "name": "Heise Security", "maxItems": 4},
+        {"url": "https://www.bleepingcomputer.com/feed/", "name": "BleepingComputer", "maxItems": 3}
       ]
     },
     {
@@ -28,15 +31,51 @@
       "emoji": "\u26a1",
       "css_class": "category-header--tech",
       "feeds": [
-        {"url": "https://www.heise.de/rss/heise-atom.xml", "name": "Heise Online", "maxItems": 3},
-        {"url": "https://techcrunch.com/feed/", "name": "TechCrunch", "maxItems": 3},
-        {"url": "https://github.blog/feed/", "name": "GitHub Blog", "maxItems": 2}
+        {"url": "https://www.heise.de/rss/heise-atom.xml", "name": "Heise Online", "maxItems": 4},
+        {"url": "https://techcrunch.com/feed/", "name": "TechCrunch", "maxItems": 4},
+        {"url": "https://github.blog/feed/", "name": "GitHub Blog", "maxItems": 3}
+      ]
+    },
+    {
+      "id": "ev",
+      "name": "Elektromobilität",
+      "emoji": "\u26a1",
+      "css_class": "category-header--ev",
+      "feeds": [
+        {"url": "https://teslamag.de/feed", "name": "Teslamag", "maxItems": 4},
+        {"url": "https://www.elektroauto-news.net/feed", "name": "Elektroauto News", "maxItems": 4},
+        {"url": "https://ecomento.de/feed/", "name": "Ecomento", "maxItems": 3},
+        {"url": "https://insideevs.com/rss/news/", "name": "InsideEVs", "maxItems": 3},
+        {"url": "https://electrek.co/feed/", "name": "Electrek", "maxItems": 3}
+      ]
+    },
+    {
+      "id": "world",
+      "name": "Welt & Politik",
+      "emoji": "\ud83c\udf0d",
+      "css_class": "category-header--world",
+      "feeds": [
+        {"url": "https://www.derstandard.at/rss", "name": "Der Standard", "maxItems": 4},
+        {"url": "https://rss.orf.at/news.xml", "name": "ORF News", "maxItems": 4},
+        {"url": "https://feeds.reuters.com/reuters/topNews", "name": "Reuters", "maxItems": 3},
+        {"url": "https://www.handelsblatt.com/contentexport/feed/top", "name": "Handelsblatt", "maxItems": 3}
+      ]
+    },
+    {
+      "id": "local",
+      "name": "Steiermark & Lokal",
+      "emoji": "\ud83c\udfd4",
+      "css_class": "category-header--local",
+      "feeds": [
+        {"url": "https://www.kleinezeitung.at/rss/steiermark", "name": "Kleine Zeitung", "maxItems": 5},
+        {"url": "https://steiermark.orf.at/rss/news.xml", "name": "ORF Steiermark", "maxItems": 4},
+        {"url": "https://www.wko.at/stmk/rss", "name": "WKO Steiermark", "maxItems": 3}
       ]
     }
   ],
   "settings": {
-    "maxArticlesTotal": 12,
-    "maxArticlesPerCategory": 5,
+    "maxArticlesTotal": 42,
+    "maxArticlesPerCategory": 8,
     "language": "de",
     "summaryWords": 200,
     "timezone": "Europe/Vienna"

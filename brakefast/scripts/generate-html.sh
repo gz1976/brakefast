@@ -6,7 +6,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 BRAKEFAST_DIR="$(dirname "$SCRIPT_DIR")"
 OUTPUT_DIR="${BRAKEFAST_DIR}/output"
-EDITIONS_DIR="/docker/brakefast/editions"
+EDITIONS_DIR="/data/brakefast-public/editions"
 
 # Use curated articles if available, otherwise fall back to raw
 INPUT_FILE="${OUTPUT_DIR}/curated-articles.json"
@@ -25,6 +25,7 @@ EDITION_DIR="${EDITIONS_DIR}/${TODAY}"
 EDITION_NUM=$(find "$EDITIONS_DIR" -name "index.html" -path "*/????/??/??/*" 2>/dev/null | wc -l | tr -d ' ')
 EDITION_NUM=$((EDITION_NUM + 1))
 TIMESTAMP=$(date +"%H:%M MEZ")
+CACHE_BUST=$(date +%s)
 
 mkdir -p "$EDITION_DIR"
 
@@ -38,7 +39,7 @@ if ! grep -q '"weather"' "$INPUT_FILE" 2>/dev/null || grep -q '"weather": ""' "$
 fi
 
 # Generate HTML from JSON using Python
-python3 - "$INPUT_FILE" "$EDITION_DIR/index.html" "$TODAY_DISPLAY" "$EDITION_NUM" "$TIMESTAMP" "$WEATHER_JSON" << 'PYTHON_SCRIPT'
+python3 - "$INPUT_FILE" "$EDITION_DIR/index.html" "$TODAY_DISPLAY" "$EDITION_NUM" "$TIMESTAMP" "$WEATHER_JSON" "$CACHE_BUST" << 'PYTHON_SCRIPT'
 import sys
 import json
 import html
@@ -49,6 +50,7 @@ today_display = sys.argv[3]
 edition_num = sys.argv[4]
 timestamp = sys.argv[5]
 weather_fallback = sys.argv[6] if len(sys.argv) > 6 else ''
+cache_bust = sys.argv[7] if len(sys.argv) > 7 else ''
 
 with open(input_file, 'r') as f:
     data = json.load(f)
@@ -177,7 +179,7 @@ page_html = f'''<!DOCTYPE html>
   <meta name="theme-color" content="#0f0f0f" media="(prefers-color-scheme: dark)">
   <meta name="theme-color" content="#f8f7f4" media="(prefers-color-scheme: light)">
   <title>BrakeFast &mdash; {today_display}</title>
-  <link rel="stylesheet" href="/assets/style.css">
+  <link rel="stylesheet" href="/assets/style.css?v={cache_bust}">
   <link rel="manifest" href="/assets/manifest.json">
   <link rel="apple-touch-icon" href="/assets/icon-192.png">
 </head>

@@ -1,0 +1,294 @@
+{
+  "generated": "2026-03-04T05:30:00Z",
+  "totalArticles": 18,
+  "edition_number": 312,
+  "reading_time_total": 8,
+  "editorial": "Guten Morgen Gerhard! Heute ein besonders dicker Fisch: LLMs können pseudonyme Nutzer enttarnen – das hat direkte Implikationen für Privacy in deinen Projekten. Dazu frische Security-Warnungen, Googles Versuch HTTPS quantum-sicher zu machen, und ein Blick auf die Steiermark-Wirtschaft. Viel Spaß beim Lesen!",
+  "weather": "Voitsberg: +3°C, bedeckt",
+  "widgets": {
+    "weather": {
+      "temp": 3,
+      "description": "Bedeckt, leichter Wind",
+      "feelsLike": -1,
+      "min": 1,
+      "max": 8,
+      "icon": "⛅",
+      "location": "Voitsberg"
+    },
+    "dayInfo": {
+      "namenstag": "Kunigunde",
+      "sunrise": "06:40",
+      "sunset": "17:55",
+      "dayLength": "11h 15m"
+    },
+    "calendar": [
+      { "time": "09:00", "title": "Daily Standup" },
+      { "time": "11:30", "title": "Sprint Review" },
+      { "time": "14:00", "title": "1:1 mit Thomas" },
+      { "time": "16:00", "title": "Architektur-Meeting" }
+    ],
+    "quote": {
+      "text": "The best time to plant a tree was 20 years ago. The second best time is now.",
+      "author": "Chinesisches Sprichwort"
+    },
+    "vps": {
+      "disk": "21% von 96 GB",
+      "uptime": "99.9%",
+      "containers": 3,
+      "lastAudit": "vor 2 Tagen"
+    }
+  },
+  "categories": {
+    "ai": {
+      "name": "AI & Machine Learning",
+      "emoji": "🤖",
+      "css_class": "category-header--ai",
+      "articles": [
+        {
+          "title": "LLMs können pseudonyme Nutzer mit überraschender Genauigkeit enttarnen",
+          "link": "https://arstechnica.com/llm-deanonymization",
+          "source": "Ars Technica",
+          "date": "4. März 2026",
+          "image": "https://picsum.photos/seed/llm-privacy/800/500",
+          "description": "Forschende haben herausgefunden, dass Large Language Models in der Lage sind, pseudonyme Accounts über verschiedene Plattformen hinweg zu identifizieren.",
+          "summary": "Forschende haben herausgefunden, dass Large Language Models in der Lage sind, pseudonyme Accounts über verschiedene Plattformen hinweg zu identifizieren. Die Studie zeigt, dass Schreibstil-Analyse durch LLMs eine ernsthafte Bedrohung für die Online-Privatsphäre darstellt.",
+          "reading_time_minutes": 3,
+          "relevance_score": 0.98
+        },
+        {
+          "title": "OpenAI veröffentlicht GPT-5.3 Instant mit verbesserten Alltagsgesprächen",
+          "link": "https://openai.com/blog/gpt53",
+          "source": "OpenAI Blog",
+          "date": "3. März 2026",
+          "image": "https://picsum.photos/seed/gpt53/800/500",
+          "description": "OpenAI stellt GPT-5.3 Instant vor, das speziell für natürliche Konversationen optimiert wurde.",
+          "reading_time_minutes": 1,
+          "relevance_score": 0.82
+        },
+        {
+          "title": "Meta veröffentlicht Llama 4 Scout als Open Source",
+          "link": "https://ai.meta.com/llama4",
+          "source": "Meta AI Blog",
+          "date": "3. März 2026",
+          "image": "https://picsum.photos/seed/llama4/800/500",
+          "description": "Meta hat Llama 4 Scout mit 17B Parametern als Open-Source-Modell veröffentlicht. Das Modell erreicht beeindruckende Benchmark-Ergebnisse bei deutlich geringerem Ressourcenverbrauch.",
+          "reading_time_minutes": 2,
+          "relevance_score": 0.85
+        }
+      ]
+    },
+    "security": {
+      "name": "Security",
+      "emoji": "🔒",
+      "css_class": "category-header--security",
+      "articles": [
+        {
+          "title": "Google quantensichert HTTPS durch clevere Mathematik",
+          "link": "https://arstechnica.com/quantum-https",
+          "source": "Ars Technica",
+          "date": "4. März 2026",
+          "image": "https://picsum.photos/seed/quantum-https/800/500",
+          "description": "Google implementiert einen neuen post-quantum-sicheren Algorithmus für TLS-Verbindungen. Der Ansatz kombiniert klassische und quantenresistente Kryptografie.",
+          "reading_time_minutes": 2,
+          "relevance_score": 0.92
+        },
+        {
+          "title": "Starkiller: Neue Phishing-as-a-Service Plattform umgeht MFA",
+          "link": "https://krebsonsecurity.com/starkiller",
+          "source": "Krebs on Security",
+          "date": "4. März 2026",
+          "image": "https://picsum.photos/seed/starkiller/800/500",
+          "description": "Eine neue Phishing-as-a-Service-Plattform setzt auf einen besonders tückischen Ansatz: Statt gefälschter Login-Seiten werden die echten Seiten proxied.",
+          "reading_time_minutes": 1,
+          "relevance_score": 0.78
+        },
+        {
+          "title": "Regierungs-Hacking-Tools für iPhones jetzt bei Cyberkriminellen",
+          "link": "https://techcrunch.com/gov-hacking-tools",
+          "source": "TechCrunch",
+          "date": "3. März 2026",
+          "image": "https://picsum.photos/seed/gov-hacking/800/500",
+          "description": "Sicherheitsforscher warnen vor einem wachsenden Markt für Secondhand-Exploits: Hacking-Werkzeuge, die ursprünglich für staatliche Akteure entwickelt wurden.",
+          "reading_time_minutes": 1,
+          "relevance_score": 0.75
+        }
+      ]
+    },
+    "tech": {
+      "name": "Tech & Dev",
+      "emoji": "⚡",
+      "css_class": "category-header--tech",
+      "articles": [
+        {
+          "title": "Motorola-Geräte werden bootloader-frei für GrapheneOS",
+          "link": "https://news.ycombinator.com/motorola-graphene",
+          "source": "Hacker News",
+          "date": "4. März 2026",
+          "image": "https://picsum.photos/seed/grapheneos/800/500",
+          "description": "Motorola hat angekündigt, den Bootloader bei ausgewählten Geräten vollständig zu entsperren, was die Installation von GrapheneOS deutlich vereinfacht.",
+          "reading_time_minutes": 1,
+          "relevance_score": 0.88
+        }
+      ]
+    },
+    "world": {
+      "name": "Welt & Politik",
+      "emoji": "🌍",
+      "css_class": "category-header--world",
+      "articles": [
+        {
+          "title": "EU verschärft KI-Regulierung – neue Pflichten für Unternehmen ab Juli",
+          "link": "https://reuters.com/eu-ki-regulierung",
+          "source": "Reuters",
+          "date": "4. März 2026",
+          "reading_time_minutes": 2,
+          "description": "Die EU hat neue Regeln für den Einsatz von KI in Unternehmen beschlossen."
+        },
+        {
+          "title": "Globaler Chip-Engpass: TSMC kündigt neue Fabrik in Dresden an",
+          "link": "https://handelsblatt.com/tsmc-dresden",
+          "source": "Handelsblatt",
+          "date": "4. März 2026",
+          "reading_time_minutes": 3,
+          "description": "TSMC plant eine weitere Chipfabrik in Sachsen."
+        },
+        {
+          "title": "Klimagipfel: Industriestaaten einigen sich auf CO₂-Bepreisung",
+          "link": "https://derstandard.at/klimagipfel",
+          "source": "Der Standard",
+          "date": "3. März 2026",
+          "reading_time_minutes": 2,
+          "description": "Durchbruch beim Klimagipfel: Erstmals einigen sich alle G20-Staaten auf einen Mindestpreis."
+        },
+        {
+          "title": "US-Wahl 2026: Midterm-Prognosen verschieben sich deutlich",
+          "link": "https://apnews.com/midterms-2026",
+          "source": "AP News",
+          "date": "3. März 2026",
+          "reading_time_minutes": 2,
+          "description": "Neue Umfragedaten deuten auf einen möglichen Umschwung bei den US-Midterm-Wahlen hin."
+        }
+      ]
+    },
+    "local": {
+      "name": "Steiermark & Lokal",
+      "emoji": "🏔",
+      "css_class": "category-header--local",
+      "articles": [
+        {
+          "title": "Grazer Tech-Hub: Neues Startup-Zentrum eröffnet am Joanneumring",
+          "link": "https://kleinezeitung.at/graz-tech-hub",
+          "source": "Kleine Zeitung",
+          "date": "4. März 2026",
+          "image": "https://picsum.photos/seed/graz-tech/800/500",
+          "reading_time_minutes": 2,
+          "description": "Am Grazer Joanneumring eröffnet ein neues Startup-Zentrum mit Fokus auf KI und Green Tech."
+        },
+        {
+          "title": "Voitsberg: Radweg-Ausbau startet nächste Woche",
+          "link": "https://kleinezeitung.at/voitsberg-radweg",
+          "source": "Kleine Zeitung",
+          "date": "4. März 2026",
+          "reading_time_minutes": 1,
+          "description": "Der lang geplante Radweg zwischen Voitsberg und Bärnbach wird endlich gebaut."
+        },
+        {
+          "title": "S-Bahn Steiermark: Neue Taktung ab April",
+          "link": "https://orf.at/steiermark/sbahn",
+          "source": "ORF Steiermark",
+          "date": "3. März 2026",
+          "reading_time_minutes": 1,
+          "description": "Ab April fahren S-Bahnen im 15-Minuten-Takt zwischen Graz und den Umlandgemeinden."
+        },
+        {
+          "title": "Wirtschaft: Steirische Industrie verzeichnet Auftragsplus",
+          "link": "https://wko.at/steiermark/auftraege",
+          "source": "WKO Steiermark",
+          "date": "3. März 2026",
+          "reading_time_minutes": 2,
+          "description": "Die steirische Industrie meldet ein Auftragsplus von 8% gegenüber dem Vorjahr."
+        }
+      ]
+    }
+  },
+  "markets": {
+    "indices": [
+      { "symbol": "DAX", "label": "DAX", "value": "18.456", "change": "-0.2%" },
+      { "symbol": "NASDAQ", "label": "NASDAQ FUT.", "value": "17.891", "change": "+0.1%" },
+      { "symbol": "BTC", "label": "BTC", "value": "87.340", "change": "+1.2%" },
+      { "symbol": "EURUSD", "label": "EUR/USD", "value": "1.089", "change": "" },
+      { "symbol": "GOLD", "label": "GOLD", "value": "2.178", "change": "+0.4%" },
+      { "symbol": "VIX", "label": "VIX", "value": "14.8", "change": "" }
+    ],
+    "insights": [
+      { "text": "Makro heute: US-Daten könnten Richtung und Volatilität setzen" },
+      { "text": "Overnight: Krypto fester, Aktien zunächst ohne klaren Impuls" },
+      { "text": "Watchlist: Tesla, Nasdaq, BTC und EUR/USD mit Blick auf Momentum" }
+    ],
+    "updated": "06:42",
+    "mood": "leicht nervös",
+    "mood_detail": "BTC stark, Futures ruhig"
+  },
+  "focus_topics": ["AI", "Märkte", "Lokal"],
+  "reminders": ["Sprint Review um 11:30", "1:1 mit Thomas um 14:00"],
+  "ki_modelle": {
+    "releases": {
+      "title": "Claude 4.5 Opus",
+      "content": "<strong>Claude 4.5 Opus</strong> — Erweitertes Reasoning, 200k Context. Anthropic betont verbesserte Agentic Coding Fähigkeiten und höhere Benchmark-Scores.",
+      "source": "Anthropic Blog",
+      "date": "vor 2 Tagen",
+      "tag": "Modell"
+    },
+    "benchmarks": {
+      "title": "Chatbot Arena Leaderboard",
+      "content": "<strong>Chatbot Arena Leaderboard:</strong> #1 GPT-5 (1341) · #2 Claude 4.5 Opus (1328) · #3 Gemini 2.5 Pro (1302) · #4 Llama 4 Maverick (1261)",
+      "source": "lmsys.org",
+      "date": "Aktualisiert heute",
+      "tag": "Ranking"
+    },
+    "pricing": {
+      "title": "API-Preisänderungen",
+      "content": "<strong>OpenAI</strong> senkt GPT-4o Preise um 30% auf $1.75/1M Input Tokens. <strong>Google</strong> macht Gemini 2.5 Flash kostenlos bis 500 req/Tag.",
+      "source": "Offizielle Pricing-Seiten",
+      "date": "diese Woche",
+      "tag": "API"
+    },
+    "tools": {
+      "title": "Neue Tools & Features",
+      "content": "<strong>Anthropic:</strong> Claude Code mit MCP-Support und Hooks. <strong>Meta:</strong> Llama 4 Scout jetzt auf HuggingFace mit 17B Parametern, Apache 2.0.",
+      "source": "GitHub / HuggingFace",
+      "date": "vor 1 Tag",
+      "tag": "Update"
+    }
+  },
+  "dev_digest": {
+    "github_trending": {
+      "title": "anthropics/claude-code",
+      "content": "anthropics/claude-code – CLI-Tool für agentic coding mit Claude. 2.4k Stars heute.",
+      "source": "⭐ 48.2k · 🍴 3.1k · TypeScript",
+      "date": "heute",
+      "tag": "Repo"
+    },
+    "releases": {
+      "title": "Node.js v22.4.0 LTS",
+      "content": "Node.js v22.4.0 LTS veröffentlicht mit verbessertem ESM-Support und Performance-Fixes.",
+      "source": "nodejs/node",
+      "date": "vor 6 Stunden",
+      "tag": "Update"
+    },
+    "hn_top": {
+      "title": "Docker zu Podman",
+      "content": "Warum ich nach 10 Jahren von Docker zu Podman gewechselt bin - 847 Punkte.",
+      "source": "news.ycombinator.com · 342 Kommentare",
+      "date": "heute",
+      "tag": "Diskussion"
+    },
+    "security_advisory": {
+      "title": "OpenSSL 3.2.x CVE",
+      "content": "Kritische Schwachstelle in OpenSSL 3.2.x – Update auf 3.2.3 empfohlen (CVSS 9.1).",
+      "source": "nvd.nist.gov",
+      "date": "Kritisch",
+      "tag": "CVE"
+    }
+  }
+}
