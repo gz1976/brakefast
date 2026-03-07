@@ -1,5 +1,5 @@
-import { useState, useRef, useCallback, useMemo } from 'react';
-import type { NewspaperData, Article } from '../types';
+import { useState } from 'react';
+import type { NewspaperData, HistoryFact } from '../types';
 
 interface Props {
   data: NewspaperData;
@@ -7,38 +7,18 @@ interface Props {
 
 export function HeroBriefing({ data }: Props) {
   const [calendarRevealed, setCalendarRevealed] = useState(false);
-  const pressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  const startPress = useCallback(() => {
-    pressTimer.current = setTimeout(() => {
-      setCalendarRevealed(prev => !prev);
-    }, 5000);
-  }, []);
-
-  const cancelPress = useCallback(() => {
-    if (pressTimer.current) {
-      clearTimeout(pressTimer.current);
-      pressTimer.current = null;
-    }
-  }, []);
 
   const weather = data.widgets?.weather;
   const dayInfo = data.widgets?.dayInfo;
   const calendar = data.widgets?.calendar || [];
   const calendarCount = calendar.length;
-  const bauernregel = data.widgets?.bauernregel;
+  const headlines = data.morning_tiles?.headlines || [];
 
-  // Find best reading recommendation: highest relevance_score across all categories
-  const topArticle = useMemo<Article | null>(() => {
-    const allArticles: Article[] = [];
-    for (const cat of Object.values(data.categories)) {
-      if (cat?.articles) allArticles.push(...cat.articles);
-    }
-    if (allArticles.length === 0) return null;
-    return allArticles.reduce((best, a) =>
-      (a.relevance_score ?? 0) > (best.relevance_score ?? 0) ? a : best
-    , allArticles[0]);
-  }, [data.categories]);
+  // Normalize history: single object or array
+  const historyRaw = data.widgets?.history;
+  const historyFacts: HistoryFact[] = Array.isArray(historyRaw)
+    ? historyRaw
+    : historyRaw ? [historyRaw] : [];
 
   return (
     <section className="hero-briefing" id="top-stories">
@@ -53,19 +33,23 @@ export function HeroBriefing({ data }: Props) {
           )}
         </div>
 
-        {/* Leseempfehlung */}
-        {topArticle && (
-          <div className="reading-rec">
-            <div className="reading-rec-header">
-              <span className="reading-rec-icon">📖</span>
-              <span className="reading-rec-title">Leseempfehlung</span>
+        {/* Schlagzeilen — 3 in 30 Sekunden */}
+        {headlines.length > 0 && (
+          <div className="headlines-30s">
+            <div className="headlines-30s-header">
+              <span className="headlines-30s-icon">📰</span>
+              <span className="headlines-30s-title">Schlagzeilen — 3 in 30 Sekunden</span>
             </div>
-            <div className="reading-rec-text">
-              „{topArticle.title}"
-              {topArticle.source && (
-                <span className="reading-rec-source"> — {topArticle.source}</span>
-              )}
-            </div>
+            <ul className="headlines-30s-list">
+              {headlines.slice(0, 3).map((h, i) => (
+                <li key={i} className="headlines-30s-item">
+                  <span className="headlines-30s-text">{h.text}</span>
+                  {h.source && (
+                    <span className="headlines-30s-source"> — {h.source}</span>
+                  )}
+                </li>
+              ))}
+            </ul>
           </div>
         )}
       </div>
@@ -106,19 +90,21 @@ export function HeroBriefing({ data }: Props) {
           )}
         </div>
 
-        {/* 3. Termine — grün (blur privacy, hidden tap on icon) */}
+        {/* 3. Termine — grün (toggle pill for privacy) */}
         <div
           className={`status-card status-card-calendar${calendarRevealed ? '' : ' status-card-blurred'}`}
         >
-          <div
-            className="status-card-icon status-card-icon-tap"
-            onMouseDown={startPress}
-            onMouseUp={cancelPress}
-            onMouseLeave={cancelPress}
-            onTouchStart={startPress}
-            onTouchEnd={cancelPress}
-          >📅</div>
-          <div className="status-card-label">Termine</div>
+          <div className="status-card-icon">📅</div>
+          <div className="status-card-label">
+            Termine
+            <button
+              className="calendar-toggle-pill"
+              onClick={() => setCalendarRevealed(prev => !prev)}
+              aria-label={calendarRevealed ? 'Termine verbergen' : 'Termine anzeigen'}
+            >
+              {calendarRevealed ? 'Verbergen' : 'Anzeigen'}
+            </button>
+          </div>
           <div className="status-card-value">
             {calendarCount > 0 ? `${calendarCount} heute` : 'Freier Tag'}
           </div>
@@ -136,22 +122,21 @@ export function HeroBriefing({ data }: Props) {
           )}
         </div>
 
-        {/* 4. Bauernregel — lila */}
-        <div className="status-card status-card-bauernregel">
-          <div className="status-card-icon">🌾</div>
-          <div className="status-card-label">Bauernregel</div>
-          {bauernregel ? (
-            <>
-              <div className="status-card-quote">„{bauernregel.text}"</div>
-              {bauernregel.meaning && (
-                <div className="status-card-detail">{bauernregel.meaning}</div>
-              )}
-            </>
+        {/* 4. Dieser Tag in der Geschichte — lila */}
+        <div className="status-card status-card-history">
+          <div className="status-card-icon">📜</div>
+          <div className="status-card-label">Dieser Tag</div>
+          {historyFacts.length > 0 ? (
+            <div className="status-card-history-list">
+              {historyFacts.slice(0, 3).map((fact, i) => (
+                <div key={i} className="status-card-history-item">
+                  <span className="status-card-history-year">{fact.year}</span>
+                  <span className="status-card-history-text">{fact.text}</span>
+                </div>
+              ))}
+            </div>
           ) : (
-            <>
-              <div className="status-card-quote">„Gibt's im März zu früh schon Hitze, kommt im April noch eine Pfütze."</div>
-              <div className="status-card-detail">Noch keine Bauernregel für heute</div>
-            </>
+            <div className="status-card-detail">Kein historisches Ereignis für heute</div>
           )}
         </div>
       </div>

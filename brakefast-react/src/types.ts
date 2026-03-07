@@ -141,7 +141,7 @@ export interface Widgets {
   quote?: DailyQuote;
   weather?: WeatherData;
   calendar?: CalendarEvent[];
-  history?: HistoryFact;
+  history?: HistoryFact | HistoryFact[];
   bauernregel?: Bauernregel;
   pollen?: PollenData;
 }
@@ -221,8 +221,32 @@ export interface MorningTileKnapp {
   signals: KnappSignal[];
 }
 
+// ─── World Headlines ───
+export interface WorldHeadline {
+  text: string;
+  source?: string;
+}
+
+// ─── Streaming Tip ───
+export interface StreamingTip {
+  title: string;
+  platform: string;
+  type: string;
+}
+
+// ─── Local Event ───
+export interface LocalEvent {
+  title: string;
+  date: string;
+  location: string;
+  type: string;
+}
+
 export interface MorningTilesData {
   knapp?: MorningTileKnapp;
+  headlines?: WorldHeadline[];
+  streaming?: StreamingTip[];
+  events?: LocalEvent[];
 }
 
 // ─── Root ───

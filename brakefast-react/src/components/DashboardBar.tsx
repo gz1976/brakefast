@@ -17,7 +17,10 @@ function getRotatingWidget(widgets: Widgets): React.ReactNode {
   const candidates: React.ReactNode[] = [];
 
   if (widgets.quote) candidates.push(<QuoteWidget key="quote" quote={widgets.quote} />);
-  if (widgets.history) candidates.push(<HistoryWidget key="history" history={widgets.history} />);
+  if (widgets.history) {
+    const historyItem = Array.isArray(widgets.history) ? widgets.history[0] : widgets.history;
+    if (historyItem) candidates.push(<HistoryWidget key="history" history={historyItem} />);
+  }
   if (widgets.bauernregel) candidates.push(<BauernregelWidget key="bauernregel" bauernregel={widgets.bauernregel} />);
   if (widgets.vps) candidates.push(<VpsWidget key="vps" vps={widgets.vps} />);
   if (widgets.pollen) candidates.push(<PollenWidget key="pollen" pollen={widgets.pollen} />);

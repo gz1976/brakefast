@@ -38,10 +38,11 @@
       "containers": 3,
       "lastAudit": "vor 2 Tagen"
     },
-    "history": {
-      "year": 1876,
-      "text": "Alexander Graham Bell erhält das Patent für das Telefon"
-    }
+    "history": [
+      { "year": 1876, "text": "Alexander Graham Bell erhält das Patent für das Telefon" },
+      { "year": 1946, "text": "Winston Churchill prägt den Begriff 'Eiserner Vorhang'" },
+      { "year": 2018, "text": "SpaceX startet den Falcon Heavy erstmals erfolgreich" }
+    ]
   },
   "morning_tiles": {
     "knapp": {
@@ -51,7 +52,22 @@
         { "text": "Dematic stellt neuen Micro-Fulfillment-Roboter vor", "source": "LogisticsIQ" },
         { "text": "EU-Förderung für Intralogistik-Digitalisierung veröffentlicht", "source": "EC" }
       ]
-    }
+    },
+    "headlines": [
+      { "text": "EU verschärft KI-Regulierung — neue Pflichten ab Juli", "source": "Reuters" },
+      { "text": "TSMC kündigt zweite Chipfabrik in Dresden an", "source": "Handelsblatt" },
+      { "text": "Klimagipfel: G20 einigen sich auf CO₂-Mindestpreis", "source": "Der Standard" }
+    ],
+    "streaming": [
+      { "title": "Black Mirror: Staffel 7", "platform": "Netflix", "type": "Serie" },
+      { "title": "The Bear: Staffel 4", "platform": "Disney+", "type": "Serie" },
+      { "title": "Civil War", "platform": "Prime", "type": "Film" }
+    ],
+    "events": [
+      { "title": "Bauernmarkt am Hauptplatz", "date": "Sa, 8. März", "location": "Voitsberg", "type": "Markt" },
+      { "title": "Kabarett: Viktor Gernot", "date": "Sa, 8. März", "location": "Graz", "type": "Bühne" },
+      { "title": "Frühlingslauf 10km", "date": "So, 9. März", "location": "Bärnbach", "type": "Sport" }
+    ]
   },
   "categories": {
     "ai": {
