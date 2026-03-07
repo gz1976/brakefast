@@ -28,6 +28,10 @@ const MIN_IMAGE_URL_LENGTH = 30;
 
 export function isValidArticleImage(url: string | undefined): boolean {
   if (!url) return false;
+
+  // Local images served via nginx /images/ have shorter paths — allow them
+  if (url.startsWith('/images/') && url.length > 10) return true;
+
   if (url.length < MIN_IMAGE_URL_LENGTH) return false;
 
   // Must start with http or / (relative path for generated images)
