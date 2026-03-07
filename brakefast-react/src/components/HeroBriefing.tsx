@@ -1,5 +1,5 @@
-import { useState, useRef, useCallback } from 'react';
-import type { NewspaperData } from '../types';
+import { useState, useRef, useCallback, useMemo } from 'react';
+import type { NewspaperData, Article } from '../types';
 
 interface Props {
   data: NewspaperData;
@@ -27,44 +27,47 @@ export function HeroBriefing({ data }: Props) {
   const calendar = data.widgets?.calendar || [];
   const calendarCount = calendar.length;
   const bauernregel = data.widgets?.bauernregel;
-  const vps = data.widgets?.vps;
+
+  // Find best reading recommendation: highest relevance_score across all categories
+  const topArticle = useMemo<Article | null>(() => {
+    const allArticles: Article[] = [];
+    for (const cat of Object.values(data.categories)) {
+      if (cat?.articles) allArticles.push(...cat.articles);
+    }
+    if (allArticles.length === 0) return null;
+    return allArticles.reduce((best, a) =>
+      (a.relevance_score ?? 0) > (best.relevance_score ?? 0) ? a : best
+    , allArticles[0]);
+  }, [data.categories]);
 
   return (
     <section className="hero-briefing" id="top-stories">
       <div className="hero-briefing-content">
-        <div className="hero-briefing-label">Ottos Briefing</div>
-        <h1 className="hero-briefing-headline">
-          {data.headline || 'Guten Morgen — dein persönlicher Überblick für heute.'}
-        </h1>
-        {data.editorial && (
-          <p className="hero-briefing-text">{data.editorial}</p>
-        )}
-
-        {/* OpenClaw / VPS Status */}
-        <div className="openclaw-status">
-          <div className="openclaw-header">
-            <span className="openclaw-dot" />
-            <span className="openclaw-title">OpenClaw Server</span>
-          </div>
-          <div className="openclaw-grid">
-            <div className="openclaw-item">
-              <span className="openclaw-label">Disk</span>
-              <span className="openclaw-value">{vps?.disk || '—'}</span>
-            </div>
-            <div className="openclaw-item">
-              <span className="openclaw-label">Uptime</span>
-              <span className="openclaw-value">{vps?.uptime || '—'}</span>
-            </div>
-            <div className="openclaw-item">
-              <span className="openclaw-label">Container</span>
-              <span className="openclaw-value">{vps?.containers ?? '—'}</span>
-            </div>
-            <div className="openclaw-item">
-              <span className="openclaw-label">Letztes Audit</span>
-              <span className="openclaw-value">{vps?.lastAudit || '—'}</span>
-            </div>
-          </div>
+        <div className="hero-briefing-upper">
+          <div className="hero-briefing-label">Ottos Briefing</div>
+          <h1 className="hero-briefing-headline">
+            {data.headline || 'Guten Morgen — dein persönlicher Überblick für heute.'}
+          </h1>
+          {data.editorial && (
+            <p className="hero-briefing-text">{data.editorial}</p>
+          )}
         </div>
+
+        {/* Leseempfehlung */}
+        {topArticle && (
+          <div className="reading-rec">
+            <div className="reading-rec-header">
+              <span className="reading-rec-icon">📖</span>
+              <span className="reading-rec-title">Leseempfehlung</span>
+            </div>
+            <div className="reading-rec-text">
+              „{topArticle.title}"
+              {topArticle.source && (
+                <span className="reading-rec-source"> — {topArticle.source}</span>
+              )}
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="hero-briefing-status">

@@ -13,7 +13,8 @@
       "min": 1,
       "max": 8,
       "icon": "⛅",
-      "location": "Voitsberg"
+      "location": "Voitsberg",
+      "forecast": "Mi: 10°/3° wolkig, Do: 13°/5° sonnig"
     },
     "dayInfo": {
       "namenstag": "Kunigunde",
@@ -36,6 +37,20 @@
       "uptime": "99.9%",
       "containers": 3,
       "lastAudit": "vor 2 Tagen"
+    },
+    "history": {
+      "year": 1876,
+      "text": "Alexander Graham Bell erhält das Patent für das Telefon"
+    }
+  },
+  "morning_tiles": {
+    "knapp": {
+      "headline": "KNAPP investiert in neue KI-gestützte Lagerverwaltung",
+      "signals": [
+        { "text": "AutoStore meldet Partnerschaft mit Walmart Kanada", "source": "Reuters" },
+        { "text": "Dematic stellt neuen Micro-Fulfillment-Roboter vor", "source": "LogisticsIQ" },
+        { "text": "EU-Förderung für Intralogistik-Digitalisierung veröffentlicht", "source": "EC" }
+      ]
     }
   },
   "categories": {

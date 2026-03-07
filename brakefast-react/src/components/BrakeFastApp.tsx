@@ -11,6 +11,7 @@ import { DevDigestSection } from './DevDigestSection';
 import { PersonalBoard } from './PersonalBoard';
 import { Footer } from './Footer';
 import { ArticleModal } from './ArticleModal';
+import { MorningTiles } from './MorningTiles';
 
 interface Props {
   data: NewspaperData;
@@ -75,8 +76,11 @@ export function BrakeFastApp({ data }: Props) {
       <NavTabs sections={sections} activeId={activeId} onNavigate={scrollTo} />
 
       <div className="container">
-        {/* 1. Hero Briefing */}
-        <HeroBriefing data={data} />
+        {/* First Screen: Hero + Morning Tiles fill iPad viewport */}
+        <div className="first-screen">
+          <HeroBriefing data={data} />
+          <MorningTiles data={data} />
+        </div>
 
         {/* 2. AI & Tech */}
         {aiArticles.length > 0 && (

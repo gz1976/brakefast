@@ -146,6 +146,85 @@ export interface Widgets {
   pollen?: PollenData;
 }
 
+// ─── Monitoring ───
+export interface AgentActivity {
+  date: string;
+  main: number;
+  worker: number;
+  expert: number;
+}
+
+export interface CostEntry {
+  date: string;
+  total_usd: number;
+  calls: number;
+  by_model: Record<string, number>;
+}
+
+export interface RoutingDecision {
+  agent: 'self' | 'worker' | 'expert';
+  count: number;
+}
+
+export interface ModelStats {
+  model: string;
+  tier: string;
+  calls: number;
+  avg_latency_ms: number;
+  errors: number;
+  success_rate: number;
+  estimated_cost_usd: number;
+}
+
+export interface MonitoringData {
+  generated: string;
+  period: string;
+  agents: {
+    main: { model: string; status: string; sessions_total: number };
+    worker: { model: string; status: string; sessions_total: number };
+    expert: { model: string; status: string; sessions_total: number };
+  };
+  activity_7d: AgentActivity[];
+  costs: {
+    today_usd: number;
+    month_usd: number;
+    daily_limit_usd: number;
+    monthly_limit_usd: number;
+    history_7d: CostEntry[];
+  };
+  routing: RoutingDecision[];
+  models: ModelStats[];
+  system: {
+    disk_percent: number;
+    uptime: string;
+    containers: number;
+    last_heartbeat: string;
+    last_audit: string;
+    heartbeat_status: string;
+  };
+  recent_events: Array<{
+    timestamp: string;
+    type: string;
+    agent: string;
+    summary: string;
+  }>;
+}
+
+// ─── Morning Tiles ───
+export interface KnappSignal {
+  text: string;
+  source?: string;
+}
+
+export interface MorningTileKnapp {
+  headline?: string;
+  signals: KnappSignal[];
+}
+
+export interface MorningTilesData {
+  knapp?: MorningTileKnapp;
+}
+
 // ─── Root ───
 export interface NewspaperData {
   generated: string;
@@ -160,6 +239,7 @@ export interface NewspaperData {
   ki_modelle?: KiModelleData;
   dev_digest?: DevDigestData;
   markets?: MarketsData;
+  morning_tiles?: MorningTilesData;
   focus_topics?: string[];
   reminders?: string[];
 }
