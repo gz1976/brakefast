@@ -2,6 +2,7 @@ import { useState } from 'react';
 import type { Article } from '../types';
 import { SectionHeader } from './SectionHeader';
 import { isValidArticleImage, getCategoryGradient } from '../utils/imageUtils';
+import { getReadingTime } from '../utils/textUtils';
 
 interface Props {
   articles: Article[];
@@ -56,7 +57,7 @@ export function LocalSection({ articles, onArticleClick }: Props) {
           <div className="overlay">
             <span className="cat-badge" style={{ background: 'var(--accent-green)' }}>Steiermark</span>
             <h3>{featured.title}</h3>
-            <div className="meta">{featured.source} · {featured.reading_time_minutes || 2} Min.</div>
+            <div className="meta">{featured.source}{getReadingTime(featured.summary || featured.description, featured.reading_time_minutes) ? ` · ${getReadingTime(featured.summary || featured.description, featured.reading_time_minutes)} Min.` : ''}</div>
           </div>
         </div>
         {sideItems.length > 0 && (
@@ -72,7 +73,7 @@ export function LocalSection({ articles, onArticleClick }: Props) {
               >
                 <h4>{article.title}</h4>
                 <div className="meta">
-                  {article.source} · {article.reading_time_minutes || 1} Min.
+                  {article.source}{getReadingTime(article.summary || article.description, article.reading_time_minutes) ? ` · ${getReadingTime(article.summary || article.description, article.reading_time_minutes)} Min.` : ''}
                 </div>
               </div>
             ))}

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import type { Article, Category } from '../types';
 import { SectionHeader } from './SectionHeader';
 import { isValidArticleImage, getCategoryGradient, getCategoryIcon } from '../utils/imageUtils';
-import { smartTruncate } from '../utils/textUtils';
+import { smartTruncate, getReadingTime } from '../utils/textUtils';
 
 interface Props {
   categories: Record<string, Category>;
@@ -35,10 +35,11 @@ function getTopArticles(categories: Record<string, Category>): { article: Articl
   return all.slice(0, 4);
 }
 
-function getReadingTime(article: Article): number {
-  if (article.reading_time_minutes) return article.reading_time_minutes;
-  const words = (article.summary || article.description || '').split(/\s+/).length;
-  return Math.max(1, Math.round(words / 200));
+function articleReadTime(article: Article): number | null {
+  return getReadingTime(
+    article.summary || article.description,
+    article.reading_time_minutes,
+  );
 }
 
 function truncateText(text: string, maxChars: number = 300): string {
@@ -132,7 +133,7 @@ export function HeroSection({ categories, onArticleClick }: Props) {
             <div className="meta">
               <span>{hero.article.source}</span>
               <span>·</span>
-              <span>{getReadingTime(hero.article)} Min. Lesezeit</span>
+              {articleReadTime(hero.article) && <span>{articleReadTime(hero.article)} Min. Lesezeit</span>}
             </div>
             {heroExcerpt && <p className="excerpt">{heroExcerpt}</p>}
           </div>
@@ -154,7 +155,7 @@ export function HeroSection({ categories, onArticleClick }: Props) {
                   <div className={`cat-badge-sm ${style.color}`}>{sc.catName}</div>
                   <h3>{sc.article.title}</h3>
                   <div className="meta">
-                    {sc.article.source} · {getReadingTime(sc.article)} Min.
+                    {sc.article.source}{articleReadTime(sc.article) ? ` · ${articleReadTime(sc.article)} Min.` : ''}
                   </div>
                 </div>
               </div>

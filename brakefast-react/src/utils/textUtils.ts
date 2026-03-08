@@ -42,3 +42,26 @@ export function smartTruncateHtml(html: string, maxLength: number): string {
   const plain = html.replace(/<[^>]+>/g, '');
   return smartTruncate(plain, maxLength);
 }
+
+/**
+ * Calculate reading time for an article.
+ * Returns null if text has fewer than 20 words (no meaningful content).
+ * Uses reading_time_minutes from data if available, otherwise calculates
+ * from word count at 200 words/minute, rounded up, minimum 1.
+ */
+export function getReadingTime(
+  text: string | undefined,
+  providedMinutes?: number,
+): number | null {
+  const content = (text || '').trim();
+  const words = content ? content.split(/\s+/).length : 0;
+
+  // No meaningful content → hide reading time
+  if (words < 20) return null;
+
+  // Trust pipeline value if provided
+  if (providedMinutes && providedMinutes > 0) return providedMinutes;
+
+  // Calculate: ceil(words / 200), minimum 1
+  return Math.max(1, Math.ceil(words / 200));
+}

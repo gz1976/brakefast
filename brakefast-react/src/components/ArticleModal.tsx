@@ -1,19 +1,18 @@
 import { useEffect, useState } from 'react';
 import type { Article } from '../types';
 import { isValidArticleImage } from '../utils/imageUtils';
+import { getReadingTime } from '../utils/textUtils';
 
 interface Props {
   article: Article;
   onClose: () => void;
 }
 
-function getReadingTime(article: Article): number {
-  if (article.reading_time_minutes) return article.reading_time_minutes;
-  const words = (article.summary || article.description || '').split(/\s+/).length;
-  return Math.max(1, Math.round(words / 200));
-}
-
 export function ArticleModal({ article, onClose }: Props) {
+  const readTime = getReadingTime(
+    article.summary || article.description,
+    article.reading_time_minutes,
+  );
   const [imgFailed, setImgFailed] = useState(false);
   const showImage = isValidArticleImage(article.image) && !imgFailed;
 
@@ -47,7 +46,7 @@ export function ArticleModal({ article, onClose }: Props) {
           <div className="modal-meta-top">
             <span className="modal-source">{article.source}</span>
             <span className="modal-date">{article.date}</span>
-            <span className="modal-reading">{getReadingTime(article)} Min. Lesezeit</span>
+            {readTime && <span className="modal-reading">{readTime} Min. Lesezeit</span>}
           </div>
 
           <h2 className="modal-title">{article.title}</h2>

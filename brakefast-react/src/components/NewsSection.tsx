@@ -1,5 +1,5 @@
 import type { Article } from '../types';
-import { smartTruncate } from '../utils/textUtils';
+import { smartTruncate, getReadingTime } from '../utils/textUtils';
 
 interface Props {
   securityArticles: Article[];
@@ -35,7 +35,7 @@ export function NewsSection({ securityArticles, worldArticles, onArticleClick }:
               >
                 <h4>{article.title}</h4>
                 <p>{smartTruncate(article.summary || article.description || '', 150)}</p>
-                <span className="news-item-meta">{article.source} · {article.reading_time_minutes || 2} Min.</span>
+                <span className="news-item-meta">{article.source}{getReadingTime(article.summary || article.description, article.reading_time_minutes) ? ` · ${getReadingTime(article.summary || article.description, article.reading_time_minutes)} Min.` : ''}</span>
               </div>
             ))}
           </div>
@@ -55,7 +55,7 @@ export function NewsSection({ securityArticles, worldArticles, onArticleClick }:
               >
                 <h4>{article.title}</h4>
                 <p>{smartTruncate(article.summary || article.description || '', 150)}</p>
-                <span className="news-item-meta">{article.source} · {article.reading_time_minutes || 2} Min.</span>
+                <span className="news-item-meta">{article.source}{getReadingTime(article.summary || article.description, article.reading_time_minutes) ? ` · ${getReadingTime(article.summary || article.description, article.reading_time_minutes)} Min.` : ''}</span>
               </div>
             ))}
           </div>

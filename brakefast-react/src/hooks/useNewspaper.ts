@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import type { NewspaperData } from '../types';
+import { getReadingTime } from '../utils/textUtils';
 
 function normalizeData(raw: NewspaperData): NewspaperData {
   const data = { ...raw };
@@ -42,12 +43,11 @@ function normalizeData(raw: NewspaperData): NewspaperData {
     let totalMinutes = 0;
     for (const cat of Object.values(data.categories)) {
       for (const article of cat.articles) {
-        if (article.reading_time_minutes) {
-          totalMinutes += article.reading_time_minutes;
-        } else {
-          const words = (article.summary || article.description || '').split(/\s+/).length;
-          totalMinutes += Math.max(1, Math.round(words / 200));
-        }
+        const rt = getReadingTime(
+          article.summary || article.description,
+          article.reading_time_minutes,
+        );
+        if (rt) totalMinutes += rt;
       }
     }
     data.reading_time_total = totalMinutes;

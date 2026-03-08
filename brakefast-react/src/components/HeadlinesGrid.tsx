@@ -1,5 +1,6 @@
 import type { Article } from '../types';
 import { SectionHeader } from './SectionHeader';
+import { getReadingTime } from '../utils/textUtils';
 
 interface Props {
   articles: Article[];
@@ -26,7 +27,7 @@ export function HeadlinesGrid({ articles, onArticleClick }: Props) {
             <div className="headline-content">
               <h3>{article.title}</h3>
               <div className="meta">
-                {article.source} · {article.reading_time_minutes || 2} Min. Lesezeit
+                {article.source}{getReadingTime(article.summary || article.description, article.reading_time_minutes) ? ` · ${getReadingTime(article.summary || article.description, article.reading_time_minutes)} Min. Lesezeit` : ''}
               </div>
             </div>
           </div>

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { Article } from '../types';
 import { isValidArticleImage, getCategoryGradient, getCategoryIcon } from '../utils/imageUtils';
+import { getReadingTime } from '../utils/textUtils';
 
 interface Props {
   article: Article;
@@ -8,12 +9,6 @@ interface Props {
   colorClass: string;
   catId?: string;
   onArticleClick: (article: Article) => void;
-}
-
-function getReadingTime(article: Article): number {
-  if (article.reading_time_minutes) return article.reading_time_minutes;
-  const words = (article.summary || article.description || '').split(/\s+/).length;
-  return Math.max(1, Math.round(words / 200));
 }
 
 function CardImage({ src, catId, categoryLabel }: { src: string | undefined; catId: string; categoryLabel: string }) {
@@ -44,7 +39,10 @@ function CardImage({ src, catId, categoryLabel }: { src: string | undefined; cat
 }
 
 export function ArticleCard({ article, categoryLabel, colorClass, catId = 'tech', onArticleClick }: Props) {
-  const readTime = getReadingTime(article);
+  const readTime = getReadingTime(
+    article.summary || article.description,
+    article.reading_time_minutes,
+  );
 
   return (
     <div
@@ -61,7 +59,7 @@ export function ArticleCard({ article, categoryLabel, colorClass, catId = 'tech'
         <p className="card-excerpt">{article.description || article.summary}</p>
         <div className="card-meta">
           <span>{article.source}</span>
-          <span className="reading-time">{readTime} Min.</span>
+          {readTime && <span className="reading-time">{readTime} Min.</span>}
         </div>
       </div>
     </div>
