@@ -54,9 +54,9 @@
       ]
     },
     "headlines": [
-      { "text": "EU verschärft KI-Regulierung — neue Pflichten ab Juli", "source": "Reuters" },
-      { "text": "TSMC kündigt zweite Chipfabrik in Dresden an", "source": "Handelsblatt" },
-      { "text": "Klimagipfel: G20 einigen sich auf CO₂-Mindestpreis", "source": "Der Standard" }
+      { "text": "EU verschärft KI-Regulierung — neue Pflichten ab Juli", "source": "Reuters", "url": "https://www.reuters.com/technology/artificial-intelligence/", "summary": "Ab Juli müssen Unternehmen KI-Systeme klassifizieren und Hochrisiko-Anwendungen registrieren lassen." },
+      { "text": "TSMC kündigt zweite Chipfabrik in Dresden an", "source": "Handelsblatt", "url": "https://www.handelsblatt.com/technik/it-internet/", "summary": "Der taiwanesische Chiphersteller investiert weitere 5 Mrd. Euro in den Standort Sachsen." },
+      { "text": "Klimagipfel: G20 einigen sich auf CO₂-Mindestpreis", "source": "Der Standard", "url": "https://www.derstandard.at/international", "summary": "Erstmals haben sich alle G20-Staaten auf einen globalen CO₂-Mindestpreis von 50 Dollar pro Tonne geeinigt." }
     ],
     "streaming": [
       { "title": "Black Mirror: Staffel 7", "platform": "Netflix", "type": "Serie" },
@@ -67,7 +67,13 @@
       { "title": "Bauernmarkt am Hauptplatz", "date": "Sa, 8. März", "location": "Voitsberg", "type": "Markt" },
       { "title": "Kabarett: Viktor Gernot", "date": "Sa, 8. März", "location": "Graz", "type": "Bühne" },
       { "title": "Frühlingslauf 10km", "date": "So, 9. März", "location": "Bärnbach", "type": "Sport" }
-    ]
+    ],
+    "media_tip": {
+      "title": "Lex Fridman #428 — Sam Altman über AGI-Zeitplan",
+      "type": "Podcast",
+      "source": "Lex Fridman Podcast",
+      "duration": "2h 15m"
+    }
   },
   "categories": {
     "ai": {

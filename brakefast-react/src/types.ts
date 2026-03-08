@@ -228,6 +228,7 @@ export interface WorldHeadline {
   text: string;
   source?: string;
   summary?: string;
+  url?: string;
 }
 
 // ─── Media Tip (Podcast / Article / Video) ───

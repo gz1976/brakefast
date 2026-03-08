@@ -43,9 +43,28 @@ export function HeroBriefing({ data }: Props) {
             <ul className="headlines-30s-list">
               {headlines.slice(0, 3).map((h, i) => (
                 <li key={i} className="headlines-30s-item">
-                  <span className="headlines-30s-text">{h.text}</span>
-                  {h.source && (
-                    <span className="headlines-30s-source"> — {h.source}</span>
+                  {h.url ? (
+                    <a
+                      className="headlines-30s-link"
+                      href={h.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <span className="headlines-30s-text">{h.text}</span>
+                      {h.source && (
+                        <span className="headlines-30s-source"> — {h.source}</span>
+                      )}
+                    </a>
+                  ) : (
+                    <>
+                      <span className="headlines-30s-text">{h.text}</span>
+                      {h.source && (
+                        <span className="headlines-30s-source"> — {h.source}</span>
+                      )}
+                    </>
+                  )}
+                  {h.summary && (
+                    <p className="headlines-30s-summary">{h.summary}</p>
                   )}
                 </li>
               ))}
@@ -55,38 +74,36 @@ export function HeroBriefing({ data }: Props) {
       </div>
 
       <div className="hero-briefing-status">
-        {/* 1. Wetter — blau */}
+        {/* 1. Wetter — kompakt */}
         <div className="status-card status-card-weather">
-          <div className="status-card-icon">🌤️</div>
-          <div className="status-card-label">Wetter</div>
-          <div className="status-card-value">
-            {weather ? `${weather.temp}°C` : '—'}
+          <div className="status-card-header-inline">
+            <span className="status-card-icon">🌤️</span>
+            <span className="status-card-label">Wetter</span>
+            <span className="status-card-value-inline">
+              {weather ? `${weather.temp}°C` : '—'}
+            </span>
           </div>
           <div className="status-card-detail">
             {weather ? `${weather.location} · ${weather.description}` : 'Keine Daten'}
           </div>
           {weather && (
-            <div className="status-card-extra">
-              <span>Gefühlt {weather.feelsLike}°</span>
-              <span>↓ {weather.min}° / ↑ {weather.max}°</span>
+            <div className="status-card-detail">
+              Gefühlt {weather.feelsLike}° · ↓ {weather.min}° / ↑ {weather.max}°
             </div>
           )}
         </div>
 
-        {/* 2. Tagesinfo — amber */}
+        {/* 2. Tagesinfo — kompakt */}
         <div className="status-card status-card-dayinfo">
-          <div className="status-card-icon">☀️</div>
-          <div className="status-card-label">Tagesinfo</div>
-          <div className="status-card-value">
-            {dayInfo ? `☀ ${dayInfo.sunrise} — 🌙 ${dayInfo.sunset}` : '—'}
+          <div className="status-card-header-inline">
+            <span className="status-card-icon">☀️</span>
+            <span className="status-card-label">Tagesinfo</span>
           </div>
           <div className="status-card-detail">
-            {dayInfo ? `Tageslänge ${dayInfo.dayLength || '—'}` : 'Keine Daten'}
+            {dayInfo ? `☀ ${dayInfo.sunrise} — 🌙 ${dayInfo.sunset} · ${dayInfo.dayLength || '—'}` : 'Keine Daten'}
           </div>
           {dayInfo?.namenstag && (
-            <div className="status-card-extra">
-              <span>🎂 Namenstag: {dayInfo.namenstag}</span>
-            </div>
+            <div className="status-card-detail">🎂 {dayInfo.namenstag}</div>
           )}
         </div>
 
@@ -94,18 +111,20 @@ export function HeroBriefing({ data }: Props) {
         <div
           className={`status-card status-card-calendar${calendarRevealed ? '' : ' status-card-blurred'}`}
         >
-          <div className="status-card-icon">📅</div>
-          <div className="status-card-label">
-            Termine
-            <button
-              className="calendar-toggle-pill"
-              onClick={() => setCalendarRevealed(prev => !prev)}
-              aria-label={calendarRevealed ? 'Termine verbergen' : 'Termine anzeigen'}
-            >
-              {calendarRevealed ? 'Verbergen' : 'Anzeigen'}
-            </button>
+          <div className="status-card-header-inline">
+            <span className="status-card-icon">📅</span>
+            <span className="status-card-label">
+              Termine
+              <button
+                className="calendar-toggle-pill"
+                onClick={() => setCalendarRevealed(prev => !prev)}
+                aria-label={calendarRevealed ? 'Termine verbergen' : 'Termine anzeigen'}
+              >
+                {calendarRevealed ? 'Verbergen' : 'Anzeigen'}
+              </button>
+            </span>
           </div>
-          <div className="status-card-value">
+          <div className="status-card-value-small">
             {calendarCount > 0 ? `${calendarCount} heute` : 'Freier Tag'}
           </div>
           {calendar.length > 0 ? (
@@ -124,8 +143,10 @@ export function HeroBriefing({ data }: Props) {
 
         {/* 4. Dieser Tag in der Geschichte — lila */}
         <div className="status-card status-card-history">
-          <div className="status-card-icon">📜</div>
-          <div className="status-card-label">Dieser Tag</div>
+          <div className="status-card-header-inline">
+            <span className="status-card-icon">📜</span>
+            <span className="status-card-label">Dieser Tag</span>
+          </div>
           {historyFacts.length > 0 ? (
             <div className="status-card-history-list">
               {historyFacts.slice(0, 3).map((fact, i) => (
