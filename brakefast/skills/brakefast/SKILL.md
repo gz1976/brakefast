@@ -187,6 +187,13 @@ Wenn du aufgefordert wirst die BrakeFast zu generieren:
    Dieses Feld MUSS 1:1 in curated-articles.json uebernommen werden.
    ALLE Kategorien MUESSEN Bilder haben — auch `world`!
 
+   **WICHTIG: `source_url` und `discussion_url` uebernehmen!**
+   Hacker-News-Artikel haben zusaetzliche Felder:
+   - `source_url`: URL zum Originalartikel (z.B. Ars Technica, Blog)
+   - `discussion_url`: URL zum HN-Diskussions-Thread
+   Diese Felder MUESSEN 1:1 in curated-articles.json uebernommen werden, wenn vorhanden.
+   Das `link`-Feld zeigt bei HN-Artikeln bereits auf den Originalartikel.
+
    **WICHTIG: `description`-Feld fuer jeden Artikel!**
    Zusaetzlich zu `summary` braucht jeder Artikel ein kurzes `description`-Feld (1-2 Saetze)
    fuer die Karten-Vorschau. `summary` ist die ausfuehrliche Zusammenfassung.

@@ -57,14 +57,26 @@ export function ArticleModal({ article, onClose }: Props) {
           </div>
 
           {article.link && (
-            <a
-              className="modal-source-link"
-              href={article.link}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Weiterlesen auf {article.source} →
-            </a>
+            <div className="modal-links">
+              <a
+                className="modal-source-link"
+                href={article.link}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Weiterlesen auf {article.source} →
+              </a>
+              {article.discussion_url && article.discussion_url !== article.link && (
+                <a
+                  className="modal-discussion-link"
+                  href={article.discussion_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Diskussion auf Hacker News →
+                </a>
+              )}
+            </div>
           )}
         </div>
       </div>

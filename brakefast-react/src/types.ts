@@ -11,6 +11,8 @@ export interface Article {
   relevance_score?: number;
   otto_comment?: string;
   category?: string;
+  source_url?: string;
+  discussion_url?: string;
 }
 
 // ─── Category ───
@@ -225,6 +227,16 @@ export interface MorningTileKnapp {
 export interface WorldHeadline {
   text: string;
   source?: string;
+  summary?: string;
+}
+
+// ─── Media Tip (Podcast / Article / Video) ───
+export interface MediaTip {
+  title: string;
+  type: string;       // "Podcast", "Artikel", "Video"
+  source: string;     // "Lex Fridman Podcast"
+  url?: string;
+  duration?: string;  // "2h 15m" or "8 min Lesezeit"
 }
 
 // ─── Streaming Tip ───
@@ -247,6 +259,7 @@ export interface MorningTilesData {
   headlines?: WorldHeadline[];
   streaming?: StreamingTip[];
   events?: LocalEvent[];
+  media_tip?: MediaTip;
 }
 
 // ─── Root ───

@@ -6,7 +6,7 @@
       "emoji": "\ud83e\udd16",
       "css_class": "category-header--ai",
       "feeds": [
-        {"url": "https://news.ycombinator.com/rss", "name": "Hacker News", "maxItems": 5},
+        {"url": "https://news.ycombinator.com/rss", "name": "Hacker News", "maxItems": 5, "aggregator": true},
         {"url": "https://feeds.arstechnica.com/arstechnica/technology-lab", "name": "Ars Technica", "maxItems": 4},
         {"url": "https://openai.com/blog/rss.xml", "name": "OpenAI Blog", "maxItems": 3},
         {"url": "https://ai.meta.com/blog/rss/", "name": "Meta AI Blog", "maxItems": 3},

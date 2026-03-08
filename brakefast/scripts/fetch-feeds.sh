@@ -256,7 +256,142 @@ def search_fallback_image(title):
         return img
     return search_wikimedia_image(title)
 
-def parse_feed(xml_text, feed_name, max_items):
+def fetch_hn_original_url(hn_url, timeout=10):
+    """Get original article URL from HN item via Firebase API."""
+    match = re.search(r'[?&]id=(\d+)', hn_url)
+    if not match:
+        return None, None
+    item_id = match.group(1)
+    api_url = f"https://hacker-news.firebaseio.com/v0/item/{item_id}.json"
+    try:
+        result = subprocess.run(
+            ["curl", "-sL", "--max-time", str(timeout), api_url],
+            capture_output=True, text=True, timeout=timeout+5
+        )
+        if result.returncode != 0 or not result.stdout:
+            return None, None
+        data = json.loads(result.stdout)
+        original_url = data.get('url')  # None for Ask HN, Show HN without link
+        title = data.get('title', '')
+        return original_url, title
+    except Exception as e:
+        print(f"    WARN: HN API failed for {item_id}: {e}", file=sys.stderr)
+        return None, None
+
+def extract_article_text(url, max_sentences=5, timeout=10):
+    """Extract first N sentences from an article page."""
+    if not url:
+        return None
+    try:
+        result = subprocess.run(
+            ["curl", "-sL", "--max-time", str(timeout),
+             "-r", "0-65535",
+             "-H", "User-Agent: BrakeFast/1.0 (Personal News Aggregator)",
+             url],
+            capture_output=True, text=True, timeout=timeout+5
+        )
+        if result.returncode != 0 or not result.stdout:
+            return None
+        html_text = result.stdout
+
+        # Try to narrow to article/main content first
+        content_html = html_text
+        for tag in ['article', 'main', '[role="main"]']:
+            match = re.search(
+                rf'<{tag}[^>]*>(.*?)</{tag.split("[")[0]}>',
+                html_text, re.DOTALL | re.IGNORECASE
+            )
+            if match and len(match.group(1)) > 200:
+                content_html = match.group(1)
+                break
+
+        # Extract text from <p> tags
+        paragraphs = re.findall(r'<p[^>]*>(.*?)</p>', content_html, re.DOTALL | re.IGNORECASE)
+        sentences = []
+        for p in paragraphs:
+            text = clean_html(p).strip()
+            # Skip short paragraphs
+            if len(text) < 60:
+                continue
+            # Skip paragraphs without proper sentence structure (no period/punctuation)
+            if not re.search(r'[.!?]', text):
+                continue
+            # Skip boilerplate
+            boilerplate = [
+                'cookie', 'privacy policy', 'subscribe', 'sign up',
+                'newsletter', 'accept all', 'read more', 'advertisement',
+                'javascript', 'enable javascript', 'your browser',
+                'terms of service', 'log in', 'sign in', 'create account',
+                'copyright', 'all rights reserved', 'skip to content',
+            ]
+            if any(skip in text.lower() for skip in boilerplate):
+                continue
+            # Skip lines that look like navigation (many short words, no sentences)
+            word_count = len(text.split())
+            if word_count < 8:
+                continue
+            # Collect sentences
+            for sent in re.split(r'(?<=[.!?])\s+', text):
+                sent = sent.strip()
+                if len(sent) > 40 and re.search(r'[.!?]$', sent):
+                    sentences.append(sent)
+                    if len(sentences) >= max_sentences:
+                        break
+            if len(sentences) >= max_sentences:
+                break
+        if sentences:
+            return ' '.join(sentences)
+        return None
+    except Exception as e:
+        print(f"    WARN: Article extraction failed for {url}: {e}", file=sys.stderr)
+        return None
+
+def enrich_aggregator_articles(articles, feed_config):
+    """Enrich HN/Reddit articles with original article URLs and content.
+
+    HN RSS structure:
+      - link = URL to original article (external)
+      - description = '<a href="https://news.ycombinator.com/item?id=XXX">Comments</a>'
+    So: link is already the original, discussion_url comes from description HTML.
+    """
+    if not feed_config.get('aggregator', False):
+        return
+    feed_name = feed_config.get('name', '')
+    print(f"  Enriching {len(articles)} aggregator articles from {feed_name}...", file=sys.stderr)
+
+    for art in articles:
+        original_url = art.get('link', '')
+        desc = art.get('description', '')
+
+        # link already points to the original article (HN RSS structure)
+        # discussion_url was extracted in parse_feed from raw HTML
+        art['source_url'] = original_url
+
+        if original_url and not original_url.startswith('https://news.ycombinator.com'):
+            print(f"    Original: {original_url[:80]}", file=sys.stderr)
+
+            # Extract article text from original
+            text = extract_article_text(original_url)
+            if text:
+                art['description'] = text[:500] + ('...' if len(text) > 500 else '')
+                print(f"    Extracted {len(text)} chars of text", file=sys.stderr)
+            else:
+                art['description'] = f"Diskussion auf {feed_name} — Originalartikel konnte nicht extrahiert werden."
+                print(f"    Text extraction failed, using fallback", file=sys.stderr)
+
+            # Try og:image from original article if no image yet
+            if not art.get('image'):
+                og_img = fetch_og_image(original_url)
+                if og_img:
+                    art['image'] = og_img
+                    print(f"    og:image from original: found", file=sys.stderr)
+        else:
+            # Ask HN / self-post — link points to HN itself
+            if not desc or desc.strip().lower() in ('comments', ''):
+                art['description'] = f"Diskussion auf {feed_name}"
+            print(f"    Self-post (no external URL)", file=sys.stderr)
+
+def parse_feed(xml_text, feed_name, max_items, is_aggregator=False):
     """Parse RSS or Atom feed XML into article dicts."""
     articles = []
     try:
@@ -294,10 +429,14 @@ def parse_feed(xml_text, feed_name, max_items):
 
             article['title'] = clean_html(title_el.text) if title_el is not None and title_el.text else ''
             article['link'] = (link_el.text or '').strip() if link_el is not None else ''
-            article['description'] = clean_html(
-                (content_el.text if content_el is not None and content_el.text else None) or
-                (desc_el.text if desc_el is not None else '')
-            )
+            raw_desc = (content_el.text if content_el is not None and content_el.text else None) or \
+                       (desc_el.text if desc_el is not None else '')
+            # For aggregator feeds: extract discussion URL from raw HTML before cleaning
+            if is_aggregator and raw_desc:
+                hn_match = re.search(r'https://news\.ycombinator\.com/item\?id=\d+', raw_desc)
+                if hn_match:
+                    article['discussion_url'] = hn_match.group(0)
+            article['description'] = clean_html(raw_desc)
             article['date'] = (date_el.text or '').strip() if date_el is not None else ''
 
         elif feed_type == 'atom':
@@ -359,7 +498,10 @@ def main():
             print(f"  Feed: {name} ({url})", file=sys.stderr)
             xml_text = fetch_feed(url)
             if xml_text:
-                articles = parse_feed(xml_text, name, max_items)
+                is_agg = feed.get('aggregator', False)
+                articles = parse_feed(xml_text, name, max_items, is_aggregator=is_agg)
+                # Enrich aggregator feeds (HN, Reddit) with original article content
+                enrich_aggregator_articles(articles, feed)
                 cat_articles.extend(articles)
                 print(f"  -> {len(articles)} articles", file=sys.stderr)
             else:
