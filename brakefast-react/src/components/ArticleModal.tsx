@@ -55,6 +55,17 @@ export function ArticleModal({ article, onClose }: Props) {
           <div className="modal-text">
             {article.summary || article.description || 'Keine Zusammenfassung verfügbar.'}
           </div>
+
+          {article.link && (
+            <a
+              className="modal-source-link"
+              href={article.link}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Weiterlesen auf {article.source} →
+            </a>
+          )}
         </div>
       </div>
     </div>
