@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import type { NewspaperData, HistoryFact } from '../types';
+import { BriefingModal } from './BriefingModal';
 
 interface Props {
   data: NewspaperData;
@@ -7,6 +8,7 @@ interface Props {
 
 export function HeroBriefing({ data }: Props) {
   const [calendarRevealed, setCalendarRevealed] = useState(false);
+  const [showBriefing, setShowBriefing] = useState(false);
 
   const weather = data.widgets?.weather;
   const dayInfo = data.widgets?.dayInfo;
@@ -23,7 +25,13 @@ export function HeroBriefing({ data }: Props) {
   return (
     <section className="hero-briefing" id="top-stories">
       <div className="hero-briefing-content">
-        <div className="hero-briefing-upper">
+        <div
+          className="hero-briefing-upper hero-briefing-clickable"
+          onClick={() => setShowBriefing(true)}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setShowBriefing(true); }}
+        >
           <div className="hero-briefing-label">Ottos Briefing</div>
           <h1 className="hero-briefing-headline">
             {data.headline || 'Guten Morgen — dein persönlicher Überblick für heute.'}
@@ -161,6 +169,15 @@ export function HeroBriefing({ data }: Props) {
           )}
         </div>
       </div>
+
+      {showBriefing && (
+        <BriefingModal
+          headline={data.headline || 'Guten Morgen — dein persönlicher Überblick für heute.'}
+          editorial={data.editorial}
+          date={data.generated}
+          onClose={() => setShowBriefing(false)}
+        />
+      )}
     </section>
   );
 }
