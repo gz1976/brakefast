@@ -65,3 +65,97 @@ export function getReadingTime(
   // Calculate: ceil(words / 200), minimum 1
   return Math.max(1, Math.ceil(words / 200));
 }
+
+/**
+ * Translate common English weather condition strings to German.
+ * Falls back to the original string if no translation is found.
+ */
+const WEATHER_DE: Record<string, string> = {
+  'clear': 'Klar',
+  'sunny': 'Sonnig',
+  'partly cloudy': 'Teilweise bewölkt',
+  'cloudy': 'Bewölkt',
+  'overcast': 'Bedeckt',
+  'mist': 'Neblig',
+  'fog': 'Nebel',
+  'patchy rain possible': 'Vereinzelt Regen möglich',
+  'patchy rain nearby': 'Vereinzelt Regen in der Nähe',
+  'patchy snow possible': 'Vereinzelt Schnee möglich',
+  'patchy sleet possible': 'Vereinzelt Schneeregen möglich',
+  'patchy freezing drizzle possible': 'Vereinzelt Gefrierender Nieselregen möglich',
+  'thundery outbreaks possible': 'Vereinzelt Gewitter möglich',
+  'blowing snow': 'Schneeverwehungen',
+  'blizzard': 'Schneesturm',
+  'freezing fog': 'Gefrierender Nebel',
+  'freezing drizzle': 'Gefrierender Nieselregen',
+  'heavy freezing drizzle': 'Starker gefrierender Nieselregen',
+  'patchy light drizzle': 'Leichter Nieselregen',
+  'light drizzle': 'Leichter Nieselregen',
+  'light rain': 'Leichter Regen',
+  'moderate rain at times': 'Zeitweise mäßiger Regen',
+  'moderate rain': 'Mäßiger Regen',
+  'heavy rain at times': 'Zeitweise starker Regen',
+  'heavy rain': 'Starker Regen',
+  'light freezing rain': 'Leichter gefrierender Regen',
+  'moderate or heavy freezing rain': 'Mäßiger bis starker gefrierender Regen',
+  'light sleet': 'Leichter Schneeregen',
+  'moderate or heavy sleet': 'Mäßiger bis starker Schneeregen',
+  'patchy light snow': 'Vereinzelt leichter Schnee',
+  'light snow': 'Leichter Schneefall',
+  'patchy moderate snow': 'Vereinzelt mäßiger Schnee',
+  'moderate snow': 'Mäßiger Schneefall',
+  'patchy heavy snow': 'Vereinzelt starker Schnee',
+  'heavy snow': 'Starker Schneefall',
+  'ice pellets': 'Eiskörner',
+  'light rain shower': 'Leichter Regenschauer',
+  'moderate or heavy rain shower': 'Mäßiger bis starker Regenschauer',
+  'torrential rain shower': 'Wolkenbruch',
+  'light sleet showers': 'Leichte Schneeregenschauer',
+  'moderate or heavy sleet showers': 'Mäßige bis starke Schneeregenschauer',
+  'light snow showers': 'Leichte Schneeschauer',
+  'moderate or heavy snow showers': 'Mäßige bis starke Schneeschauer',
+  'patchy light rain with thunder': 'Leichter Regen mit Donner',
+  'moderate or heavy rain with thunder': 'Mäßiger bis starker Regen mit Gewitter',
+  'patchy light snow with thunder': 'Leichter Schnee mit Donner',
+  'moderate or heavy snow with thunder': 'Mäßiger bis starker Schnee mit Gewitter',
+  'rain': 'Regen',
+  'snow': 'Schnee',
+  'drizzle': 'Nieselregen',
+  'thunderstorm': 'Gewitter',
+  'hail': 'Hagel',
+  'sleet': 'Schneeregen',
+  'wind': 'Windig',
+};
+
+/**
+ * Format a pipe-separated headline so no topic is cut mid-word.
+ * Shows at most maxTopics complete topics, joined by " | ".
+ * If the raw string has no pipes, falls back to smartTruncate.
+ */
+export function formatHeadline(raw: string, maxChars = 120, maxTopics = 3): string {
+  if (!raw) return raw;
+
+  const parts = raw.split('|').map(p => p.trim()).filter(Boolean);
+
+  // No pipe separators → use smartTruncate
+  if (parts.length <= 1) return smartTruncate(raw, maxChars);
+
+  // Take as many complete topics as fit within maxChars
+  let result = '';
+  let count = 0;
+  for (const part of parts) {
+    if (count >= maxTopics) break;
+    const candidate = count === 0 ? part : `${result} | ${part}`;
+    if (candidate.length > maxChars && count > 0) break;
+    result = candidate;
+    count++;
+  }
+
+  return result;
+}
+
+export function translateWeather(condition: string): string {
+  if (!condition) return condition;
+  const key = condition.toLowerCase().trim();
+  return WEATHER_DE[key] || condition;
+}

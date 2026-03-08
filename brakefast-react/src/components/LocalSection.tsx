@@ -46,12 +46,10 @@ export function LocalSection({ articles, onArticleClick }: Props) {
     <>
       <SectionHeader id="steiermark" icon="🏔" title="Steiermark & Lokal" tag={{ text: 'NEU', colorClass: 'tag-local' }} />
       <div className="local-grid">
-        <div
+        <a
           className="local-main"
-          onClick={() => onArticleClick(featured)}
-          role="button"
-          tabIndex={0}
-          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onArticleClick(featured); }}
+          href={featured.link || '#'}
+          onClick={(e) => { e.preventDefault(); onArticleClick(featured); }}
         >
           <LocalFeaturedImage src={featured.image} />
           <div className="overlay">
@@ -59,23 +57,21 @@ export function LocalSection({ articles, onArticleClick }: Props) {
             <h3>{featured.title}</h3>
             <div className="meta">{featured.source}{getReadingTime(featured.summary || featured.description, featured.reading_time_minutes) ? ` · ${getReadingTime(featured.summary || featured.description, featured.reading_time_minutes)} Min.` : ''}</div>
           </div>
-        </div>
+        </a>
         {sideItems.length > 0 && (
           <div className="local-sidebar">
             {sideItems.map((article, i) => (
-              <div
+              <a
                 key={i}
                 className="local-item"
-                onClick={() => onArticleClick(article)}
-                role="button"
-                tabIndex={0}
-                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onArticleClick(article); }}
+                href={article.link || '#'}
+                onClick={(e) => { e.preventDefault(); onArticleClick(article); }}
               >
                 <h4>{article.title}</h4>
                 <div className="meta">
                   {article.source}{getReadingTime(article.summary || article.description, article.reading_time_minutes) ? ` · ${getReadingTime(article.summary || article.description, article.reading_time_minutes)} Min.` : ''}
                 </div>
-              </div>
+              </a>
             ))}
           </div>
         )}

@@ -20,6 +20,11 @@ export function BriefingModal({ headline, editorial, date, onClose }: Props) {
     };
   }, [onClose]);
 
+  // Split pipe-separated headline into individual topics
+  const topics = headline.includes('|')
+    ? headline.split('|').map(t => t.trim()).filter(Boolean)
+    : null;
+
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content briefing-modal" onClick={(e) => e.stopPropagation()}>
@@ -31,7 +36,18 @@ export function BriefingModal({ headline, editorial, date, onClose }: Props) {
             {date && <span className="modal-date">{date}</span>}
           </div>
 
-          <h2 className="modal-title">{headline}</h2>
+          {topics ? (
+            <div className="briefing-topics">
+              <h2 className="modal-title">Themen heute</h2>
+              <ul className="briefing-topics-list">
+                {topics.map((topic, i) => (
+                  <li key={i} className="briefing-topic-item">{topic}</li>
+                ))}
+              </ul>
+            </div>
+          ) : (
+            <h2 className="modal-title">{headline}</h2>
+          )}
 
           {editorial && (
             <div className="modal-text briefing-modal-text">

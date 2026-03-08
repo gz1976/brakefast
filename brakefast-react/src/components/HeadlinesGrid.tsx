@@ -15,13 +15,11 @@ export function HeadlinesGrid({ articles, onArticleClick }: Props) {
       <SectionHeader id="welt" icon="🌍" title="Welt & Politik" tag={{ text: 'NEU', colorClass: 'tag-world' }} />
       <div className="headlines-grid">
         {articles.slice(0, 6).map((article, i) => (
-          <div
+          <a
             key={i}
             className="headline-item"
-            onClick={() => onArticleClick(article)}
-            role="button"
-            tabIndex={0}
-            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onArticleClick(article); }}
+            href={article.link || '#'}
+            onClick={(e) => { e.preventDefault(); onArticleClick(article); }}
           >
             <div className="headline-num">{i + 1}</div>
             <div className="headline-content">
@@ -30,7 +28,7 @@ export function HeadlinesGrid({ articles, onArticleClick }: Props) {
                 {article.source}{getReadingTime(article.summary || article.description, article.reading_time_minutes) ? ` · ${getReadingTime(article.summary || article.description, article.reading_time_minutes)} Min. Lesezeit` : ''}
               </div>
             </div>
-          </div>
+          </a>
         ))}
       </div>
     </>

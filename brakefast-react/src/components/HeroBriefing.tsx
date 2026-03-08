@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { NewspaperData, HistoryFact } from '../types';
 import { BriefingModal } from './BriefingModal';
+import { translateWeather, formatHeadline } from '../utils/textUtils';
 
 interface Props {
   data: NewspaperData;
@@ -34,7 +35,7 @@ export function HeroBriefing({ data }: Props) {
         >
           <div className="hero-briefing-label">Ottos Briefing</div>
           <h1 className="hero-briefing-headline">
-            {data.headline || 'Guten Morgen — dein persönlicher Überblick für heute.'}
+            {data.headline ? formatHeadline(data.headline) : 'Guten Morgen — dein persönlicher Überblick für heute.'}
           </h1>
           {data.editorial && (
             <p className="hero-briefing-text">{data.editorial}</p>
@@ -92,7 +93,7 @@ export function HeroBriefing({ data }: Props) {
             </span>
           </div>
           <div className="status-card-detail">
-            {weather ? `${weather.location} · ${weather.description}` : 'Keine Daten'}
+            {weather ? `${weather.location} · ${translateWeather(weather.description)}` : 'Keine Daten'}
           </div>
           {weather && (
             <div className="status-card-detail">

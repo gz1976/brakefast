@@ -8,7 +8,6 @@ import { TechHub } from './TechHub';
 import { CategorySection } from './CategorySection';
 import { KiModelleSection } from './KiModelleSection';
 import { DevDigestSection } from './DevDigestSection';
-import { PersonalBoard } from './PersonalBoard';
 import { Footer } from './Footer';
 import { ArticleModal } from './ArticleModal';
 import { MorningTiles } from './MorningTiles';
@@ -52,8 +51,6 @@ export function BrakeFastApp({ data }: Props) {
     if (worldArticles.length) s.push({ id: 'welt', label: 'Welt' });
     if (localArticles.length) s.push({ id: 'steiermark', label: 'Steiermark' });
     if (evArticles.length) s.push({ id: 'ev', label: 'E-Mobilität' });
-    s.push({ id: 'personal', label: 'Personal' });
-
     return s;
   }, [data, aiArticles, securityArticles, evArticles, worldArticles, localArticles]);
 
@@ -165,11 +162,6 @@ export function BrakeFastApp({ data }: Props) {
           </>
         )}
 
-        {/* 9. Personal Board */}
-        <SectionDivider label="Personal" colorClass="personal" />
-        <section className="personal-section">
-          <PersonalBoard data={data} />
-        </section>
       </div>
 
       <Footer generated={data.generated} editionNumber={data.edition_number} />

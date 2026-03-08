@@ -201,14 +201,13 @@ Wenn du aufgefordert wirst die BrakeFast zu generieren:
    **KRITISCH: 6 Artikel pro Kategorie!**
    Jede der 6 Kategorien (ai, security, tech, ev, world, local) muss EXAKT 6 Artikel haben.
 
-   **WICHTIG: `morning_tiles.headlines` mit `url` versehen!**
-   Jede Schlagzeile in `morning_tiles.headlines` MUSS ein `url`-Feld enthalten,
-   das auf den Originalartikel verlinkt. Format:
-   ```json
-   "headlines": [
-     { "text": "Headline Text", "source": "Reuters", "url": "https://...", "summary": "Kurzer Satz." }
-   ]
-   ```
+   **WICHTIG: `morning_tiles` mit `url`-Feldern versehen!**
+   Alle Eintraege in morning_tiles MUESSEN ein `url`-Feld enthalten:
+   - `headlines[].url`: Link zum Originalartikel
+   - `knapp.signals[].url`: Link zur Quellmeldung (DVZ, Logistik Heute, BVL)
+   - `streaming[].url`: Link zur IMDB-Seite oder Streaming-Anbieter
+   - `events[].url`: Link zur Event-Website oder Google Maps
+   - `media_tip.url`: Link zum Podcast/Artikel (Spotify, Apple Podcasts, Website)
 
    **Sektionen (ki_modelle, dev_digest):**
    - `ki_modelle`: 4 Info-Karten ueber aktuelle KI-Modell-Entwicklungen (Releases, Benchmarks, Preise, Tools)

@@ -25,18 +25,16 @@ export function NewsSection({ securityArticles, worldArticles, onArticleClick }:
           <div className="news-card-group">
             <div className="category-badge cat-security">Security</div>
             {securityArticles.slice(0, 3).map((article, i) => (
-              <div
+              <a
                 key={i}
                 className="news-article-item"
-                onClick={() => onArticleClick(article)}
-                role="button"
-                tabIndex={0}
-                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onArticleClick(article); }}
+                href={article.link || '#'}
+                onClick={(e) => { e.preventDefault(); onArticleClick(article); }}
               >
                 <h4>{article.title}</h4>
                 <p>{smartTruncate(article.summary || article.description || '', 150)}</p>
                 <span className="news-item-meta">{article.source}{getReadingTime(article.summary || article.description, article.reading_time_minutes) ? ` · ${getReadingTime(article.summary || article.description, article.reading_time_minutes)} Min.` : ''}</span>
-              </div>
+              </a>
             ))}
           </div>
         )}
@@ -45,18 +43,16 @@ export function NewsSection({ securityArticles, worldArticles, onArticleClick }:
           <div className="news-card-group">
             <div className="category-badge cat-world">Welt</div>
             {worldArticles.slice(0, 3).map((article, i) => (
-              <div
+              <a
                 key={i}
                 className="news-article-item"
-                onClick={() => onArticleClick(article)}
-                role="button"
-                tabIndex={0}
-                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onArticleClick(article); }}
+                href={article.link || '#'}
+                onClick={(e) => { e.preventDefault(); onArticleClick(article); }}
               >
                 <h4>{article.title}</h4>
                 <p>{smartTruncate(article.summary || article.description || '', 150)}</p>
                 <span className="news-item-meta">{article.source}{getReadingTime(article.summary || article.description, article.reading_time_minutes) ? ` · ${getReadingTime(article.summary || article.description, article.reading_time_minutes)} Min.` : ''}</span>
-              </div>
+              </a>
             ))}
           </div>
         )}

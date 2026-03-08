@@ -45,12 +45,10 @@ export function ArticleCard({ article, categoryLabel, colorClass, catId = 'tech'
   );
 
   return (
-    <div
+    <a
       className="article-card"
-      onClick={() => onArticleClick(article)}
-      role="button"
-      tabIndex={0}
-      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onArticleClick(article); }}
+      href={article.link || '#'}
+      onClick={(e) => { e.preventDefault(); onArticleClick(article); }}
     >
       <CardImage src={article.image} catId={catId} categoryLabel={categoryLabel} />
       <div className="card-body">
@@ -62,6 +60,6 @@ export function ArticleCard({ article, categoryLabel, colorClass, catId = 'tech'
           {readTime && <span className="reading-time">{readTime} Min.</span>}
         </div>
       </div>
-    </div>
+    </a>
   );
 }

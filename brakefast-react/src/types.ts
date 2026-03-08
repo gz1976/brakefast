@@ -216,6 +216,7 @@ export interface MonitoringData {
 export interface KnappSignal {
   text: string;
   source?: string;
+  url?: string;
 }
 
 export interface MorningTileKnapp {
@@ -245,6 +246,7 @@ export interface StreamingTip {
   title: string;
   platform: string;
   type: string;
+  url?: string;
 }
 
 // ─── Local Event ───
@@ -253,6 +255,7 @@ export interface LocalEvent {
   date: string;
   location: string;
   type: string;
+  url?: string;
 }
 
 export interface MorningTilesData {
