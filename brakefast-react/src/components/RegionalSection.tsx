@@ -1,4 +1,5 @@
 import type { Article } from '../types';
+import { smartTruncate } from '../utils/textUtils';
 
 interface Props {
   localArticles: Article[];
@@ -35,7 +36,7 @@ export function RegionalSection({ localArticles, evArticles, onArticleClick }: P
               <div className="category-badge cat-local">Lokal</div>
               <h3 className="regional-featured-title">{featured.title}</h3>
               <p className="regional-featured-text">
-                {(featured.summary || featured.description || '').slice(0, 200)}
+                {smartTruncate(featured.summary || featured.description || '', 200)}
               </p>
             </div>
           )}
@@ -73,7 +74,7 @@ export function RegionalSection({ localArticles, evArticles, onArticleClick }: P
               onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onArticleClick(article); }}
             >
               <h4>{article.title}</h4>
-              <p>{(article.summary || article.description || '').slice(0, 120)}</p>
+              <p>{smartTruncate(article.summary || article.description || '', 120)}</p>
               <span className="regional-item-meta">{article.source}</span>
             </div>
           ))}

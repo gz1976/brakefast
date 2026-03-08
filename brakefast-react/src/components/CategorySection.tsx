@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { Article } from '../types';
 import { isValidArticleImage, getCategoryGradient, getCategoryIcon } from '../utils/imageUtils';
+import { smartTruncate } from '../utils/textUtils';
 
 interface Props {
   articles: Article[];
@@ -90,8 +91,7 @@ export function CategorySection({ articles, categoryId, label, sectionId, onArti
                 <div className="secondary-story-text">
                   <h3 className="secondary-story-title">{article.title}</h3>
                   <p className="secondary-story-excerpt">
-                    {(article.summary || article.description || '').slice(0, 180)}
-                    {(article.summary || article.description || '').length > 180 ? '...' : ''}
+                    {smartTruncate(article.summary || article.description || '', 180)}
                   </p>
                 </div>
                 <SecondaryThumb src={article.image} catId={categoryId} />

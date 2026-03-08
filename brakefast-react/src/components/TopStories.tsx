@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { Article, Category } from '../types';
 import { isValidArticleImage, getCategoryGradient, getCategoryIcon } from '../utils/imageUtils';
+import { smartTruncate } from '../utils/textUtils';
 
 interface Props {
   categories: Record<string, Category>;
@@ -104,8 +105,7 @@ export function TopStories({ categories, onArticleClick }: Props) {
                   <div className="secondary-story-text">
                     <h3 className="secondary-story-title">{item.article.title}</h3>
                     <p className="secondary-story-excerpt">
-                      {(item.article.summary || item.article.description || '').slice(0, 180)}
-                      {(item.article.summary || item.article.description || '').length > 180 ? '...' : ''}
+                      {smartTruncate(item.article.summary || item.article.description || '', 180)}
                     </p>
                   </div>
                   <SecondaryThumb src={item.article.image} catId={item.catId} />

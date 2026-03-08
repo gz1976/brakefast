@@ -1,20 +1,14 @@
 import { useState } from 'react';
 import type { KiModelleData } from '../types';
 import { isValidArticleImage, getCategoryGradient, getCategoryIcon } from '../utils/imageUtils';
+import { smartTruncateHtml } from '../utils/textUtils';
 
 interface Props {
   data: KiModelleData;
 }
 
-/** Strip HTML tags for safe truncation, then allow HTML rendering */
-function stripHtml(html: string): string {
-  return html.replace(/<[^>]*>/g, '');
-}
-
 function truncateHtml(html: string, max: number): string {
-  const plain = stripHtml(html);
-  if (plain.length <= max) return html;
-  return plain.slice(0, max) + '…';
+  return smartTruncateHtml(html, max);
 }
 
 function LeadImage({ src }: { src: string | undefined }) {

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import type { Article, Category } from '../types';
 import { SectionHeader } from './SectionHeader';
 import { isValidArticleImage, getCategoryGradient, getCategoryIcon } from '../utils/imageUtils';
+import { smartTruncate } from '../utils/textUtils';
 
 interface Props {
   categories: Record<string, Category>;
@@ -40,10 +41,8 @@ function getReadingTime(article: Article): number {
   return Math.max(1, Math.round(words / 200));
 }
 
-function truncateText(text: string, maxWords: number): string {
-  const words = text.split(/\s+/);
-  if (words.length <= maxWords) return text;
-  return words.slice(0, maxWords).join(' ') + '...';
+function truncateText(text: string, maxChars: number = 300): string {
+  return smartTruncate(text, maxChars);
 }
 
 function HeroImage({ src, catId }: { src: string | undefined; catId: string }) {
@@ -113,7 +112,7 @@ export function HeroSection({ categories, onArticleClick }: Props) {
   const hero = top[0];
   const sideCards = top.slice(1, 4);
   const heroStyle = CATEGORY_STYLES[hero.catId] || { badge: 'badge-ai', color: 'text-purple' };
-  const heroExcerpt = truncateText(hero.article.summary || hero.article.description || '', 50);
+  const heroExcerpt = truncateText(hero.article.summary || hero.article.description || '', 300);
 
   return (
     <>

@@ -1,4 +1,5 @@
 import type { NewspaperData } from '../types';
+import { smartTruncate } from '../utils/textUtils';
 
 interface Props {
   data: NewspaperData;
@@ -32,7 +33,7 @@ export function PersonalBoard({ data }: Props) {
           <div className="personal-card-title accent-amber">Ottos Briefing</div>
           <p className="personal-card-text">
             {data.editorial
-              ? data.editorial.slice(0, 200) + (data.editorial.length > 200 ? '...' : '')
+              ? smartTruncate(data.editorial, 200)
               : 'Kurzer persönlicher Einstieg mit Einordnung des Tages'}
           </p>
         </div>

@@ -1,4 +1,5 @@
 import type { Article } from '../types';
+import { smartTruncate } from '../utils/textUtils';
 
 interface Props {
   securityArticles: Article[];
@@ -33,7 +34,7 @@ export function NewsSection({ securityArticles, worldArticles, onArticleClick }:
                 onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onArticleClick(article); }}
               >
                 <h4>{article.title}</h4>
-                <p>{(article.summary || article.description || '').slice(0, 150)}</p>
+                <p>{smartTruncate(article.summary || article.description || '', 150)}</p>
                 <span className="news-item-meta">{article.source} · {article.reading_time_minutes || 2} Min.</span>
               </div>
             ))}
@@ -53,7 +54,7 @@ export function NewsSection({ securityArticles, worldArticles, onArticleClick }:
                 onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onArticleClick(article); }}
               >
                 <h4>{article.title}</h4>
-                <p>{(article.summary || article.description || '').slice(0, 150)}</p>
+                <p>{smartTruncate(article.summary || article.description || '', 150)}</p>
                 <span className="news-item-meta">{article.source} · {article.reading_time_minutes || 2} Min.</span>
               </div>
             ))}

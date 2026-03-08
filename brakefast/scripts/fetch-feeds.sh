@@ -51,6 +51,27 @@ def clean_html(text):
     text = re.sub(r'\s+', ' ', text).strip()
     return text
 
+def smart_truncate(text, max_length=500):
+    """Truncate text at the last complete sentence boundary within max_length."""
+    if not text or len(text) <= max_length:
+        return text
+    region = text[:max_length]
+    # Find last sentence-ending punctuation
+    best_cut = -1
+    for i in range(len(region) - 1, int(max_length * 0.3), -1):
+        if region[i] in '.!?':
+            nxt = region[i + 1] if i + 1 < len(region) else ' '
+            if nxt in (' ', '\n') or i + 1 == len(region):
+                best_cut = i + 1
+                break
+    if best_cut > 0:
+        return text[:best_cut].rstrip()
+    # Fallback: word boundary
+    last_space = region.rfind(' ')
+    if last_space > max_length * 0.3:
+        return region[:last_space].rstrip() + ' \u2026'
+    return region.rstrip() + ' \u2026'
+
 def validate_image_url(url):
     """Filter out tracking pixels, data URIs, SVGs, and tiny images."""
     if not url or not isinstance(url, str):
@@ -373,7 +394,7 @@ def enrich_aggregator_articles(articles, feed_config):
             # Extract article text from original
             text = extract_article_text(original_url)
             if text:
-                art['description'] = text[:500] + ('...' if len(text) > 500 else '')
+                art['description'] = smart_truncate(text, 500)
                 print(f"    Extracted {len(text)} chars of text", file=sys.stderr)
             else:
                 art['description'] = f"Diskussion auf {feed_name} — Originalartikel konnte nicht extrahiert werden."
@@ -466,9 +487,9 @@ def parse_feed(xml_text, feed_name, max_items, is_aggregator=False):
 
         # Skip articles without title
         if article.get('title'):
-            # Truncate description to ~500 chars to keep JSON manageable
+            # Truncate description at sentence boundary to keep JSON manageable
             if len(article.get('description', '')) > 500:
-                article['description'] = article['description'][:500] + '...'
+                article['description'] = smart_truncate(article['description'], 500)
             articles.append(article)
 
     return articles
