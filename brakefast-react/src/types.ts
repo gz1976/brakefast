@@ -31,6 +31,7 @@ export interface KiModelleItem {
   date: string;
   tag: string;
   image?: string;
+  link?: string;
 }
 
 export interface KiModelleData {
@@ -48,6 +49,7 @@ export interface DevDigestItem {
   date: string;
   tag: string;
   image?: string;
+  link?: string;
 }
 
 export interface DevDigestData {

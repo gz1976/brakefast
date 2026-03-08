@@ -160,17 +160,18 @@ Wenn du aufgefordert wirst die BrakeFast zu generieren:
          "content": "<strong>Claude 4.5 Opus</strong> — Beschreibung...",
          "source": "Anthropic Blog",
          "date": "vor 2 Tagen",
-         "tag": "Modell"
+         "tag": "Modell",
+         "link": "https://anthropic.com/blog/..."
        },
-       "benchmarks": { "title": "...", "content": "...", "source": "...", "date": "...", "tag": "Ranking" },
-       "pricing": { "title": "...", "content": "...", "source": "...", "date": "...", "tag": "API" },
-       "tools": { "title": "...", "content": "...", "source": "...", "date": "...", "tag": "Update" }
+       "benchmarks": { "title": "...", "content": "...", "source": "...", "date": "...", "tag": "Ranking", "link": "https://..." },
+       "pricing": { "title": "...", "content": "...", "source": "...", "date": "...", "tag": "API", "link": "https://..." },
+       "tools": { "title": "...", "content": "...", "source": "...", "date": "...", "tag": "Update", "link": "https://..." }
      },
      "dev_digest": {
-       "github_trending": { "title": "...", "content": "...", "source": "...", "date": "...", "tag": "Repo" },
-       "releases": { "title": "...", "content": "...", "source": "...", "date": "...", "tag": "Update" },
-       "hn_top": { "title": "...", "content": "...", "source": "...", "date": "...", "tag": "Diskussion" },
-       "security_advisory": { "title": "...", "content": "...", "source": "...", "date": "...", "tag": "CVE" }
+       "github_trending": { "title": "...", "content": "...", "source": "...", "date": "...", "tag": "Repo", "link": "https://github.com/..." },
+       "releases": { "title": "...", "content": "...", "source": "...", "date": "...", "tag": "Update", "link": "https://..." },
+       "hn_top": { "title": "...", "content": "...", "source": "...", "date": "...", "tag": "Diskussion", "link": "https://news.ycombinator.com/..." },
+       "security_advisory": { "title": "...", "content": "...", "source": "...", "date": "...", "tag": "CVE", "link": "https://..." }
      }
    }
    EOF
@@ -181,6 +182,15 @@ Wenn du aufgefordert wirst die BrakeFast zu generieren:
    - `totalArticles`: Gesamtanzahl der kuratierten Artikel (Zahl)
    - `edition_number`: Fortlaufende Ausgabennummer (Zahl, MUSS inkrementiert werden)
    - `reading_time_total`: Geschaetzte Gesamtlesezeit in Minuten
+
+   **Edition Number ermitteln:**
+   ```bash
+   # Letzte Ausgabennummer lesen und um 1 erhoehen:
+   PREV=$(cat /data/.openclaw/workspace/brakefast/output/curated-articles.json 2>/dev/null | python3 -c "import json,sys; print(json.load(sys.stdin).get('edition_number',0))" 2>/dev/null || echo 0)
+   NEXT=$((PREV + 1))
+   # Falls PREV=0 (erste Ausgabe oder Datei nicht vorhanden): Starte bei 1
+   ```
+   Verwende `$NEXT` als `edition_number` im neuen JSON.
 
    **WICHTIG: `image`-Feld aus raw-articles.json uebernehmen!**
    Jeder Artikel in raw-articles.json hat ein `image`-Feld (URL zum Artikel-Thumbnail).
@@ -202,18 +212,56 @@ Wenn du aufgefordert wirst die BrakeFast zu generieren:
    Jede der 6 Kategorien (ai, security, tech, ev, world, local) muss EXAKT 6 Artikel haben.
 
    **WICHTIG: `morning_tiles` mit `url`-Feldern versehen!**
-   Alle Eintraege in morning_tiles MUESSEN ein `url`-Feld enthalten:
-   - `headlines[].url`: Link zum Originalartikel
-   - `knapp.signals[].url`: Link zur Quellmeldung (DVZ, Logistik Heute, BVL)
-   - `streaming[].url`: Link zur IMDB-Seite oder Streaming-Anbieter
-   - `events[].url`: Link zur Event-Website oder Google Maps
-   - `media_tip.url`: Link zum Podcast/Artikel (Spotify, Apple Podcasts, Website)
+   Alle Eintraege in morning_tiles MUESSEN ein `url`-Feld enthalten.
+   Beispiel-Struktur:
+   ```json
+   "morning_tiles": {
+     "knapp": {
+       "headline": "KNAPP liefert AutoStore-Anlage an...",
+       "signals": [
+         { "text": "KNAPP erweitert Logistikzentrum in Leoben", "source": "DVZ", "url": "https://..." },
+         { "text": "Automatisierung in der Pharmalogistik", "source": "Logistik Heute", "url": "https://..." }
+       ]
+     },
+     "streaming": [
+       { "title": "The Bear S4", "platform": "Disney+", "type": "Serie", "url": "https://www.imdb.com/..." },
+       { "title": "Dune: Prophecy", "platform": "Sky", "type": "Serie", "url": "https://..." }
+     ],
+     "events": [
+       { "title": "Grazer Fruehjahrsmesse", "date": "15.-17. Maerz", "location": "Graz", "type": "Messe", "url": "https://..." }
+     ],
+     "media_tip": {
+       "title": "Lex Fridman #456 - Sam Altman", "type": "Podcast", "source": "Lex Fridman Podcast",
+       "url": "https://open.spotify.com/...", "duration": "2h 15m"
+     }
+   }
+   ```
+   - `knapp`: KNAPP AG / Intralogistik-News (Gerhard arbeitet dort). 2-3 Signals.
+   - `streaming`: 2-3 aktuelle Streaming-Tipps (Serien/Filme). IMDB-Links bevorzugen.
+   - `events`: 1-3 regionale Events (Steiermark/Oesterreich). Messen, Konferenzen, Kulturveranstaltungen.
+   - `media_tip`: 1 Podcast/Lesetipp/Video (Tech/AI/Business). Mit Dauer.
 
    **Sektionen (ki_modelle, dev_digest):**
    - `ki_modelle`: 4 Info-Karten ueber aktuelle KI-Modell-Entwicklungen (Releases, Benchmarks, Preise, Tools)
    - `dev_digest`: 4 Info-Karten (GitHub Trending, Software Releases, HN Top Story, Security Advisory)
-   - `content`-Feld darf HTML enthalten (z.B. `<strong>...</strong>`)
-   - Diese Sektionen werden NICHT aus RSS-Feeds generiert, sondern vom Chefredakteur recherchiert
+   - `content`-Feld darf HTML enthalten (z.B. `<strong>...</strong>`, `<em>...</em>`)
+   - Jedes Item MUSS ein `link`-Feld mit URL zur Quelle enthalten!
+
+   **ki_modelle befuellen — Quellen und Vorgehen:**
+   Durchsuche `raw-articles.json` nach AI/ML-relevanten Artikeln und destilliere:
+   - `releases`: Neuestes KI-Modell oder groesstes AI-Release des Tages
+   - `benchmarks`: Benchmark-Vergleiche, Leaderboard-Aenderungen, Evaluierungen
+   - `pricing`: API-Preisaenderungen, neue Tiers, kostenlose Angebote
+   - `tools`: Neue AI-Tools, Plugins, Integrationen (z.B. Cursor, Copilot, Claude Code)
+   Falls keine passenden Artikel in raw-articles.json: Verwende dein aktuelles Wissen ueber AI-Entwicklungen.
+
+   **dev_digest befuellen — Quellen und Vorgehen:**
+   Durchsuche `raw-articles.json` nach Developer-relevanten Artikeln und destilliere:
+   - `github_trending`: Interessantestes Trending-Repo (aus HN/Tech-Feeds)
+   - `releases`: Wichtigstes Software-Release (Frameworks, Libraries, Tools)
+   - `hn_top`: Spannendste HN-Diskussion des Tages (mit Link zum HN-Thread)
+   - `security_advisory`: Wichtigstes Security-Advisory oder CVE
+   WICHTIG: Verwende ECHTE Daten aus raw-articles.json, NICHT ausgedachte!
 
    **Kategorie: Elektromobilität (`ev`)**
    - 6 Artikel zu E-Autos, Tesla, Ladeinfrastruktur, Batterietechnik
@@ -221,14 +269,56 @@ Wenn du aufgefordert wirst die BrakeFast zu generieren:
    - Quellen: Teslamag, Elektroauto News, Ecomento, InsideEVs, Electrek
 
    **Widget-Daten sammeln (ALLE muessen befuellt werden!):**
-   - **Wetter**: `curl -s "wttr.in/Voitsberg?format=j1"` → temp, feelsLike, min, max, icon
-   - **VPS**: `df -h /` fuer Disk, `docker ps -q | wc -l` fuer Container
-   - **Tagesinfo**: Sonnenzeiten via wttr.in, Namenstag nachschlagen
+
+   - **Wetter** — Daten von wttr.in holen und extrahieren:
+     ```bash
+     WEATHER=$(curl -s "wttr.in/Voitsberg?format=j1")
+     # Extraktion:
+     echo "$WEATHER" | python3 -c "
+     import json, sys
+     w = json.load(sys.stdin)
+     c = w['current_condition'][0]
+     f = w.get('weather', [{}])[0]
+     print(json.dumps({
+       'temp': int(c['temp_C']),
+       'description': c['weatherDesc'][0]['value'],
+       'feelsLike': int(c['FeelsLikeC']),
+       'min': int(f.get('mintempC', c['temp_C'])),
+       'max': int(f.get('maxtempC', c['temp_C'])),
+       'icon': '☀️' if int(c['temp_C']) > 20 else '⛅' if int(c['temp_C']) > 5 else '🌤',
+       'location': 'Voitsberg'
+     }, ensure_ascii=False))
+     "
+     ```
+
+   - **VPS**: `df -h /` fuer Disk, `docker ps -q | wc -l` fuer Container, `uptime -s` fuer Uptime
+
+   - **Tagesinfo** — Sonnenzeiten aus wttr.in extrahieren:
+     ```bash
+     echo "$WEATHER" | python3 -c "
+     import json, sys
+     w = json.load(sys.stdin)
+     a = w.get('weather', [{}])[0].get('astronomy', [{}])[0]
+     print(f\"sunrise={a.get('sunrise','')}, sunset={a.get('sunset','')}\")
+     "
+     ```
+     **Namenstag**: Recherchiere den Namenstag fuer das heutige Datum (z.B. aus deinem Wissen oder einer Suche). Oesterreichische/deutsche Namenstage bevorzugen.
+
    - **Kalender**: Lies `/data/.openclaw/workspace/brakefast/output/calendar-events.json` (wird automatisch von fetch-calendar.py befuellt). Verwende die Daten fuer `widgets.calendar`. Falls die Datei leer ist oder `[]` enthaelt, setze `calendar: []`.
-   - **Zitat**: Taeglich variierendes inspirierendes Zitat (Tech/Wissenschaft/Philosophie)
-   - **Geschichte**: Was passierte heute in der Geschichte? (Jahr + kurzer Satz)
-   - **Bauernregel**: Passende Bauernregel zum heutigen Datum
-   - **Pollenflug**: Aktuelle Pollenbelastung fuer Voitsberg/Steiermark
+
+   - **Zitat**: Taeglich variierendes inspirierendes Zitat (Tech/Wissenschaft/Philosophie). Verwende dein Wissen — kein API-Call noetig.
+
+   - **Geschichte**: Was passierte heute in der Geschichte? (Jahr + kurzer Satz auf Deutsch). Verwende dein Wissen.
+
+   - **Bauernregel**: Passende Bauernregel zum aktuellen Monat. Verwende dein Wissen ueber traditionelle Bauernregeln.
+
+   - **Pollenflug**: Saisonale Schaetzung fuer Voitsberg/Steiermark:
+     - Jaenner-Februar: Hasel, Erle (niedrig-mittel)
+     - Maerz-April: Birke, Esche (mittel-hoch)
+     - Mai-Juli: Graeser, Roggen (hoch)
+     - August-September: Beifuss, Ragweed (mittel)
+     - Oktober-Dezember: Keine nennenswerte Belastung (niedrig)
+     Verwende diese Tabelle als Orientierung. `level`: "niedrig", "mittel", "hoch", "sehr hoch"
 
 5. Generiere die HTML-Seite (Legacy):
    ```bash
@@ -245,7 +335,13 @@ Wenn du aufgefordert wirst die BrakeFast zu generieren:
    NICHT `/docker/...` verwenden — das existiert im Container nicht!
 
 7. Sende Telegram-Benachrichtigung:
-   "Guten Morgen! Deine BrakeFast ist fertig: https://ottobot.net/"
+   ```bash
+   EDITION=$(python3 -c "import json; print(json.load(open('/data/.openclaw/workspace/brakefast/output/curated-articles.json')).get('edition_number',''))" 2>/dev/null)
+   curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+     -d chat_id=544762684 \
+     -d "text=Guten Morgen! Deine BrakeFast Ausgabe #${EDITION} ist fertig: https://ottobot.net/" \
+     -d parse_mode=Markdown
+   ```
 
 ### Manueller Modus
 
@@ -267,6 +363,25 @@ Wenn Gerhard sagt "Zeitung bitte" oder "BrakeFast generieren":
 - `widgets` IMMER komplett befuellen (weather, dayInfo, calendar, quote, history, bauernregel, pollen, vps)
 - `edition_number` MUSS bei jeder Ausgabe um 1 erhoeht werden
 - **ALLE Artikel muessen ein `image`-Feld haben** (aus raw-articles.json uebernehmen)
+
+## Relevanz-Score Leitfaden
+
+- **0.90-1.00**: Betrifft Gerhard direkt (VPS Security-Patch, Tesla-Rueckruf, KNAPP-News, OpenClaw/Docker-Update)
+- **0.75-0.89**: Hohe berufliche/persoenliche Relevanz (AI-Tools die er nutzt, E-Auto-Ladeinfrastruktur AT, Legal Tech)
+- **0.60-0.74**: Allgemein interessant (grosse Tech-News, wichtige Weltpolitik, regionale Ereignisse)
+- **0.40-0.59**: Hintergrund/Nice-to-know (Branchennews, internationale Politik, Wissenschaft)
+- **< 0.40**: Wenig relevant (nur verwenden wenn Kategorie nicht genug Artikel hat)
+
+## Fehlerbehandlung
+
+Wenn ein Widget oder eine Sektion nicht befuellt werden kann:
+- **weather**: Setze `description: "Keine Wetterdaten verfuegbar"`, temp/min/max auf 0
+- **pollen**: Setze `level: "unbekannt"`, `types: []`, `description: "Keine Daten verfuegbar"`
+- **calendar**: Setze `[]`
+- **vps**: Leeres Objekt `{}` (wird im Frontend ignoriert)
+- **quote/history/bauernregel**: Generiere plausible Daten aus deinem Wissen (diese Widgets haben keine externe API-Abhaengigkeit)
+- **ki_modelle/dev_digest**: Falls keine passenden Artikel in raw-articles.json, verwende dein Wissen ueber aktuelle Entwicklungen. IMMER befuellen!
+- **morning_tiles**: Falls keine spezifischen Daten, generiere plausible Inhalte (aktuelle Streaming-Tipps, bekannte regionale Events)
 
 ## Dateien
 

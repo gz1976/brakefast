@@ -5,7 +5,7 @@ interface Props {
   readingTimeTotal?: number;
 }
 
-export function Masthead({ date, totalArticles, readingTimeTotal }: Props) {
+export function Masthead({ date, totalArticles, editionNumber, readingTimeTotal }: Props) {
   const dateObj = new Date(date);
   const formattedDate = dateObj.toLocaleDateString('de-AT', {
     weekday: 'long',
@@ -26,6 +26,9 @@ export function Masthead({ date, totalArticles, readingTimeTotal }: Props) {
           </div>
         </div>
         <div className="masthead-chips">
+          {editionNumber != null && (
+            <span className="masthead-chip">Ausgabe #{editionNumber}</span>
+          )}
           <span className="masthead-chip">{formattedDate}</span>
           <span className="masthead-chip">{totalArticles} Artikel</span>
           {readingTimeTotal != null && (

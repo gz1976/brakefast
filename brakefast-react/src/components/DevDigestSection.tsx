@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import type { DevDigestData } from '../types';
 import { isValidArticleImage, getCategoryGradient, getCategoryIcon } from '../utils/imageUtils';
-import { smartTruncateHtml } from '../utils/textUtils';
+import { smartTruncateHtml, sanitizeHtml } from '../utils/textUtils';
 
 interface Props {
   data: DevDigestData;
@@ -62,42 +62,53 @@ export function DevDigestSection({ data }: Props) {
   const lead = items[0];
   const secondary = items.slice(1);
 
+  const LeadTag = lead.link ? 'a' : 'div';
+  const leadProps = lead.link
+    ? { href: lead.link, target: '_blank' as const, rel: 'noopener noreferrer' }
+    : {};
+
   return (
     <section className="category-section" id="dev-digest">
       <div className="category-section-grid">
         {/* Lead item */}
-        <div className="lead-story dev-digest-lead">
+        <LeadTag className="lead-story dev-digest-lead" {...leadProps}>
           <div className="category-badge cat-dev">Dev Digest</div>
           <h2 className="lead-story-title">{lead.title || lead.fallbackTitle}</h2>
-          <p className="lead-story-excerpt" dangerouslySetInnerHTML={{ __html: lead.content }} />
+          <p className="lead-story-excerpt" dangerouslySetInnerHTML={{ __html: sanitizeHtml(lead.content) }} />
           <div className="ki-modelle-meta">
             <span className="detail-tag">{lead.tag}</span>
             {lead.source && <span className="ki-modelle-source">{lead.source}</span>}
           </div>
           <LeadImage src={lead.image} />
-        </div>
+        </LeadTag>
 
         {/* Secondary items */}
         <div className="secondary-stories">
-          {secondary.map((item, i) => (
-            <div key={i} className="secondary-story">
-              <div className="category-badge cat-dev">Dev Digest</div>
-              <div className="secondary-story-inner">
-                <div className="secondary-story-text">
-                  <h3 className="secondary-story-title">{item.icon} {item.title || item.fallbackTitle}</h3>
-                  <p
-                    className="secondary-story-excerpt"
-                    dangerouslySetInnerHTML={{ __html: truncateHtml(item.content, 180) }}
-                  />
-                  <div className="ki-modelle-meta">
-                    <span className="detail-tag">{item.tag}</span>
-                    {item.source && <span className="ki-modelle-source">{item.source}</span>}
+          {secondary.map((item, i) => {
+            const Tag = item.link ? 'a' : 'div';
+            const tagProps = item.link
+              ? { href: item.link, target: '_blank' as const, rel: 'noopener noreferrer' }
+              : {};
+            return (
+              <Tag key={i} className="secondary-story" {...tagProps}>
+                <div className="category-badge cat-dev">Dev Digest</div>
+                <div className="secondary-story-inner">
+                  <div className="secondary-story-text">
+                    <h3 className="secondary-story-title">{item.icon} {item.title || item.fallbackTitle}</h3>
+                    <p
+                      className="secondary-story-excerpt"
+                      dangerouslySetInnerHTML={{ __html: sanitizeHtml(truncateHtml(item.content, 180)) }}
+                    />
+                    <div className="ki-modelle-meta">
+                      <span className="detail-tag">{item.tag}</span>
+                      {item.source && <span className="ki-modelle-source">{item.source}</span>}
+                    </div>
                   </div>
+                  <SecondaryThumb src={item.image} />
                 </div>
-                <SecondaryThumb src={item.image} />
-              </div>
-            </div>
-          ))}
+              </Tag>
+            );
+          })}
         </div>
       </div>
     </section>

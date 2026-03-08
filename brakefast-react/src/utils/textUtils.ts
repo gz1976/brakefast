@@ -154,6 +154,15 @@ export function formatHeadline(raw: string, maxChars = 120, maxTopics = 3): stri
   return result;
 }
 
+/**
+ * Sanitize HTML by allowing only safe tags: <strong>, <em>, <br>, <a>.
+ * Strips all other tags to prevent XSS from external content.
+ */
+export function sanitizeHtml(html: string): string {
+  if (!html) return html;
+  return html.replace(/<\/?(?!(?:strong|em|br|a)\b)[a-z][^>]*>/gi, '');
+}
+
 export function translateWeather(condition: string): string {
   if (!condition) return condition;
   const key = condition.toLowerCase().trim();
