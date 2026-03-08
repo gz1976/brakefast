@@ -54,12 +54,10 @@ export function CategorySection({ articles, categoryId, label, sectionId, onArti
       <div className="category-section-grid">
         {/* Lead Story */}
         {lead && (
-          <div
+          <a
+            href={lead.link || '#'}
             className="lead-story"
-            onClick={() => onArticleClick(lead)}
-            role="button"
-            tabIndex={0}
-            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onArticleClick(lead); }}
+            onClick={(e) => { e.preventDefault(); onArticleClick(lead); }}
           >
             <div className={`category-badge cat-${categoryId}`}>{label}</div>
             <h2 className="lead-story-title">{lead.title}</h2>
@@ -72,19 +70,17 @@ export function CategorySection({ articles, categoryId, label, sectionId, onArti
               </div>
             )}
             <LeadImage src={lead.image} catId={categoryId} />
-          </div>
+          </a>
         )}
 
         {/* Secondary Stories */}
         <div className="secondary-stories">
           {secondary.map((article, i) => (
-            <div
+            <a
               key={i}
+              href={article.link || '#'}
               className="secondary-story"
-              onClick={() => onArticleClick(article)}
-              role="button"
-              tabIndex={0}
-              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onArticleClick(article); }}
+              onClick={(e) => { e.preventDefault(); onArticleClick(article); }}
             >
               <div className={`category-badge cat-${categoryId}`}>{label}</div>
               <div className="secondary-story-inner">
@@ -96,7 +92,7 @@ export function CategorySection({ articles, categoryId, label, sectionId, onArti
                 </div>
                 <SecondaryThumb src={article.image} catId={categoryId} />
               </div>
-            </div>
+            </a>
           ))}
           {extraCards}
         </div>
