@@ -1,0 +1,61 @@
+{
+  "generated": "2026-03-07T14:30:00+01:00",
+  "period": "Letzte 7 Tage",
+  "agents": {
+    "main": { "model": "Kimi K2.5", "status": "active", "sessions_total": 47 },
+    "worker": { "model": "Gemini 3 Flash", "status": "active", "sessions_total": 338 },
+    "expert": { "model": "Claude Opus 4.6", "status": "active", "sessions_total": 3 }
+  },
+  "activity_7d": [
+    { "date": "2026-03-01", "main": 8, "worker": 48, "expert": 0 },
+    { "date": "2026-03-02", "main": 6, "worker": 48, "expert": 1 },
+    { "date": "2026-03-03", "main": 7, "worker": 48, "expert": 0 },
+    { "date": "2026-03-04", "main": 9, "worker": 48, "expert": 1 },
+    { "date": "2026-03-05", "main": 5, "worker": 48, "expert": 0 },
+    { "date": "2026-03-06", "main": 7, "worker": 50, "expert": 1 },
+    { "date": "2026-03-07", "main": 5, "worker": 48, "expert": 0 }
+  ],
+  "costs": {
+    "today_usd": 0.18,
+    "month_usd": 2.45,
+    "daily_limit_usd": 5.0,
+    "monthly_limit_usd": 100.0,
+    "history_7d": [
+      { "date": "2026-03-01", "total_usd": 0.42, "calls": 8, "by_model": { "kimi-k2.5": 0.42 } },
+      { "date": "2026-03-02", "total_usd": 0.35, "calls": 7, "by_model": { "kimi-k2.5": 0.35 } },
+      { "date": "2026-03-03", "total_usd": 0.38, "calls": 7, "by_model": { "kimi-k2.5": 0.38 } },
+      { "date": "2026-03-04", "total_usd": 0.51, "calls": 10, "by_model": { "kimi-k2.5": 0.51 } },
+      { "date": "2026-03-05", "total_usd": 0.28, "calls": 5, "by_model": { "kimi-k2.5": 0.28 } },
+      { "date": "2026-03-06", "total_usd": 0.33, "calls": 8, "by_model": { "kimi-k2.5": 0.33 } },
+      { "date": "2026-03-07", "total_usd": 0.18, "calls": 5, "by_model": { "kimi-k2.5": 0.18 } }
+    ]
+  },
+  "routing": [
+    { "agent": "self", "count": 47 },
+    { "agent": "worker", "count": 338 },
+    { "agent": "expert", "count": 3 }
+  ],
+  "models": [
+    { "model": "Kimi K2.5", "tier": "Tier 2", "calls": 47, "avg_latency_ms": 3200, "errors": 1, "success_rate": 97.9, "estimated_cost_usd": 2.45 },
+    { "model": "Gemini 3 Flash", "tier": "Tier 1", "calls": 338, "avg_latency_ms": 1100, "errors": 2, "success_rate": 99.4, "estimated_cost_usd": 0.0 },
+    { "model": "Claude Opus 4.6", "tier": "Tier 3", "calls": 3, "avg_latency_ms": 8500, "errors": 0, "success_rate": 100.0, "estimated_cost_usd": 0.0 }
+  ],
+  "system": {
+    "disk_percent": 42,
+    "uptime": "14d 6h",
+    "containers": 1,
+    "last_heartbeat": "2026-03-07T14:00:00+01:00",
+    "last_audit": "2026-03-02",
+    "heartbeat_status": "healthy"
+  },
+  "recent_events": [
+    { "timestamp": "2026-03-07T14:00:00+01:00", "type": "heartbeat", "agent": "worker", "summary": "System OK — Disk 42%, RAM 61%, alle Container healthy" },
+    { "timestamp": "2026-03-07T13:30:00+01:00", "type": "telegram", "agent": "main", "summary": "Gerhard: Recherche zu neuen LLM-Modellen" },
+    { "timestamp": "2026-03-07T13:30:05+01:00", "type": "routing", "agent": "worker", "summary": "Worker delegiert: Web-Search Ergebnisse sammeln" },
+    { "timestamp": "2026-03-07T06:30:00+01:00", "type": "cron", "agent": "main", "summary": "BrakeFast Morgenzeitung generiert — Edition #42" },
+    { "timestamp": "2026-03-06T22:15:00+01:00", "type": "telegram", "agent": "main", "summary": "Gerhard: Security-Frage zum VPS" },
+    { "timestamp": "2026-03-06T22:15:10+01:00", "type": "escalation", "agent": "expert", "summary": "Expert eingeschaltet: Security-Bewertung der Firewall-Regeln" },
+    { "timestamp": "2026-03-06T14:00:00+01:00", "type": "heartbeat", "agent": "worker", "summary": "System OK — Disk 41%, RAM 58%" },
+    { "timestamp": "2026-03-06T06:30:00+01:00", "type": "cron", "agent": "main", "summary": "BrakeFast Morgenzeitung generiert — Edition #41" }
+  ]
+}

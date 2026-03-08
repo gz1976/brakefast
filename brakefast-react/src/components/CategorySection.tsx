@@ -13,12 +13,12 @@ interface Props {
   extraCards?: React.ReactNode;
 }
 
-function LeadImage({ src, catId }: { src: string | undefined; catId: string }) {
+function LeadImage({ src, catId, alt }: { src: string | undefined; catId: string; alt?: string }) {
   const [failed, setFailed] = useState(false);
   const valid = isValidArticleImage(src) && !failed;
 
   if (valid) {
-    return <img className="lead-story-img" src={src} alt="" loading="lazy" onError={() => setFailed(true)} />;
+    return <img className="lead-story-img" src={src} alt={alt || ''} loading="lazy" onError={() => setFailed(true)} />;
   }
 
   return (
@@ -28,12 +28,12 @@ function LeadImage({ src, catId }: { src: string | undefined; catId: string }) {
   );
 }
 
-function SecondaryThumb({ src, catId }: { src: string | undefined; catId: string }) {
+function SecondaryThumb({ src, catId, alt }: { src: string | undefined; catId: string; alt?: string }) {
   const [failed, setFailed] = useState(false);
   const valid = isValidArticleImage(src) && !failed;
 
   if (valid) {
-    return <img className="secondary-story-thumb" src={src} alt="" loading="lazy" onError={() => setFailed(true)} />;
+    return <img className="secondary-story-thumb" src={src} alt={alt || ''} loading="lazy" onError={() => setFailed(true)} />;
   }
 
   return (
@@ -57,7 +57,9 @@ export function CategorySection({ articles, categoryId, label, sectionId, onArti
           <a
             href={lead.link || '#'}
             className="lead-story"
-            onClick={(e) => { e.preventDefault(); onArticleClick(lead); }}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={(e) => { if (e.button !== 0 || e.metaKey || e.ctrlKey) return; e.preventDefault(); onArticleClick(lead); }}
           >
             <div className={`category-badge cat-${categoryId}`}>{label}</div>
             <h2 className="lead-story-title">{lead.title}</h2>
@@ -69,7 +71,7 @@ export function CategorySection({ articles, categoryId, label, sectionId, onArti
                 Warum relevant: {lead.otto_comment}
               </div>
             )}
-            <LeadImage src={lead.image} catId={categoryId} />
+            <LeadImage src={lead.image} catId={categoryId} alt={lead.title} />
           </a>
         )}
 
@@ -80,7 +82,9 @@ export function CategorySection({ articles, categoryId, label, sectionId, onArti
               key={i}
               href={article.link || '#'}
               className="secondary-story"
-              onClick={(e) => { e.preventDefault(); onArticleClick(article); }}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => { if (e.button !== 0 || e.metaKey || e.ctrlKey) return; e.preventDefault(); onArticleClick(article); }}
             >
               <div className={`category-badge cat-${categoryId}`}>{label}</div>
               <div className="secondary-story-inner">
@@ -90,7 +94,7 @@ export function CategorySection({ articles, categoryId, label, sectionId, onArti
                     {smartTruncate(article.summary || article.description || '', 180)}
                   </p>
                 </div>
-                <SecondaryThumb src={article.image} catId={categoryId} />
+                <SecondaryThumb src={article.image} catId={categoryId} alt={article.title} />
               </div>
             </a>
           ))}

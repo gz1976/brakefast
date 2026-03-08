@@ -168,3 +168,32 @@ export function translateWeather(condition: string): string {
   const key = condition.toLowerCase().trim();
   return WEATHER_DE[key] || condition;
 }
+
+/**
+ * Format a date string (ISO or RFC) into a German locale format.
+ * Example: "2026-03-08T19:59:25Z" → "8. März 2026, 19:59 Uhr"
+ */
+export function formatDate(dateStr: string | undefined): string {
+  if (!dateStr) return '';
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return dateStr;
+  const date = d.toLocaleDateString('de-AT', { day: 'numeric', month: 'long', year: 'numeric' });
+  const time = d.toLocaleTimeString('de-AT', { hour: '2-digit', minute: '2-digit' });
+  return `${date}, ${time} Uhr`;
+}
+
+/**
+ * Convert AM/PM time strings to 24h format.
+ * Example: "06:27 AM" → "06:27", "05:56 PM" → "17:56"
+ */
+export function to24h(timeStr: string): string {
+  if (!timeStr) return timeStr;
+  const match = timeStr.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+  if (!match) return timeStr;
+  let hours = parseInt(match[1], 10);
+  const minutes = match[2];
+  const period = match[3].toUpperCase();
+  if (period === 'PM' && hours !== 12) hours += 12;
+  if (period === 'AM' && hours === 12) hours = 0;
+  return `${hours.toString().padStart(2, '0')}:${minutes}`;
+}

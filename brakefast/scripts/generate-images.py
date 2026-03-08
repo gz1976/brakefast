@@ -86,7 +86,12 @@ def get_hf_token():
 
 def is_valid_image(url):
     """Check if image URL is valid (mirrors frontend logic)."""
-    if not url or len(url) < 30:
+    if not url:
+        return False
+    # Local images served via nginx /images/ have shorter paths — allow them
+    if url.startswith('/images/') and len(url) > 10:
+        return True
+    if len(url) < 30:
         return False
     if not url.startswith('http') and not url.startswith('/'):
         return False

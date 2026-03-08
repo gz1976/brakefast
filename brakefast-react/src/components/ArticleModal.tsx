@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import type { Article } from '../types';
 import { isValidArticleImage } from '../utils/imageUtils';
-import { getReadingTime } from '../utils/textUtils';
+import { getReadingTime, formatDate } from '../utils/textUtils';
 
 interface Props {
   article: Article;
@@ -37,7 +37,7 @@ export function ArticleModal({ article, onClose }: Props) {
           <img
             className="modal-image"
             src={article.image}
-            alt=""
+            alt={article.title}
             onError={() => setImgFailed(true)}
           />
         )}
@@ -45,7 +45,7 @@ export function ArticleModal({ article, onClose }: Props) {
         <div className="modal-body">
           <div className="modal-meta-top">
             <span className="modal-source">{article.source}</span>
-            <span className="modal-date">{article.date}</span>
+            <span className="modal-date">{formatDate(article.date)}</span>
             {readTime && <span className="modal-reading">{readTime} Min. Lesezeit</span>}
           </div>
 

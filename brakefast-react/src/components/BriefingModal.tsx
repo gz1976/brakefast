@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { formatDate } from '../utils/textUtils';
 
 interface Props {
   headline: string;
@@ -33,7 +34,7 @@ export function BriefingModal({ headline, editorial, date, onClose }: Props) {
         <div className="modal-body">
           <div className="modal-meta-top">
             <span className="modal-source">Ottos Briefing</span>
-            {date && <span className="modal-date">{date}</span>}
+            {date && <span className="modal-date">{formatDate(date)}</span>}
           </div>
 
           {topics ? (

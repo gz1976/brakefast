@@ -1,14 +1,14 @@
 import { useState } from 'react';
 import type { NewspaperData, HistoryFact } from '../types';
 import { BriefingModal } from './BriefingModal';
-import { translateWeather, formatHeadline } from '../utils/textUtils';
+import { translateWeather, formatHeadline, to24h } from '../utils/textUtils';
 
 interface Props {
   data: NewspaperData;
+  calendarRevealed: boolean;
 }
 
-export function HeroBriefing({ data }: Props) {
-  const [calendarRevealed, setCalendarRevealed] = useState(false);
+export function HeroBriefing({ data, calendarRevealed }: Props) {
   const [showBriefing, setShowBriefing] = useState(false);
 
   const weather = data.widgets?.weather;
@@ -109,7 +109,7 @@ export function HeroBriefing({ data }: Props) {
             <span className="status-card-label">Tagesinfo</span>
           </div>
           <div className="status-card-detail">
-            {dayInfo ? `☀ ${dayInfo.sunrise} — 🌙 ${dayInfo.sunset} · ${dayInfo.dayLength || '—'}` : 'Keine Daten'}
+            {dayInfo ? `☀ ${to24h(dayInfo.sunrise)} — 🌙 ${to24h(dayInfo.sunset)} · ${dayInfo.dayLength || '—'}` : 'Keine Daten'}
           </div>
           {dayInfo?.namenstag && (
             <div className="status-card-detail">🎂 {dayInfo.namenstag}</div>
@@ -122,16 +122,7 @@ export function HeroBriefing({ data }: Props) {
         >
           <div className="status-card-header-inline">
             <span className="status-card-icon">📅</span>
-            <span className="status-card-label">
-              Termine
-              <button
-                className="calendar-toggle-pill"
-                onClick={() => setCalendarRevealed(prev => !prev)}
-                aria-label={calendarRevealed ? 'Termine verbergen' : 'Termine anzeigen'}
-              >
-                {calendarRevealed ? 'Verbergen' : 'Anzeigen'}
-              </button>
-            </span>
+            <span className="status-card-label">Termine</span>
           </div>
           <div className="status-card-value-small">
             {calendarCount > 0 ? `${calendarCount} heute` : 'Freier Tag'}

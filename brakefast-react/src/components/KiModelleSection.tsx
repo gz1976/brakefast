@@ -11,12 +11,12 @@ function truncateHtml(html: string, max: number): string {
   return smartTruncateHtml(html, max);
 }
 
-function LeadImage({ src }: { src: string | undefined }) {
+function LeadImage({ src, alt }: { src: string | undefined; alt?: string }) {
   const [failed, setFailed] = useState(false);
   const valid = isValidArticleImage(src) && !failed;
 
   if (valid) {
-    return <img className="lead-story-img" src={src} alt="" loading="lazy" onError={() => setFailed(true)} />;
+    return <img className="lead-story-img" src={src} alt={alt || ''} loading="lazy" onError={() => setFailed(true)} />;
   }
 
   return (
@@ -26,12 +26,12 @@ function LeadImage({ src }: { src: string | undefined }) {
   );
 }
 
-function SecondaryThumb({ src }: { src: string | undefined }) {
+function SecondaryThumb({ src, alt }: { src: string | undefined; alt?: string }) {
   const [failed, setFailed] = useState(false);
   const valid = isValidArticleImage(src) && !failed;
 
   if (valid) {
-    return <img className="secondary-story-thumb" src={src} alt="" loading="lazy" onError={() => setFailed(true)} />;
+    return <img className="secondary-story-thumb" src={src} alt={alt || ''} loading="lazy" onError={() => setFailed(true)} />;
   }
 
   return (
@@ -71,7 +71,7 @@ export function KiModelleSection({ data }: Props) {
             <span className="detail-tag">{lead.tag}</span>
             {lead.source && <span className="ki-modelle-source">{lead.source}</span>}
           </div>
-          <LeadImage src={lead.image} />
+          <LeadImage src={lead.image} alt={lead.title || lead.fallbackTitle} />
         </LeadTag>
 
         {/* Secondary items */}
@@ -96,7 +96,7 @@ export function KiModelleSection({ data }: Props) {
                       {item.source && <span className="ki-modelle-source">{item.source}</span>}
                     </div>
                   </div>
-                  <SecondaryThumb src={item.image} />
+                  <SecondaryThumb src={item.image} alt={item.title || item.fallbackTitle} />
                 </div>
               </Tag>
             );

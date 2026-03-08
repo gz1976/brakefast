@@ -33,6 +33,7 @@ function SectionDivider({ label, colorClass }: { label: string; colorClass: stri
 
 export function BrakeFastApp({ data }: Props) {
   const [selectedArticle, setSelectedArticle] = useState<Article | null>(null);
+  const [calendarRevealed, setCalendarRevealed] = useState(false);
 
   const securityArticles = data.categories.security?.articles || [];
   const aiArticles = data.categories.ai?.articles || [];
@@ -68,6 +69,7 @@ export function BrakeFastApp({ data }: Props) {
         totalArticles={data.totalArticles}
         editionNumber={data.edition_number}
         readingTimeTotal={data.reading_time_total}
+        onLogoClick={() => setCalendarRevealed(prev => !prev)}
       />
 
       <NavTabs sections={sections} activeId={activeId} onNavigate={scrollTo} />
@@ -75,7 +77,7 @@ export function BrakeFastApp({ data }: Props) {
       <div className="container">
         {/* First Screen: Hero + Morning Tiles fill iPad viewport */}
         <div className="first-screen">
-          <HeroBriefing data={data} />
+          <HeroBriefing data={data} calendarRevealed={calendarRevealed} />
           <MorningTiles data={data} />
         </div>
 

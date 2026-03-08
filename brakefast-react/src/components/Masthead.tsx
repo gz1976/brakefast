@@ -3,9 +3,10 @@ interface Props {
   totalArticles: number;
   editionNumber?: number;
   readingTimeTotal?: number;
+  onLogoClick?: () => void;
 }
 
-export function Masthead({ date, totalArticles, editionNumber, readingTimeTotal }: Props) {
+export function Masthead({ date, totalArticles, editionNumber, readingTimeTotal, onLogoClick }: Props) {
   const dateObj = new Date(date);
   const formattedDate = dateObj.toLocaleDateString('de-AT', {
     weekday: 'long',
@@ -21,7 +22,13 @@ export function Masthead({ date, totalArticles, editionNumber, readingTimeTotal 
         <div className="masthead-brand">
           <span className="masthead-dot"></span>
           <div>
-            <div className="masthead-logo">BrakeFast</div>
+            <div
+              className="masthead-logo masthead-logo-clickable"
+              onClick={onLogoClick}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onLogoClick?.(); }}
+            >BrakeFast</div>
             <div className="masthead-sub">Deine persönliche Morgenzeitung</div>
           </div>
         </div>
