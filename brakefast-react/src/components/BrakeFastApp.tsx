@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import type { NewspaperData, Article } from '../types';
 import { useActiveSection } from '../hooks/useActiveSection';
+import { useReadTracker } from '../hooks/useReadTracker';
 import { Masthead } from './Masthead';
 import { NavTabs } from './NavTabs';
 import { HeroBriefing } from './HeroBriefing';
@@ -11,9 +12,16 @@ import { DevDigestSection } from './DevDigestSection';
 import { Footer } from './Footer';
 import { ArticleModal } from './ArticleModal';
 import { MorningTiles } from './MorningTiles';
+import { KnappSection } from './KnappSection';
+import { TimeMachineBar } from './TimeMachineBar';
+import type { ArchiveEdition } from '../types';
 
 interface Props {
   data: NewspaperData;
+  archiveEditions: ArchiveEdition[];
+  selectedEdition: string | null;
+  onGoToLatest: () => void;
+  onGoToEdition: (edition: string) => void;
 }
 
 interface NavSection {
@@ -31,9 +39,16 @@ function SectionDivider({ label, colorClass }: { label: string; colorClass: stri
   );
 }
 
-export function BrakeFastApp({ data }: Props) {
+export function BrakeFastApp({
+  data,
+  archiveEditions,
+  selectedEdition,
+  onGoToLatest,
+  onGoToEdition,
+}: Props) {
   const [selectedArticle, setSelectedArticle] = useState<Article | null>(null);
   const [calendarRevealed, setCalendarRevealed] = useState(false);
+  const { markAsRead, isRead } = useReadTracker();
 
   const securityArticles = data.categories.security?.articles || [];
   const aiArticles = data.categories.ai?.articles || [];
@@ -49,6 +64,8 @@ export function BrakeFastApp({ data }: Props) {
     if (data.dev_digest && Object.keys(data.dev_digest).length > 0) s.push({ id: 'dev-digest', label: 'Dev Digest' });
     if (data.ki_modelle) s.push({ id: 'ki-modelle', label: 'KI Modelle' });
     if (securityArticles.length) s.push({ id: 'security', label: 'Security' });
+    const knappData = data.morning_tiles?.knapp;
+    if (knappData?.signals?.length || knappData?.headline) s.push({ id: 'knapp', label: 'KNAPP' });
     if (worldArticles.length) s.push({ id: 'welt', label: 'Welt' });
     if (localArticles.length) s.push({ id: 'steiermark', label: 'Steiermark' });
     if (evArticles.length) s.push({ id: 'ev', label: 'E-Mobilität' });
@@ -59,6 +76,7 @@ export function BrakeFastApp({ data }: Props) {
   const { activeId, scrollTo } = useActiveSection(sectionIds);
 
   const handleArticleClick = (article: Article) => {
+    markAsRead(article.link, article.title);
     setSelectedArticle(article);
   };
 
@@ -73,11 +91,17 @@ export function BrakeFastApp({ data }: Props) {
       />
 
       <NavTabs sections={sections} activeId={activeId} onNavigate={scrollTo} />
+      <TimeMachineBar
+        archiveEditions={archiveEditions}
+        selectedEdition={selectedEdition}
+        onGoToLatest={onGoToLatest}
+        onGoToEdition={onGoToEdition}
+      />
 
       <div className="container">
         {/* First Screen: Hero + Morning Tiles fill iPad viewport */}
         <div className="first-screen">
-          <HeroBriefing data={data} calendarRevealed={calendarRevealed} />
+          <HeroBriefing data={data} calendarRevealed={calendarRevealed} onToggleCalendar={() => setCalendarRevealed(prev => !prev)} onArticleClick={handleArticleClick} isRead={isRead} markAsRead={markAsRead} />
           <MorningTiles data={data} />
         </div>
 
@@ -88,6 +112,7 @@ export function BrakeFastApp({ data }: Props) {
             <TechHub
               aiArticles={aiArticles}
               onArticleClick={handleArticleClick}
+              isRead={isRead}
             />
           </>
         )}
@@ -118,11 +143,20 @@ export function BrakeFastApp({ data }: Props) {
               label="Security"
               sectionId="security"
               onArticleClick={handleArticleClick}
+              isRead={isRead}
             />
           </>
         )}
 
-        {/* 6. Welt */}
+        {/* 6. KNAPP & Intralogistik */}
+        {data.morning_tiles?.knapp && (data.morning_tiles.knapp.signals?.length > 0 || data.morning_tiles.knapp.headline) && (
+          <>
+            <SectionDivider label="KNAPP & Intralogistik" colorClass="knapp" />
+            <KnappSection data={data.morning_tiles.knapp} />
+          </>
+        )}
+
+        {/* 7. Welt */}
         {worldArticles.length > 0 && (
           <>
             <SectionDivider label="Welt" colorClass="world" />
@@ -132,6 +166,7 @@ export function BrakeFastApp({ data }: Props) {
               label="Welt"
               sectionId="welt"
               onArticleClick={handleArticleClick}
+              isRead={isRead}
             />
           </>
         )}
@@ -146,6 +181,7 @@ export function BrakeFastApp({ data }: Props) {
               label="Steiermark"
               sectionId="steiermark"
               onArticleClick={handleArticleClick}
+              isRead={isRead}
             />
           </>
         )}
@@ -160,6 +196,7 @@ export function BrakeFastApp({ data }: Props) {
               label="E-Mobilität"
               sectionId="ev"
               onArticleClick={handleArticleClick}
+              isRead={isRead}
             />
           </>
         )}

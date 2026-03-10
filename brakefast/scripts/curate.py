@@ -27,11 +27,14 @@ import json
 import sys
 import os
 import subprocess
+import urllib.request
+import urllib.parse
 from datetime import datetime, timezone
 
 BASE = "/data/.openclaw/workspace/brakefast"
 OUTPUT = os.path.join(BASE, "output")
 RAW_FILE = os.path.join(OUTPUT, "raw-articles.json")
+ENRICHED_FILE = os.path.join(OUTPUT, "enriched-articles.json")
 CURATED_FILE = os.path.join(OUTPUT, "curated-articles.json")
 CALENDAR_FILE = os.path.join(OUTPUT, "calendar-events.json")
 
@@ -153,15 +156,13 @@ def load_calendar():
         return []
 
 
-def load_raw_articles():
-    """Load raw articles from file."""
-    with open(RAW_FILE) as f:
+def load_articles_from_file(path):
+    """Load articles from a categorized or flat JSON file."""
+    with open(path) as f:
         data = json.load(f)
-    # Handle both list format and categorized format
     if isinstance(data, list):
         return data
     if isinstance(data, dict):
-        # Collect all articles from categories
         articles = []
         cats = data.get("categories", data)
         for cat_key, cat_data in cats.items():
@@ -177,8 +178,103 @@ def load_raw_articles():
     return []
 
 
-def build_curated(spec, raw_articles):
-    """Build the full curated-articles.json from spec + raw data."""
+def load_article_pool():
+    """Prefer enriched briefings, fall back to raw feed articles."""
+    if os.path.exists(ENRICHED_FILE):
+        return load_articles_from_file(ENRICHED_FILE), ENRICHED_FILE
+    return load_articles_from_file(RAW_FILE), RAW_FILE
+
+
+def build_article_payload(item, source_article):
+    """Merge curated overrides with enriched/raw article data."""
+    base = source_article or {}
+
+    def pick(*keys, default=""):
+        for key in keys:
+            if key in item and item.get(key) not in (None, "", []):
+                return item.get(key)
+            if key in base and base.get(key) not in (None, "", []):
+                return base.get(key)
+        return default
+
+    article = {
+        "title": pick("headline", "title"),
+        "headline": pick("headline", "title"),
+        "link": pick("canonical_url", "source_url", "link"),
+        "canonical_url": pick("canonical_url", "source_url", "link"),
+        "source": pick("source"),
+        "date": pick("published_at", "date"),
+        "published_at": pick("published_at", "date"),
+        "image": pick("image", "best_image"),
+        "best_image": pick("best_image", "image"),
+        "description": pick("description", "dek"),
+        "dek": pick("dek", "description"),
+        "briefing_blurb": pick("briefing_blurb", "dek", "description"),
+        "summary": pick("summary", "briefing_blurb", "dek", "description"),
+        "bullet_points": pick("bullet_points", default=[]),
+        "why_it_matters": pick("why_it_matters", "otto_comment"),
+        "otto_comment": pick("why_it_matters", "otto_comment"),
+        "author": pick("author"),
+        "topics": pick("topics", default=[]),
+        "entities": pick("entities", default=[]),
+        "reading_time_minutes": item.get(
+            "reading_time_minutes",
+            base.get("reading_time_minutes", 2),
+        ),
+        "relevance_score": item.get(
+            "relevance_score",
+            base.get("relevance_score", 0.5),
+        ),
+        "summary_quality_score": item.get(
+            "summary_quality_score",
+            base.get("summary_quality_score"),
+        ),
+        "image_quality_score": item.get(
+            "image_quality_score",
+            base.get("image_quality_score"),
+        ),
+        "content_quality": pick("content_quality"),
+        "source_url": pick("source_url", "link"),
+        "discussion_url": pick("discussion_url"),
+    }
+
+    if base.get("full_text") and not item.get("full_text"):
+        article["full_text"] = base.get("full_text")
+
+    return article
+
+
+def enrich_history(facts):
+    """Enrich history facts with Wikipedia thumbnails, URLs, and descriptions."""
+    if not facts:
+        return facts
+    enriched = []
+    for fact in facts:
+        wiki_title = fact.get("wiki", "")
+        if wiki_title and not fact.get("image"):
+            try:
+                encoded = urllib.parse.quote(wiki_title.replace(" ", "_"))
+                url = f"https://de.wikipedia.org/api/rest_v1/page/summary/{encoded}"
+                req = urllib.request.Request(url, headers={"User-Agent": "BrakeFast/1.0"})
+                with urllib.request.urlopen(req, timeout=5) as resp:
+                    data = json.loads(resp.read())
+                if "thumbnail" in data:
+                    fact["image"] = data["thumbnail"]["source"]
+                if "content_urls" in data:
+                    fact["url"] = data["content_urls"]["desktop"]["page"]
+                if "extract" in data and not fact.get("description"):
+                    # First 2 sentences as description
+                    extract = data["extract"]
+                    sentences = extract.split(". ")
+                    fact["description"] = ". ".join(sentences[:2]).rstrip(".") + "."
+            except Exception as e:
+                print(f"WARN: Wikipedia lookup failed for '{wiki_title}': {e}", file=sys.stderr)
+        enriched.append(fact)
+    return enriched
+
+
+def build_curated(spec, source_articles):
+    """Build the full curated-articles.json from curated spec + article pool."""
     now = datetime.now(timezone.utc)
 
     # Edition number
@@ -212,7 +308,7 @@ def build_curated(spec, raw_articles):
     quote_widget = sw.get("quote") or quote_default
     if not quote_widget.get("text"):
         quote_widget = quote_default
-    history_widget = sw.get("history") or []
+    history_widget = enrich_history(sw.get("history") or [])
     bauernregel_default = {"text": "Wie der März, so der Herbst", "meaning": "Das Märzwetter gibt Hinweise auf den Herbst"}
     bauernregel_widget = sw.get("bauernregel") or bauernregel_default
     if not bauernregel_widget.get("text"):
@@ -230,41 +326,13 @@ def build_curated(spec, raw_articles):
         cat_spec = spec.get("categories", {}).get(cat_key, [])
         articles = []
         for item in cat_spec:
-            # Item can reference raw article by index or contain full article data
+            # Item can reference article pool by index or contain full article data
             if "index" in item and isinstance(item["index"], int):
                 idx = item["index"]
-                if 0 <= idx < len(raw_articles):
-                    raw = raw_articles[idx]
-                    art = {
-                        "title": item.get("title") or raw.get("title", ""),
-                        "link": item.get("link") or raw.get("link", ""),
-                        "source": item.get("source") or raw.get("source", ""),
-                        "date": item.get("date") or raw.get("date", ""),
-                        "image": item.get("image") or raw.get("image", ""),
-                        "description": item.get("description", ""),
-                        "summary": item.get("summary", ""),
-                        "reading_time_minutes": item.get("reading_time_minutes", 2),
-                        "relevance_score": item.get("relevance_score", 0.5),
-                    }
-                    # Preserve HN fields
-                    for field in ("source_url", "discussion_url"):
-                        val = raw.get(field) or item.get(field)
-                        if val:
-                            art[field] = val
-                    articles.append(art)
+                if 0 <= idx < len(source_articles):
+                    articles.append(build_article_payload(item, source_articles[idx]))
             else:
-                # Full article data provided directly
-                articles.append({
-                    "title": item.get("title", ""),
-                    "link": item.get("link", ""),
-                    "source": item.get("source", ""),
-                    "date": item.get("date", ""),
-                    "image": item.get("image", ""),
-                    "description": item.get("description", ""),
-                    "summary": item.get("summary", ""),
-                    "reading_time_minutes": item.get("reading_time_minutes", 2),
-                    "relevance_score": item.get("relevance_score", 0.5),
-                })
+                articles.append(build_article_payload(item, {}))
 
         total_articles += len(articles)
         for a in articles:
@@ -321,16 +389,16 @@ def main():
         print(f"ERROR: Invalid JSON in curation spec: {e}", file=sys.stderr)
         sys.exit(1)
 
-    # Load raw articles
+    # Load article pool
     try:
-        raw_articles = load_raw_articles()
-        print(f"Loaded {len(raw_articles)} raw articles from {RAW_FILE}")
+        source_articles, source_file = load_article_pool()
+        print(f"Loaded {len(source_articles)} source articles from {source_file}")
     except FileNotFoundError:
-        print(f"ERROR: {RAW_FILE} not found", file=sys.stderr)
+        print(f"ERROR: Neither {ENRICHED_FILE} nor {RAW_FILE} found", file=sys.stderr)
         sys.exit(1)
 
     # Build curated JSON
-    result = build_curated(spec, raw_articles)
+    result = build_curated(spec, source_articles)
 
     # Write output
     with open(CURATED_FILE, "w") as f:

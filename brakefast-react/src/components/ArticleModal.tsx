@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import type { Article } from '../types';
 import { isValidArticleImage } from '../utils/imageUtils';
-import { getReadingTime, formatDate } from '../utils/textUtils';
+import { formatDate, getArticleBody, getReadingTime } from '../utils/textUtils';
 
 interface Props {
   article: Article;
@@ -10,11 +10,13 @@ interface Props {
 
 export function ArticleModal({ article, onClose }: Props) {
   const readTime = getReadingTime(
-    article.summary || article.description,
+    article.full_text || getArticleBody(article),
     article.reading_time_minutes,
   );
   const [imgFailed, setImgFailed] = useState(false);
-  const showImage = isValidArticleImage(article.image) && !imgFailed;
+  const showImage = isValidArticleImage(article.image) && !imgFailed && (article.image_quality_score ?? 0.55) >= 0.5;
+  const articleBody = getArticleBody(article);
+  const bulletPoints = article.bullet_points?.filter(Boolean) || [];
 
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
@@ -45,21 +47,40 @@ export function ArticleModal({ article, onClose }: Props) {
         <div className="modal-body">
           <div className="modal-meta-top">
             <span className="modal-source">{article.source}</span>
-            <span className="modal-date">{formatDate(article.date)}</span>
+            <span className="modal-date">{formatDate(article.published_at || article.date)}</span>
             {readTime && <span className="modal-reading">{readTime} Min. Lesezeit</span>}
           </div>
 
           <h2 className="modal-title">{article.title}</h2>
 
+          {article.dek && (
+            <div className="modal-standfirst">{article.dek}</div>
+          )}
+
           <div className="modal-text">
-            {article.summary || article.description || 'Keine Zusammenfassung verfügbar.'}
+            {articleBody ||
+              (article.description && article.description !== 'Comments'
+                ? article.description
+                : 'Keine Zusammenfassung verfügbar.')}
           </div>
 
-          {article.link && (
+          {bulletPoints.length > 0 && (
+            <ul className="modal-bullets">
+              {bulletPoints.map((point, index) => (
+                <li key={`${point}-${index}`}>{point}</li>
+              ))}
+            </ul>
+          )}
+
+          {article.author && (
+            <div className="modal-author">Autor: {article.author}</div>
+          )}
+
+          {(article.canonical_url || article.link) && (
             <div className="modal-links">
               <a
                 className="modal-source-link"
-                href={article.link}
+                href={article.canonical_url || article.link}
                 target="_blank"
                 rel="noopener noreferrer"
               >

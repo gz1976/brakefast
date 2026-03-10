@@ -3,46 +3,86 @@
 # Generates an index page listing all past editions
 set -euo pipefail
 
-EDITIONS_DIR="/data/brakefast-public/editions"
+PUBLIC_DIR="${BRAKEFAST_PUBLIC_DIR:-/data/brakefast-public}"
+EDITIONS_DIR="${PUBLIC_DIR}/editions"
 ARCHIVE_DIR="${EDITIONS_DIR}/archiv"
 mkdir -p "$ARCHIVE_DIR"
 
-# Generate archive HTML
-python3 - "$EDITIONS_DIR" "$ARCHIVE_DIR/index.html" << 'PYTHON_SCRIPT'
+# Generate archive HTML + JSON index
+python3 - "$EDITIONS_DIR" "$ARCHIVE_DIR/index.html" "$EDITIONS_DIR/archive-index.json" << 'PYTHON_SCRIPT'
 import sys
 import os
 import html
+import json
+from datetime import datetime, timezone
 from pathlib import Path
 
 editions_dir = sys.argv[1]
 output_file = sys.argv[2]
+json_index_file = sys.argv[3]
 
-# Find all edition index.html files
-editions = []
+# Find all edition paths
+legacy_editions = []
+react_editions = []
 for root, dirs, files in os.walk(editions_dir):
-    if 'index.html' in files:
-        rel = os.path.relpath(root, editions_dir)
-        parts = rel.split('/')
-        if len(parts) == 3:  # YYYY/MM/DD
+    rel = os.path.relpath(root, editions_dir)
+    parts = rel.split('/')
+    if len(parts) != 3:
+        continue
+
+    try:
+        year, month, day = parts
+        display = f'{day}.{month}.{year}'
+        sort_key = f'{year}{month}{day}'
+        legacy_path = f'/legacy/{rel}/index.html'
+        data_path = os.path.join(root, 'data.json')
+        meta_path = os.path.join(root, 'meta.json')
+        meta = {}
+        if os.path.exists(meta_path):
             try:
-                year, month, day = parts
-                editions.append({
-                    'path': f'/{rel}/index.html',
-                    'year': year,
-                    'month': month,
-                    'day': day,
-                    'display': f'{day}.{month}.{year}',
-                    'sort_key': f'{year}{month}{day}'
-                })
-            except:
-                pass
+                with open(meta_path, 'r', encoding='utf-8') as f:
+                    meta = json.load(f)
+            except json.JSONDecodeError:
+                meta = {}
+
+        if 'index.html' in files:
+            legacy_editions.append({
+                'path': legacy_path,
+                'year': year,
+                'month': month,
+                'day': day,
+                'display': display,
+                'sort_key': sort_key,
+            })
+
+        if os.path.exists(data_path):
+            react_editions.append({
+                'date': f'{year}-{month}-{day}',
+                'display_date': display,
+                'year': year,
+                'month': month,
+                'day': day,
+                'sort_key': sort_key,
+                'edition_number': meta.get('edition_number'),
+                'generated': meta.get('generated'),
+                'published_at': meta.get('published_at'),
+                'article_count': meta.get('article_count'),
+                'headline': meta.get('headline'),
+                'top_story': meta.get('top_story'),
+                'data_url': meta.get('data_url') or f'/legacy/{rel}/data.json',
+                'legacy_html_url': meta.get('legacy_html_url') or legacy_path,
+                'react_url': meta.get('react_url') or f'/?edition={year}-{month}-{day}',
+            })
+    except Exception:
+        pass
 
 # Sort newest first
-editions.sort(key=lambda e: e['sort_key'], reverse=True)
+legacy_editions.sort(key=lambda e: e['sort_key'], reverse=True)
+react_editions.sort(key=lambda e: e['sort_key'], reverse=True)
 
 # Group by year-month
 months = {}
-for e in editions:
+for e in legacy_editions:
     key = f'{e["year"]}-{e["month"]}'
     if key not in months:
         months[key] = []
@@ -91,7 +131,7 @@ page_html = f'''<!DOCTYPE html>
     <div class="masthead-name">Brake<span>Fast</span></div>
     <div class="masthead-tagline">Archiv</div>
     <div class="masthead-meta">
-      <span>{len(editions)} Ausgaben</span>
+      <span>{len(legacy_editions)} Ausgaben</span>
     </div>
   </header>
 
@@ -120,7 +160,20 @@ page_html = f'''<!DOCTYPE html>
 with open(output_file, 'w') as f:
     f.write(page_html)
 
-print(f"Archive generated: {len(editions)} editions")
+archive_index = {
+    'generated': datetime.now(timezone.utc).isoformat(),
+    'count': len(react_editions),
+    'editions': [
+        {key: value for key, value in edition.items() if key != 'sort_key'}
+        for edition in react_editions
+    ],
+}
+
+with open(json_index_file, 'w', encoding='utf-8') as f:
+    json.dump(archive_index, f, ensure_ascii=False, indent=2)
+
+print(f"Archive generated: {len(legacy_editions)} legacy editions")
+print(f"Archive JSON index generated: {len(react_editions)} React snapshots")
 PYTHON_SCRIPT
 
 echo "Archive page generated."

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import type { Article } from '../types';
 import { isValidArticleImage, getCategoryGradient, getCategoryIcon } from '../utils/imageUtils';
-import { smartTruncate } from '../utils/textUtils';
+import { getArticleTeaser, smartTruncate } from '../utils/textUtils';
 
 interface Props {
   articles: Article[];
@@ -11,6 +11,8 @@ interface Props {
   onArticleClick: (article: Article) => void;
   /** Optional extra cards to render after article secondaries */
   extraCards?: React.ReactNode;
+  /** Check if an article has been read (for blue dot indicator) */
+  isRead?: (link: string, title?: string) => boolean;
 }
 
 function LeadImage({ src, catId, alt }: { src: string | undefined; catId: string; alt?: string }) {
@@ -43,11 +45,11 @@ function SecondaryThumb({ src, catId, alt }: { src: string | undefined; catId: s
   );
 }
 
-export function CategorySection({ articles, categoryId, label, sectionId, onArticleClick, extraCards }: Props) {
+export function CategorySection({ articles, categoryId, label, sectionId, onArticleClick, extraCards, isRead }: Props) {
   if (articles.length === 0 && !extraCards) return null;
 
   const lead = articles.length > 0 ? articles[0] : null;
-  const secondary = articles.slice(1, 4);
+  const secondary = articles.slice(1, 6);
 
   return (
     <section className="category-section" id={sectionId}>
@@ -62,15 +64,11 @@ export function CategorySection({ articles, categoryId, label, sectionId, onArti
             onClick={(e) => { if (e.button !== 0 || e.metaKey || e.ctrlKey) return; e.preventDefault(); onArticleClick(lead); }}
           >
             <div className={`category-badge cat-${categoryId}`}>{label}</div>
+            {isRead && !isRead(lead.link, lead.title) && <span className="unread-dot" />}
             <h2 className="lead-story-title">{lead.title}</h2>
             <p className="lead-story-excerpt">
-              {lead.summary || lead.description || ''}
+              {getArticleTeaser(lead)}
             </p>
-            {lead.otto_comment && (
-              <div className="lead-story-relevance">
-                Warum relevant: {lead.otto_comment}
-              </div>
-            )}
             <LeadImage src={lead.image} catId={categoryId} alt={lead.title} />
           </a>
         )}
@@ -87,11 +85,12 @@ export function CategorySection({ articles, categoryId, label, sectionId, onArti
               onClick={(e) => { if (e.button !== 0 || e.metaKey || e.ctrlKey) return; e.preventDefault(); onArticleClick(article); }}
             >
               <div className={`category-badge cat-${categoryId}`}>{label}</div>
+              {isRead && !isRead(article.link, article.title) && <span className="unread-dot" />}
               <div className="secondary-story-inner">
                 <div className="secondary-story-text">
                   <h3 className="secondary-story-title">{article.title}</h3>
                   <p className="secondary-story-excerpt">
-                    {smartTruncate(article.summary || article.description || '', 180)}
+                    {smartTruncate(getArticleTeaser(article), 180)}
                   </p>
                 </div>
                 <SecondaryThumb src={article.image} catId={categoryId} alt={article.title} />

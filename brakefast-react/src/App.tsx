@@ -50,7 +50,15 @@ function App() {
 
 // BrakeFast-Ansicht als eigene Komponente, damit useNewspaper nur geladen wird wenn noetig
 function BrakeFastView({ viewSwitcher }: { viewSwitcher: React.ReactNode }) {
-  const { data, loading, error } = useNewspaper();
+  const {
+    data,
+    loading,
+    error,
+    archiveEditions,
+    selectedEdition,
+    goToLatest,
+    goToEdition,
+  } = useNewspaper();
 
   if (loading) {
     return (
@@ -78,7 +86,13 @@ function BrakeFastView({ viewSwitcher }: { viewSwitcher: React.ReactNode }) {
 
   return (
     <>
-      <BrakeFastApp data={data} />
+      <BrakeFastApp
+        data={data}
+        archiveEditions={archiveEditions}
+        selectedEdition={selectedEdition}
+        onGoToLatest={goToLatest}
+        onGoToEdition={goToEdition}
+      />
       {viewSwitcher}
     </>
   );

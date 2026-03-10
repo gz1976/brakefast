@@ -8,6 +8,11 @@ BRAKEFAST_DIR="$(dirname "$SCRIPT_DIR")"
 SOURCES_FILE="${BRAKEFAST_DIR}/sources.json"
 OUTPUT_DIR="${BRAKEFAST_DIR}/output"
 OUTPUT_FILE="${OUTPUT_DIR}/raw-articles.json"
+ENRICHED_FILE="${OUTPUT_DIR}/enriched-articles.json"
+
+# Load optional runtime env for LLM-backed briefing generation.
+# shellcheck disable=SC1091
+source "${SCRIPT_DIR}/load-brakefast-env.sh"
 
 mkdir -p "$OUTPUT_DIR"
 
@@ -577,3 +582,13 @@ if __name__ == '__main__':
 PYTHON_SCRIPT
 
 echo "Feed fetch complete: $OUTPUT_FILE"
+
+ENGINE_SCRIPT="${SCRIPT_DIR}/article_briefing_engine.py"
+if [ -f "$ENGINE_SCRIPT" ]; then
+  echo "Building enriched article briefings..." >&2
+  if python3 "$ENGINE_SCRIPT" "$OUTPUT_FILE" "$ENRICHED_FILE"; then
+    echo "Article briefings complete: $ENRICHED_FILE" >&2
+  else
+    echo "WARN: Article briefing engine failed, continuing with raw feed data" >&2
+  fi
+fi

@@ -1,16 +1,33 @@
 // ─── Article ───
 export interface Article {
   title: string;
+  headline?: string;
   link: string;
+  canonical_url?: string;
   description: string;
+  dek?: string;
+  briefing_blurb?: string;
   date: string;
+  published_at?: string;
   source: string;
   image?: string;
+  best_image?: string;
   summary?: string;
+  bullet_points?: string[];
+  why_it_matters?: string;
   reading_time_minutes?: number;
   relevance_score?: number;
   otto_comment?: string;
   category?: string;
+  author?: string;
+  topics?: string[];
+  entities?: string[];
+  full_text?: string;
+  content_extracted?: boolean;
+  content_quality?: 'high' | 'medium' | 'low';
+  summary_quality_score?: number;
+  image_quality_score?: number;
+  needs_review?: boolean;
   source_url?: string;
   discussion_url?: string;
 }
@@ -69,6 +86,9 @@ export interface WeatherData {
   icon?: string;
   location?: string;
   forecast?: string;
+  humidity?: number;
+  wind?: string;
+  uvIndex?: number;
 }
 
 // ─── Markets ───
@@ -123,6 +143,9 @@ export interface VpsStatus {
 export interface HistoryFact {
   year: number;
   text: string;
+  image?: string;
+  url?: string;
+  description?: string; // 3-5 sentence detail for modal/expand
 }
 
 // ─── Bauernregel ───
@@ -136,6 +159,14 @@ export interface PollenData {
   level: string;
   types: string[];
   description: string;
+  updated?: string;
+}
+
+// ─── Word of Day ───
+export interface WordOfDay {
+  word: string;
+  explanation: string;
+  origin?: string;
 }
 
 // ─── Widgets ───
@@ -148,6 +179,7 @@ export interface Widgets {
   history?: HistoryFact | HistoryFact[];
   bauernregel?: Bauernregel;
   pollen?: PollenData;
+  word_of_day?: WordOfDay;
 }
 
 // ─── Monitoring ───
@@ -266,6 +298,29 @@ export interface MorningTilesData {
   streaming?: StreamingTip[];
   events?: LocalEvent[];
   media_tip?: MediaTip;
+}
+
+export interface ArchiveEdition {
+  date: string;
+  display_date: string;
+  year: string;
+  month: string;
+  day: string;
+  edition_number?: number;
+  generated?: string;
+  published_at?: string;
+  article_count?: number;
+  headline?: string;
+  top_story?: string;
+  data_url: string;
+  legacy_html_url?: string;
+  react_url?: string;
+}
+
+export interface ArchiveIndex {
+  generated: string;
+  count: number;
+  editions: ArchiveEdition[];
 }
 
 // ─── Root ───

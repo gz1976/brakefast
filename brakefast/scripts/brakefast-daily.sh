@@ -7,6 +7,22 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 BRAKEFAST_DIR="$(dirname "$SCRIPT_DIR")"
 LOG_FILE="${BRAKEFAST_DIR}/output/brakefast.log"
+PUBLISH_ENABLED=1
+
+for arg in "$@"; do
+  case "$arg" in
+    --skip-publish)
+      PUBLISH_ENABLED=0
+      ;;
+    --publish)
+      PUBLISH_ENABLED=1
+      ;;
+  esac
+done
+
+# Load optional runtime env before running the pipeline.
+# shellcheck disable=SC1091
+source "${SCRIPT_DIR}/load-brakefast-env.sh"
 
 log() {
   echo "[$(date '+%Y-%m-%d %H:%M:%S')] $*" | tee -a "$LOG_FILE"
@@ -45,8 +61,11 @@ fi
 # This step is handled by Otto via the skill prompt.
 # If curated-articles.json doesn't exist, generate-html.sh falls back to raw-articles.json
 CURATED_FILE="${BRAKEFAST_DIR}/output/curated-articles.json"
+ENRICHED_FILE="${BRAKEFAST_DIR}/output/enriched-articles.json"
 if [ -f "$CURATED_FILE" ]; then
   log "Step 2: Using curated articles"
+elif [ -f "$ENRICHED_FILE" ]; then
+  log "Step 2: No curated articles found, using enriched article briefings"
 else
   log "Step 2: No curated articles found, using raw feed data"
 fi
@@ -55,6 +74,9 @@ fi
 log "Step 2.5: Generating missing article images..."
 IMAGE_SCRIPT="${SCRIPT_DIR}/generate-images.py"
 IMAGE_INPUT="${CURATED_FILE}"
+if [ ! -f "$IMAGE_INPUT" ]; then
+  IMAGE_INPUT="${ENRICHED_FILE}"
+fi
 if [ ! -f "$IMAGE_INPUT" ]; then
   IMAGE_INPUT="${BRAKEFAST_DIR}/output/raw-articles.json"
 fi
@@ -77,21 +99,24 @@ else
   exit 1
 fi
 
-# Step 3.5: Copy JSON for React app + merge calendar events
-log "Step 3.5: Providing JSON for React app..."
+# Step 3.5: Publish JSON for React app + snapshot edition
+log "Step 3.5: Publishing JSON for React app..."
 INPUT_JSON="${BRAKEFAST_DIR}/output/curated-articles.json"
+if [ ! -f "$INPUT_JSON" ]; then
+  INPUT_JSON="${ENRICHED_FILE}"
+fi
 if [ ! -f "$INPUT_JSON" ]; then
   INPUT_JSON="${BRAKEFAST_DIR}/output/raw-articles.json"
 fi
 if [ -f "$INPUT_JSON" ]; then
-  mkdir -p "/data/brakefast-public"
-  cp "$INPUT_JSON" "/data/brakefast-public/data.json"
-  # Merge calendar events into data.json (widgets.calendar)
+  FINAL_JSON="${BRAKEFAST_DIR}/output/final-data.json"
+  cp "$INPUT_JSON" "$FINAL_JSON"
+  # Merge calendar events into final JSON before publish/snapshot.
   if [ -f "$CALENDAR_JSON" ] && [ -s "$CALENDAR_JSON" ]; then
     python3 -c "
 import json, sys
 try:
-    with open('/data/brakefast-public/data.json') as f:
+    with open('$FINAL_JSON') as f:
         data = json.load(f)
     with open('$CALENDAR_JSON') as f:
         events = json.load(f)
@@ -99,14 +124,24 @@ try:
         if 'widgets' not in data:
             data['widgets'] = {}
         data['widgets']['calendar'] = events
-        with open('/data/brakefast-public/data.json', 'w') as f:
+        with open('$FINAL_JSON', 'w') as f:
             json.dump(data, f, ensure_ascii=False, indent=2)
-        print(f'Merged {len(events)} calendar events into data.json')
+        print(f'Merged {len(events)} calendar events into final-data.json')
 except Exception as e:
     print(f'WARN: Calendar merge failed: {e}', file=sys.stderr)
 " 2>&1 | tee -a "$LOG_FILE"
   fi
-  log "Step 3.5: data.json copied to /data/brakefast-public/"
+
+  if [ "$PUBLISH_ENABLED" -eq 1 ]; then
+    if bash "${SCRIPT_DIR}/publish-edition.sh" "$FINAL_JSON" 2>&1 | tee -a "$LOG_FILE"; then
+      log "Step 3.5: final-data.json published and edition archived"
+    else
+      log "ERROR: Publish step failed"
+      exit 1
+    fi
+  else
+    log "Step 3.5: Publish skipped (--skip-publish); final JSON prepared at $FINAL_JSON"
+  fi
 else
   log "WARN: No JSON found for React app"
 fi

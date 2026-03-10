@@ -11,6 +11,7 @@ const BAD_IMAGE_PATTERNS = [
   /chatgpt/i,
   /screenshot/i,
   /placeholder/i,
+  /kein(?:%20|-)?titel/i,
   /avatar/i,
   /favicon/i,
   /icon[-_]?\d/i,
@@ -18,9 +19,16 @@ const BAD_IMAGE_PATTERNS = [
   /spacer\.gif/i,
   /1x1/i,
   /blank\.(gif|png|jpg)/i,
+  /by-4\.0\.png/i,
+  /arxiv-logo/i,
+  /generic-github-.*logo/i,
+  /\/icons?\//i,
+  /\/logo/i,
   /gravatar\.com/i,
   /feeds\.feedburner/i,
   /\/embed\//i,  // YouTube embeds are not images
+  /upload\.wikimedia/i,
+  /wikipedia\.org/i,
 ];
 
 // Minimum dimensions we'd want for display images
@@ -65,6 +73,7 @@ const CATEGORY_GRADIENTS: Record<string, string> = {
   dev: 'linear-gradient(135deg, #0a1a2a 0%, #10404a 50%, #155a6a 100%)',
   ev: 'linear-gradient(135deg, #0a1a12 0%, #1a5a30 50%, #2d8a4a 100%)',
   ki: 'linear-gradient(135deg, #1a0a2a 0%, #3b1069 50%, #5a1d96 100%)',
+  knapp: 'linear-gradient(135deg, #1a150a 0%, #6b4d10 50%, #8b6a15 100%)',
 };
 
 export function getCategoryGradient(catId: string): string {
@@ -81,6 +90,7 @@ const CATEGORY_ICONS: Record<string, string> = {
   dev: '💻',
   ev: '🔋',
   ki: '🧠',
+  knapp: '🏭',
 };
 
 export function getCategoryIcon(catId: string): string {

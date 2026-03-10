@@ -43,6 +43,41 @@ export function smartTruncateHtml(html: string, maxLength: number): string {
   return smartTruncate(plain, maxLength);
 }
 
+type ArticleTextFields = {
+  briefing_blurb?: string;
+  dek?: string;
+  summary?: string;
+  description?: string;
+};
+
+export function getArticleTeaser(article: ArticleTextFields | undefined): string {
+  if (!article) return '';
+  const candidates = [
+    article.briefing_blurb,
+    article.dek,
+    article.summary,
+    article.description,
+  ];
+  for (const candidate of candidates) {
+    if (candidate && candidate.trim()) return candidate.trim();
+  }
+  return '';
+}
+
+export function getArticleBody(article: ArticleTextFields | undefined): string {
+  if (!article) return '';
+  const candidates = [
+    article.summary,
+    article.briefing_blurb,
+    article.dek,
+    article.description,
+  ];
+  for (const candidate of candidates) {
+    if (candidate && candidate.trim()) return candidate.trim();
+  }
+  return '';
+}
+
 /**
  * Calculate reading time for an article.
  * Returns null if text has fewer than 20 words (no meaningful content).

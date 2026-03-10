@@ -8,8 +8,11 @@ BRAKEFAST_DIR="$(dirname "$SCRIPT_DIR")"
 OUTPUT_DIR="${BRAKEFAST_DIR}/output"
 EDITIONS_DIR="/data/brakefast-public/editions"
 
-# Use curated articles if available, otherwise fall back to raw
+# Use curated articles if available, otherwise fall back to enriched, then raw
 INPUT_FILE="${OUTPUT_DIR}/curated-articles.json"
+if [ ! -f "$INPUT_FILE" ]; then
+  INPUT_FILE="${OUTPUT_DIR}/enriched-articles.json"
+fi
 if [ ! -f "$INPUT_FILE" ]; then
   INPUT_FILE="${OUTPUT_DIR}/raw-articles.json"
 fi
@@ -106,10 +109,10 @@ for cat_id, cat_data in categories.items():
 
     for art in articles:
         title = esc(art.get('title', 'Ohne Titel'))
-        link = esc(art.get('link', '#'))
+        link = esc(art.get('canonical_url') or art.get('source_url') or art.get('link', '#'))
         source = esc(art.get('source', ''))
-        date = esc(art.get('date', ''))
-        body = art.get('summary', art.get('description', ''))
+        date = esc(art.get('published_at') or art.get('date', ''))
+        body = art.get('summary') or art.get('briefing_blurb') or art.get('dek') or art.get('description', '')
         body = esc(body)
 
         word_count = len(body.split())

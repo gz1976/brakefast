@@ -35,6 +35,7 @@ BAD_IMAGE_PATTERNS = [
     r'chatgpt',
     r'screenshot',
     r'placeholder',
+    r'kein(?:%20|-)?titel',
     r'avatar',
     r'favicon',
     r'icon[-_]?\d',
@@ -42,9 +43,16 @@ BAD_IMAGE_PATTERNS = [
     r'spacer\.gif',
     r'1x1',
     r'blank\.(gif|png|jpg)',
+    r'by-4\.0\.png',
+    r'arxiv-logo',
+    r'generic-github-.*logo',
+    r'/icons?/',
+    r'/logo',
     r'gravatar\.com',
     r'feeds\.feedburner',
     r'/embed/',
+    r'upload\.wikimedia',
+    r'wikipedia\.org',
 ]
 
 # Category-specific style hints for better image generation

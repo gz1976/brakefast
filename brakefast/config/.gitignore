@@ -1,0 +1,7 @@
+briefing.env
+briefing.local.env
+gcal_token.json
+gcal_credentials.json
+hf_token.txt
+!.gitignore
+!briefing.env.example

@@ -93,8 +93,8 @@ So sparst du Output-Tokens und die Pipeline laeuft zuverlaessig.**
        "namenstag": "Kunigunde",
        "quote": {"text": "Any sufficiently advanced technology...", "author": "Arthur C. Clarke"},
        "history": [
-         {"year": 1876, "text": "Alexander Graham Bell patentiert das Telefon"},
-         {"year": 1946, "text": "Winston Churchill praegt den Begriff Eiserner Vorhang"}
+         {"year": 1876, "text": "Alexander Graham Bell patentiert das Telefon", "wiki": "Telefon"},
+         {"year": 1946, "text": "Winston Churchill praegt den Begriff Eiserner Vorhang", "wiki": "Eiserner_Vorhang"}
        ],
        "bauernregel": {"text": "Maerzenstaub bringt Gras und Laub", "meaning": "Trockenes Wetter im Maerz foerdert Pflanzenwachstum"}
      }
@@ -120,7 +120,7 @@ So sparst du Output-Tokens und die Pipeline laeuft zuverlaessig.**
    - `dev_digest` (4 Items mit echten Daten aus raw-articles)
    - `morning_tiles` (knapp, streaming, events, media_tip — mit URLs)
    - `headlines` (3 Top-Schlagzeilen des Tages)
-   - `widgets`: namenstag, quote, history (2-3 Eintraege), bauernregel
+   - `widgets`: namenstag, quote, history (2-3 Eintraege, mit `wiki`-Feld = deutscher Wikipedia-Artikelname), bauernregel
 
 4. Fuehre die restliche Pipeline aus:
    ```bash
