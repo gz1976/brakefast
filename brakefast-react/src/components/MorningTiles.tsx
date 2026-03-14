@@ -29,15 +29,17 @@ export function MorningTiles({ data }: Props) {
           <span className="morning-tile-label">Wort des Tages</span>
         </div>
         <div className="morning-tile-body">
-          <div className="word-of-day-content">
-            <div className="word-of-day-term">{wordOfDay?.word || 'Serendipity'}</div>
-            <div className="word-of-day-explanation">
-              {wordOfDay?.explanation || 'Der glückliche Zufall — eine unerwartete, erfreuliche Entdeckung.'}
+          {wordOfDay ? (
+            <div className="word-of-day-content">
+              <div className="word-of-day-term">{wordOfDay.word}</div>
+              <div className="word-of-day-explanation">{wordOfDay.explanation}</div>
+              {wordOfDay.origin && (
+                <div className="word-of-day-origin">{wordOfDay.origin}</div>
+              )}
             </div>
-            {wordOfDay?.origin && (
-              <div className="word-of-day-origin">{wordOfDay.origin}</div>
-            )}
-          </div>
+          ) : (
+            <p className="morning-tile-empty">Heute kein Wort des Tages</p>
+          )}
         </div>
       </div>
 

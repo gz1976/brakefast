@@ -101,7 +101,7 @@ export function BrakeFastApp({
       <div className="container">
         {/* First Screen: Hero + Morning Tiles fill iPad viewport */}
         <div className="first-screen">
-          <HeroBriefing data={data} calendarRevealed={calendarRevealed} onToggleCalendar={() => setCalendarRevealed(prev => !prev)} onArticleClick={handleArticleClick} isRead={isRead} markAsRead={markAsRead} />
+          <HeroBriefing data={data} calendarRevealed={calendarRevealed} onArticleClick={handleArticleClick} isRead={isRead} markAsRead={markAsRead} />
           <MorningTiles data={data} />
         </div>
 

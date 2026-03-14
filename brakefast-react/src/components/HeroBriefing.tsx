@@ -8,7 +8,6 @@ import { getCategoryGradient, getCategoryIcon, isValidArticleImage } from '../ut
 interface Props {
   data: NewspaperData;
   calendarRevealed: boolean;
-  onToggleCalendar?: () => void;
   onArticleClick?: (article: Article) => void;
   isRead?: (link: string, title?: string) => boolean;
   markAsRead?: (link: string, title?: string) => void;
@@ -20,6 +19,31 @@ interface ModalData {
   source?: string;
   url?: string;
   image?: string;
+}
+
+function getCalendarWeek(date: Date): number {
+  const utcDate = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+  const dayNum = utcDate.getUTCDay() || 7;
+  utcDate.setUTCDate(utcDate.getUTCDate() + 4 - dayNum);
+  const yearStart = new Date(Date.UTC(utcDate.getUTCFullYear(), 0, 1));
+  return Math.ceil((((utcDate.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
+}
+
+function getMoonPhaseLabel(date: Date): string {
+  const synodicMonth = 29.53058867;
+  const knownNewMoon = Date.UTC(2000, 0, 6, 18, 14);
+  const daysSinceNewMoon = (date.getTime() - knownNewMoon) / 86400000;
+  const phase = ((daysSinceNewMoon % synodicMonth) + synodicMonth) % synodicMonth;
+
+  if (phase < 1.85) return 'Neumond';
+  if (phase < 5.54) return 'Zunehmende Sichel';
+  if (phase < 9.23) return 'Erstes Viertel';
+  if (phase < 12.92) return 'Zunehmender Mond';
+  if (phase < 16.61) return 'Vollmond';
+  if (phase < 20.3) return 'Abnehmender Mond';
+  if (phase < 23.99) return 'Letztes Viertel';
+  if (phase < 27.68) return 'Abnehmende Sichel';
+  return 'Neumond';
 }
 
 function TopStoryVisual({ article }: { article: Article }) {
@@ -80,15 +104,28 @@ function findArticleForHeadline(headline: WorldHeadline, data: NewspaperData): A
   return undefined;
 }
 
-export function HeroBriefing({ data, calendarRevealed, onToggleCalendar, onArticleClick, isRead, markAsRead }: Props) {
+export function HeroBriefing({ data, calendarRevealed, onArticleClick, isRead, markAsRead }: Props) {
   const [showBriefing, setShowBriefing] = useState(false);
   const [modalData, setModalData] = useState<ModalData | null>(null);
 
   const weather = data.widgets?.weather;
   const dayInfo = data.widgets?.dayInfo;
+  const pollen = data.widgets?.pollen;
   const calendar = data.widgets?.calendar || [];
   const calendarCount = calendar.length;
   const headlines = data.morning_tiles?.headlines || [];
+  const editionDate = new Date(data.generated);
+  const weekdayLabel = editionDate.toLocaleDateString('de-AT', { weekday: 'long' });
+  const fullDateLabel = editionDate.toLocaleDateString('de-AT', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  });
+  const calendarWeek = getCalendarWeek(editionDate);
+  const moonPhaseLabel = getMoonPhaseLabel(editionDate);
+  const weatherSummary = weather
+    ? `${weather.location || 'Voitsberg'} · ${translateWeather(weather.description)}`
+    : 'Wetter nicht verfügbar';
 
   // Normalize history: single object or array
   const historyRaw = data.widgets?.history;
@@ -214,68 +251,100 @@ export function HeroBriefing({ data, calendarRevealed, onToggleCalendar, onArtic
 
       {/* RIGHT COLUMN: Status Cards */}
       <div className="hero-briefing-status">
-        {/* 1. Wetter — kompakt */}
-        <div className="status-card status-card-weather status-card-compact">
+        {/* 1. Wetter — quer */}
+        <div className="status-card status-card-weather status-card-weather-horizontal">
           <div className="status-card-header-inline">
             <span className="status-card-icon">🌤️</span>
             <span className="status-card-label">Wetter</span>
-            {weather && (
-              <span className="status-card-value-inline">
-                {weather.temp}°C
-              </span>
-            )}
           </div>
-          <div className="status-card-detail">
-            {weather ? `${weather.location} · ${translateWeather(weather.description)}` : 'Wetter nicht verfügbar'}
-          </div>
-          {weather && (
-            <div className="status-card-weather-details">
-              <span>Gefühlt {weather.feelsLike}°</span>
-              <span>↓ {weather.min}° / ↑ {weather.max}°</span>
-              {weather.humidity != null && <span>💧 {weather.humidity}%</span>}
-              {weather.wind && <span>💨 {weather.wind}</span>}
-              {weather.forecast && <span className="weather-forecast-line">{weather.forecast}</span>}
-            </div>
-          )}
-          {data.widgets?.pollen && (
-            <div className="weather-pollen-sub">
-              <span className="pollen-label">🌾 Pollen:</span>
-              <span className={`pollen-level pollen-level-${data.widgets.pollen.level.toLowerCase()}`}>
-                {data.widgets.pollen.level}
-              </span>
-              {data.widgets.pollen.types.length > 0 && (
-                <span className="pollen-types">{data.widgets.pollen.types.join(', ')}</span>
+          <div className="weather-horizontal-layout">
+            <div className="weather-horizontal-main">
+              <div className="weather-location-line">{weatherSummary}</div>
+              {weather ? (
+                <div className="weather-horizontal-hero">
+                  <div className="weather-temp-display">{weather.temp}°C</div>
+                  <div className="weather-condition-icon" aria-hidden="true">{weather.icon || '☁️'}</div>
+                </div>
+              ) : (
+                <div className="status-card-detail">Wetter nicht verfügbar</div>
+              )}
+              {weather && (
+                <div className="weather-temp-subline">
+                  Gefühlt {weather.feelsLike}° · {translateWeather(weather.description)}
+                </div>
               )}
             </div>
-          )}
+            <div className="weather-horizontal-metrics">
+              {weather && (
+                <>
+                  <div className="weather-metric-card">
+                    <span className="weather-detail-label">Gefühlt</span>
+                    <span className="weather-detail-value">{weather.feelsLike}°</span>
+                  </div>
+                  <div className="weather-metric-card">
+                    <span className="weather-detail-label">Min/Max</span>
+                    <span className="weather-detail-value">{weather.min}° / {weather.max}°</span>
+                  </div>
+                  {weather.wind && (
+                    <div className="weather-metric-card">
+                      <span className="weather-detail-label">Wind</span>
+                      <span className="weather-detail-value">{weather.wind}</span>
+                    </div>
+                  )}
+                </>
+              )}
+              {pollen && (
+                <div className="weather-metric-card weather-metric-card-pollen">
+                  <span className="weather-detail-label">Pollen</span>
+                  <span className={`pollen-level pollen-level-${pollen.level.toLowerCase()}`}>
+                    {pollen.level}
+                  </span>
+                  <span className="weather-metric-subtext">
+                    {pollen.types.length > 0 ? pollen.types.join(', ') : pollen.description}
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
 
-        {/* 2. Tagesinfo — kompakt */}
-        <div className="status-card status-card-dayinfo status-card-compact">
+        {/* 2. Tagesinfo — quer */}
+        <div className="status-card status-card-dayinfo status-card-dayinfo-horizontal">
           <div className="status-card-header-inline">
             <span className="status-card-icon">☀️</span>
             <span className="status-card-label">Tagesinfo</span>
           </div>
-          <div className="status-card-dayinfo-grid">
-            {dayInfo ? (
-              <>
-                <div className="dayinfo-row">
-                  <span className="dayinfo-icon">☀</span>
-                  <span>{to24h(dayInfo.sunrise)}</span>
-                  <span className="dayinfo-icon">🌙</span>
-                  <span>{to24h(dayInfo.sunset)}</span>
-                  {dayInfo.dayLength && <span className="dayinfo-length">{dayInfo.dayLength}</span>}
-                </div>
-                {dayInfo.namenstag && (
-                  <div className="dayinfo-row">
-                    <span className="dayinfo-icon">🎂</span>
-                    <span>{dayInfo.namenstag}</span>
-                  </div>
-                )}
-              </>
-            ) : (
-              <span className="status-card-detail">Keine Daten</span>
-            )}
+          <div className="dayinfo-horizontal-layout">
+            <div className="dayinfo-horizontal-main">
+              <div className="dayinfo-topline">{weekdayLabel}</div>
+              <div className="dayinfo-date-line">{fullDateLabel}</div>
+            </div>
+            <div className="dayinfo-horizontal-metrics">
+              <div className="dayinfo-metric-card">
+                <span className="dayinfo-sun-label">Aufgang</span>
+                <span className="dayinfo-sun-value">{dayInfo ? to24h(dayInfo.sunrise) : '--:--'}</span>
+              </div>
+              <div className="dayinfo-metric-card">
+                <span className="dayinfo-sun-label">Untergang</span>
+                <span className="dayinfo-sun-value">{dayInfo ? to24h(dayInfo.sunset) : '--:--'}</span>
+              </div>
+              <div className="dayinfo-metric-card">
+                <span className="dayinfo-sun-label">Tageslänge</span>
+                <span className="dayinfo-sun-value">{dayInfo?.dayLength || '--'}</span>
+              </div>
+              <div className="dayinfo-metric-card">
+                <span className="dayinfo-sun-label">Namenstag</span>
+                <span className="dayinfo-sun-value">{dayInfo?.namenstag || 'Kein Eintrag'}</span>
+              </div>
+              <div className="dayinfo-metric-card">
+                <span className="dayinfo-sun-label">KW</span>
+                <span className="dayinfo-sun-value">KW {calendarWeek}</span>
+              </div>
+            </div>
+            <div className="dayinfo-horizontal-footer">
+              <span className="dayinfo-rich-label">Mondphase</span>
+              <span className="dayinfo-rich-value">{moonPhaseLabel}</span>
+            </div>
           </div>
         </div>
 
@@ -286,13 +355,8 @@ export function HeroBriefing({ data, calendarRevealed, onToggleCalendar, onArtic
           <div className="status-card-header-inline">
             <span className="status-card-icon">📅</span>
             <span className="status-card-label">Termine</span>
-            {onToggleCalendar && calendar.length > 0 && (
-              <button className="calendar-toggle-pill" onClick={onToggleCalendar}>
-                {calendarRevealed ? 'Verbergen' : 'Anzeigen'}
-              </button>
-            )}
           </div>
-          <div className="status-card-value-small">
+          <div className="status-card-value-small calendar-blur-target">
             {calendarCount > 0 ? `${calendarCount} heute` : 'Freier Tag'}
           </div>
           {calendar.length > 0 ? (
@@ -305,7 +369,7 @@ export function HeroBriefing({ data, calendarRevealed, onToggleCalendar, onArtic
               ))}
             </div>
           ) : (
-            <div className="status-card-detail">Keine Termine eingetragen</div>
+            <div className="status-card-detail calendar-blur-target">Keine Termine eingetragen</div>
           )}
         </div>
 
