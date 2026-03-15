@@ -157,9 +157,11 @@ export function HeroBriefing({ data, calendarRevealed, onArticleClick, isRead, m
   };
 
   const openHistoryModal = (fact: HistoryFact) => {
+    const fallbackText = fact.description
+      || `${fact.text}. Dieses historische Ereignis jährt sich heute im Jahr ${fact.year}.`;
     setModalData({
       title: `${fact.year}: ${fact.text}`,
-      text: fact.description,
+      text: fallbackText,
       url: fact.url,
       image: fact.image,
       source: fact.url ? 'Wikipedia' : undefined,

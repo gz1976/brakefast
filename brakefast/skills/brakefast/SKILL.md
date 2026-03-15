@@ -46,7 +46,7 @@ So sparst du Output-Tokens und die Pipeline laeuft zuverlaessig.**
 
 2. Kuratiere: Waehle 6 Artikel pro Kategorie aus der Liste oben.
    Schreibe fuer jeden Artikel: `summary` (150-250 Woerter DE), `description` (1-2 Saetze), `relevance_score`, `reading_time_minutes`.
-   Schreibe Editorial, ki_modelle, dev_digest, morning_tiles, widgets (quote, history, bauernregel, namenstag).
+   Schreibe Editorial, ki_modelle, dev_digest, morning_tiles, widgets (quote, history, bauernregel, namenstag, optional `word_of_day` als Override).
 
    **KRITISCH: Genau 6 Artikel pro Kategorie (ai, security, tech, ev, world, local)!**
 
@@ -82,7 +82,7 @@ So sparst du Output-Tokens und die Pipeline laeuft zuverlaessig.**
        "knapp": {"headline": "...", "signals": [{"text": "...", "source": "...", "url": "https://..."}]},
        "streaming": [{"title": "...", "platform": "...", "type": "Serie", "url": "https://..."}],
        "events": [{"title": "...", "date": "...", "location": "...", "type": "...", "url": "https://..."}],
-       "media_tip": {"title": "...", "type": "Podcast", "source": "...", "url": "https://...", "duration": "..."}
+      "media_tip": {"title": "...", "type": "Podcast", "source": "...", "url": "https://...", "duration": "..."}
      },
      "headlines": [
        {"title": "Wichtigste Schlagzeile", "source": "Quelle", "link": "https://..."},
@@ -91,10 +91,11 @@ So sparst du Output-Tokens und die Pipeline laeuft zuverlaessig.**
      ],
      "widgets": {
        "namenstag": "Kunigunde",
+        "word_of_day": {"word": "Tüftlergeist", "explanation": "Freude daran, Dinge kreativ und geduldig zu verbessern.", "origin": "Deutsche Zusammensetzung aus 'tüfteln' und 'Geist'"},
        "quote": {"text": "Any sufficiently advanced technology...", "author": "Arthur C. Clarke"},
        "history": [
-         {"year": 1876, "text": "Alexander Graham Bell patentiert das Telefon", "wiki": "Telefon"},
-         {"year": 1946, "text": "Winston Churchill praegt den Begriff Eiserner Vorhang", "wiki": "Eiserner_Vorhang"}
+          {"year": 1876, "text": "Alexander Graham Bell patentiert das Telefon", "wiki": "Telefon"},
+          {"year": 1946, "text": "Winston Churchill praegt den Begriff Eiserner Vorhang", "wiki": "Eiserner_Vorhang"}
        ],
        "bauernregel": {"text": "Maerzenstaub bringt Gras und Laub", "meaning": "Trockenes Wetter im Maerz foerdert Pflanzenwachstum"}
      }
@@ -118,9 +119,9 @@ So sparst du Output-Tokens und die Pipeline laeuft zuverlaessig.**
    - `editorial` (2-3 Saetze, persoenlich)
    - `ki_modelle` (4 Items mit echten Daten aus raw-articles)
    - `dev_digest` (4 Items mit echten Daten aus raw-articles)
-   - `morning_tiles` (knapp, streaming, events, media_tip — mit URLs)
+  - `morning_tiles` (knapp, streaming, events, media_tip — mit URLs; bevorzuge hochwertige, abwechslungsreiche Podcast-/Longread-Quellen statt immer derselben Show)
    - `headlines` (3 Top-Schlagzeilen des Tages)
-   - `widgets`: namenstag, quote, history (2-3 Eintraege, mit `wiki`-Feld = deutscher Wikipedia-Artikelname), bauernregel
+  - `widgets`: namenstag, quote, history (2-3 Eintraege, IMMER mit `wiki`-Feld = deutscher Wikipedia-Artikelname), bauernregel, optional `word_of_day`
 
 4. Fuehre die restliche Pipeline aus:
    ```bash
@@ -145,7 +146,9 @@ Wenn Gerhard sagt "Zeitung bitte" oder "BrakeFast generieren":
 - **EXAKT 6 Artikel pro Kategorie** (verteilt auf 6 Kategorien = ~36 Artikel gesamt)
 - Kategorien: ai (6), security (6), tech (6), ev (6), world (6), local (6)
 - `ki_modelle` und `dev_digest` Sektionen IMMER befuellen (je 4 Items)
-- `widgets`: Du lieferst nur namenstag, quote, history, bauernregel. Rest (weather, vps, calendar, pollen) macht curate.py!
+- `widgets`: Du lieferst namenstag, quote, history, bauernregel und optional `word_of_day`. Rest (weather, vps, calendar, pollen) macht curate.py!
+- `history`: Fuer jeden Eintrag moeglichst einen belastbaren deutschen Wikipedia-Titel in `wiki` liefern, damit Bild und Beschreibung angereichert werden koennen
+- `media_tip`: Nicht monoton. Bevorzuge eine abwechslungsreiche Auswahl aus hochwertigen Formaten wie Hard Fork, Acquired, Decoder, Dwarkesh, Darknet Diaries, Search Engine, Ezra Klein; Lex Fridman nur wenn wirklich besonders passend
 - Bilder werden automatisch per `index` aus raw-articles.json uebernommen
 
 ## Relevanz-Score Leitfaden

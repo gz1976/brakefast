@@ -26,10 +26,12 @@ Usage:
 import json
 import sys
 import os
+import re
 import subprocess
 import urllib.request
 import urllib.parse
 from datetime import datetime, timezone
+from pathlib import Path
 
 BASE = "/data/.openclaw/workspace/brakefast"
 OUTPUT = os.path.join(BASE, "output")
@@ -37,6 +39,8 @@ RAW_FILE = os.path.join(OUTPUT, "raw-articles.json")
 ENRICHED_FILE = os.path.join(OUTPUT, "enriched-articles.json")
 CURATED_FILE = os.path.join(OUTPUT, "curated-articles.json")
 CALENDAR_FILE = os.path.join(OUTPUT, "calendar-events.json")
+PUBLIC_DIR = os.environ.get("BRAKEFAST_PUBLIC_DIR", "/data/brakefast-public")
+EDITIONS_DIR = os.path.join(PUBLIC_DIR, "editions")
 
 CATEGORY_META = {
     "ai":       {"name": "AI & Machine Learning", "emoji": "\U0001f916", "css_class": "category-header--ai"},
@@ -60,6 +64,37 @@ POLLEN_SEASONAL = {
     10: {"level": "niedrig",     "types": [],                           "description": "Kaum noch Pollenbelastung"},
     11: {"level": "niedrig",     "types": [],                           "description": "Keine nennenswerte Belastung"},
     12: {"level": "niedrig",     "types": [],                           "description": "Keine nennenswerte Belastung"},
+}
+
+WORD_OF_DAY_LIBRARY = [
+    {"word": "Serendipität", "explanation": "Die glückliche Entdeckung von etwas Wertvollem, nach dem man gar nicht gezielt gesucht hat.", "origin": "Aus dem Englischen 'serendipity', geprägt nach dem Märchen 'The Three Princes of Serendip'."},
+    {"word": "Fernweh", "explanation": "Die starke Sehnsucht, in die Ferne zu reisen und neue Orte zu entdecken.", "origin": "Deutsche Wortbildung analog zu 'Heimweh'."},
+    {"word": "Schockverliebt", "explanation": "Plötzlich und heftig von jemandem oder etwas begeistert sein.", "origin": "Moderne deutsche Zusammensetzung aus 'Schock' und 'verliebt'."},
+    {"word": "Weltschmerz", "explanation": "Melancholie über die Unvollkommenheit der Welt und das Auseinanderklaffen von Ideal und Wirklichkeit.", "origin": "Literarischer Begriff aus der deutschen Romantik."},
+    {"word": "Tüftlergeist", "explanation": "Freude daran, Dinge geduldig auszuprobieren, zu verbessern und kreativ zu lösen.", "origin": "Deutsche Zusammensetzung aus 'tüfteln' und 'Geist'."},
+    {"word": "Waldeinsamkeit", "explanation": "Das besondere Gefühl stiller Abgeschiedenheit in der Natur.", "origin": "Berühmt geworden durch die deutsche Romantik."},
+    {"word": "Morgenrot", "explanation": "Das rötliche Licht des Himmels kurz vor Sonnenaufgang; oft auch Sinnbild für Aufbruch.", "origin": "Altes deutsches Naturwort."},
+    {"word": "Fingerspitzengefühl", "explanation": "Die Fähigkeit, in heiklen Situationen mit Takt und Feingefühl zu handeln.", "origin": "Bildhafte deutsche Komposition."},
+    {"word": "Gedankenexperiment", "explanation": "Ein gedanklich durchgespieltes Szenario, um Ideen oder Theorien zu prüfen.", "origin": "Aus Philosophie und Naturwissenschaft verbreitet."},
+    {"word": "Aufbruchsstimmung", "explanation": "Das kollektive Gefühl, dass etwas Neues beginnt und man loslegen will.", "origin": "Deutsche Zusammensetzung aus 'Aufbruch' und 'Stimmung'."},
+    {"word": "Kopfkino", "explanation": "Lebhafte innere Bilder oder Vorstellungen, die vor dem geistigen Auge ablaufen.", "origin": "Umgangssprachliche deutsche Metapher."},
+    {"word": "Zeitgeist", "explanation": "Die prägenden Ideen, Haltungen und Vorlieben einer bestimmten Epoche.", "origin": "Deutscher Begriff, international übernommen."},
+]
+
+MEDIA_TIP_CATALOG = [
+    {"title": "Hard Fork", "type": "Podcast", "source": "New York Times", "url": "https://www.nytimes.com/column/hard-fork", "duration": "ca. 1h", "topics": ["ai", "tech", "internet", "media"], "rank": 10},
+    {"title": "Acquired", "type": "Podcast", "source": "Acquired", "url": "https://www.acquired.fm/", "duration": "ca. 3h", "topics": ["business", "tech", "company", "strategy"], "rank": 9},
+    {"title": "Decoder", "type": "Podcast", "source": "The Verge", "url": "https://www.theverge.com/decoder-podcast-with-nilay-patel", "duration": "ca. 1h", "topics": ["ai", "platform", "product", "tech"], "rank": 9},
+    {"title": "Dwarkesh Podcast", "type": "Podcast", "source": "Dwarkesh Patel", "url": "https://www.dwarkesh.com/podcast", "duration": "ca. 2h", "topics": ["ai", "science", "economics", "future"], "rank": 9},
+    {"title": "Darknet Diaries", "type": "Podcast", "source": "Jack Rhysider", "url": "https://darknetdiaries.com/", "duration": "ca. 1h", "topics": ["security", "cyber", "hacking", "privacy"], "rank": 10},
+    {"title": "Search Engine", "type": "Podcast", "source": "PJ Vogt", "url": "https://pjvogt.substack.com/p/search-engine", "duration": "ca. 1h", "topics": ["internet", "culture", "media", "technology"], "rank": 8},
+    {"title": "The Ezra Klein Show", "type": "Podcast", "source": "New York Times", "url": "https://www.nytimes.com/column/ezra-klein-podcast", "duration": "ca. 1h", "topics": ["world", "politics", "society", "ideas"], "rank": 8},
+    {"title": "Lex Fridman Podcast", "type": "Podcast", "source": "Lex Fridman", "url": "https://lexfridman.com/podcast/", "duration": "ca. 2h", "topics": ["ai", "science", "robotics", "founders"], "rank": 7},
+]
+
+HISTORY_STOP_TITLES = {
+    "der", "die", "das", "ein", "eine", "einer", "einem", "einen",
+    "erste", "erster", "erstes", "ersten", "erstmals",
 }
 
 
@@ -156,6 +191,258 @@ def load_calendar():
         return []
 
 
+def split_sentences(text):
+    if not text:
+        return []
+    return [part.strip() for part in re.split(r"(?<=[.!?])\s+", text.strip()) if part.strip()]
+
+
+def build_history_fallback_description(fact):
+    year = fact.get("year", "Unbekannt")
+    text = fact.get("text", "Historisches Ereignis")
+    return (
+        f"{text}. "
+        f"Das Ereignis jährt sich heute und markiert einen bemerkenswerten Moment des Jahres {year}."
+    )
+
+
+def fetch_wikipedia_summary(title, timeout=5):
+    if not title:
+        return None
+    try:
+        encoded = urllib.parse.quote(title.replace(" ", "_"))
+        url = f"https://de.wikipedia.org/api/rest_v1/page/summary/{encoded}"
+        result = subprocess.run(
+            ["curl", "-sL", "--max-time", str(timeout), "-A", "BrakeFast/1.0", url],
+            capture_output=True,
+            text=True,
+            timeout=timeout + 2,
+        )
+        if result.returncode != 0 or not result.stdout.strip():
+            return None
+        return json.loads(result.stdout)
+    except Exception:
+        return None
+
+
+def search_wikipedia_title(query, timeout=5):
+    if not query:
+        return None
+    try:
+        encoded = urllib.parse.quote(query)
+        url = (
+            "https://de.wikipedia.org/w/api.php?"
+            f"action=opensearch&search={encoded}&limit=1&namespace=0&format=json"
+        )
+        result = subprocess.run(
+            ["curl", "-sL", "--max-time", str(timeout), "-A", "BrakeFast/1.0", url],
+            capture_output=True,
+            text=True,
+            timeout=timeout + 2,
+        )
+        if result.returncode != 0 or not result.stdout.strip():
+            return None
+        data = json.loads(result.stdout)
+        titles = data[1] if isinstance(data, list) and len(data) > 1 else []
+        return titles[0] if titles else None
+    except Exception:
+        return None
+
+
+def fetch_wikipedia_page_image(title, timeout=5):
+    if not title:
+        return None
+    try:
+        encoded = urllib.parse.quote(title.replace(" ", "_"))
+        url = (
+            "https://de.wikipedia.org/w/api.php?"
+            f"action=query&prop=pageimages&piprop=thumbnail&pithumbsize=600&titles={encoded}&format=json"
+        )
+        result = subprocess.run(
+            ["curl", "-sL", "--max-time", str(timeout), "-A", "BrakeFast/1.0", url],
+            capture_output=True,
+            text=True,
+            timeout=timeout + 2,
+        )
+        if result.returncode != 0 or not result.stdout.strip():
+            return None
+        data = json.loads(result.stdout)
+        pages = (data.get("query") or {}).get("pages") or {}
+        for page in pages.values():
+            thumb = (page.get("thumbnail") or {}).get("source")
+            if thumb:
+                return thumb
+        return None
+    except Exception:
+        return None
+
+
+def search_wikimedia_image(title, timeout=5):
+    if not title:
+        return None
+    try:
+        query = urllib.parse.quote(title)
+        url = (
+            "https://commons.wikimedia.org/w/api.php?"
+            f"action=query&generator=search&gsrsearch={query}&gsrnamespace=6&gsrlimit=5"
+            "&prop=imageinfo&iiprop=url|mime&iiurlwidth=600&format=json"
+        )
+        result = subprocess.run(
+            ["curl", "-sL", "--max-time", str(timeout), "-A", "BrakeFast/1.0", url],
+            capture_output=True,
+            text=True,
+            timeout=timeout + 2,
+        )
+        if result.returncode != 0 or not result.stdout.strip():
+            return None
+        data = json.loads(result.stdout)
+        pages = (data.get("query") or {}).get("pages") or {}
+        for page in pages.values():
+            imageinfo = page.get("imageinfo") or []
+            if not imageinfo:
+                continue
+            info = imageinfo[0]
+            mime = info.get("mime", "")
+            if mime not in ("image/jpeg", "image/png"):
+                continue
+            thumb = info.get("thumburl")
+            if thumb:
+                return thumb
+        return None
+    except Exception:
+        return None
+
+
+def build_history_search_candidates(fact):
+    candidates = []
+    wiki = (fact.get("wiki") or "").strip()
+    text = (fact.get("text") or "").strip()
+    if wiki:
+        candidates.append(wiki)
+    if text:
+        candidates.append(text)
+        candidates.append(text.split(" — ")[0].strip())
+        candidates.append(text.split(":")[0].strip())
+        candidates.append(re.sub(r"\([^)]*\)", "", text).strip())
+        proper_nouns = re.findall(r"\b[A-ZÄÖÜ][A-Za-zÄÖÜäöüß-]+(?:\s+[A-ZÄÖÜ][A-Za-zÄÖÜäöüß-]+){0,3}", text)
+        candidates.extend(proper_nouns[:3])
+
+    deduped = []
+    seen = set()
+    for candidate in candidates:
+        candidate = re.sub(r"\s+", " ", candidate).strip(" -–—,:;.")
+        candidate = re.sub(r"^(Der|Die|Das|Ein|Eine|Einer|Einem|Einen)\s+", "", candidate)
+        candidate = re.sub(r"^(erste|erster|erstes|ersten|erstmals)\s+", "", candidate, flags=re.IGNORECASE)
+        if not candidate:
+            continue
+        lowered = candidate.lower()
+        if lowered in seen:
+            continue
+        seen.add(lowered)
+        deduped.append(candidate[:120])
+    return deduped
+
+
+def is_bad_history_title(title):
+    if not title:
+        return True
+    normalized = title.strip().lower()
+    if normalized in HISTORY_STOP_TITLES:
+        return True
+    if len(normalized) <= 2:
+        return True
+    return False
+
+
+def choose_word_of_day(spec_word, now):
+    if isinstance(spec_word, dict) and spec_word.get("word") and spec_word.get("explanation"):
+        return spec_word
+    idx = now.toordinal() % len(WORD_OF_DAY_LIBRARY)
+    return WORD_OF_DAY_LIBRARY[idx]
+
+
+def load_recent_media_tips(limit=7):
+    paths = sorted(Path(EDITIONS_DIR).glob("*/*/*/data.json"), reverse=True)
+    recent = []
+    for path in paths[:limit]:
+        try:
+            data = json.loads(path.read_text(encoding="utf-8"))
+        except Exception:
+            continue
+        tip = ((data.get("morning_tiles") or {}).get("media_tip")) or {}
+        if tip.get("title") and tip.get("source"):
+            recent.append(tip)
+    return recent
+
+
+def build_media_context(spec, source_articles):
+    parts = [spec.get("editorial", "")]
+    for category_articles in (spec.get("categories") or {}).values():
+        if isinstance(category_articles, dict):
+            category_articles = category_articles.get("articles", [])
+        if not isinstance(category_articles, list):
+            continue
+        for item in category_articles[:2]:
+            if isinstance(item, dict):
+                parts.append(item.get("title", ""))
+                parts.append(item.get("summary", ""))
+                parts.append(item.get("description", ""))
+    for article in source_articles[:12]:
+        if isinstance(article, dict):
+            parts.append(article.get("title", ""))
+            parts.append(article.get("source", ""))
+    return " ".join(parts).lower()
+
+
+def validate_media_tip(tip):
+    if not isinstance(tip, dict):
+        return False
+    return bool(tip.get("title") and tip.get("source") and tip.get("type"))
+
+
+def score_media_tip(entry, context_text, recent_tips):
+    score = entry.get("rank", 0) * 10
+    for topic in entry.get("topics", []):
+        if topic in context_text:
+            score += 4
+    recent_titles = {tip.get("title", "").lower() for tip in recent_tips}
+    recent_sources = [tip.get("source", "").lower() for tip in recent_tips]
+    if entry["title"].lower() in recent_titles:
+        score -= 20
+    score -= recent_sources.count(entry["source"].lower()) * 8
+    return score
+
+
+def choose_media_tip(spec_tip, spec, source_articles):
+    recent_tips = load_recent_media_tips()
+    recent_titles = {tip.get("title", "").lower() for tip in recent_tips}
+    recent_sources = [tip.get("source", "").lower() for tip in recent_tips]
+
+    if validate_media_tip(spec_tip):
+        title = spec_tip.get("title", "").lower()
+        source = spec_tip.get("source", "").lower()
+        repeated_title = title in recent_titles
+        repeated_source = recent_sources.count(source) >= 2
+        generic_lex = "lex fridman" in source
+        if not (repeated_title or repeated_source or generic_lex):
+            return spec_tip
+
+    context_text = build_media_context(spec, source_articles)
+    ranked = sorted(
+        MEDIA_TIP_CATALOG,
+        key=lambda entry: score_media_tip(entry, context_text, recent_tips),
+        reverse=True,
+    )
+    chosen = ranked[0]
+    return {
+        "title": chosen["title"],
+        "type": chosen["type"],
+        "source": chosen["source"],
+        "url": chosen["url"],
+        "duration": chosen["duration"],
+    }
+
+
 def load_articles_from_file(path):
     """Load articles from a categorized or flat JSON file."""
     with open(path) as f:
@@ -249,26 +536,46 @@ def enrich_history(facts):
     if not facts:
         return facts
     enriched = []
-    for fact in facts:
-        wiki_title = fact.get("wiki", "")
-        if wiki_title and not fact.get("image"):
-            try:
-                encoded = urllib.parse.quote(wiki_title.replace(" ", "_"))
-                url = f"https://de.wikipedia.org/api/rest_v1/page/summary/{encoded}"
-                req = urllib.request.Request(url, headers={"User-Agent": "BrakeFast/1.0"})
-                with urllib.request.urlopen(req, timeout=5) as resp:
-                    data = json.loads(resp.read())
-                if "thumbnail" in data:
-                    fact["image"] = data["thumbnail"]["source"]
-                if "content_urls" in data:
-                    fact["url"] = data["content_urls"]["desktop"]["page"]
-                if "extract" in data and not fact.get("description"):
-                    # First 2 sentences as description
-                    extract = data["extract"]
-                    sentences = extract.split(". ")
-                    fact["description"] = ". ".join(sentences[:2]).rstrip(".") + "."
-            except Exception as e:
-                print(f"WARN: Wikipedia lookup failed for '{wiki_title}': {e}", file=sys.stderr)
+    for raw_fact in facts:
+        fact = dict(raw_fact)
+        wiki_title = (fact.get("wiki") or "").strip()
+        if is_bad_history_title(wiki_title):
+            fact.pop("wiki", None)
+            fact.pop("url", None)
+            fact.pop("image", None)
+            fact.pop("description", None)
+            wiki_title = ""
+        summary_data = fetch_wikipedia_summary(wiki_title) if wiki_title else None
+
+        if not summary_data:
+            for candidate in build_history_search_candidates(fact):
+                resolved_title = search_wikipedia_title(candidate)
+                if not resolved_title or is_bad_history_title(resolved_title):
+                    continue
+                wiki_title = resolved_title
+                summary_data = fetch_wikipedia_summary(resolved_title)
+                if summary_data:
+                    fact["wiki"] = resolved_title
+                    break
+
+        if summary_data:
+            thumbnail = summary_data.get("thumbnail", {}).get("source")
+            if not thumbnail:
+                thumbnail = fetch_wikipedia_page_image(fact.get("wiki") or wiki_title)
+            if not thumbnail:
+                thumbnail = search_wikimedia_image(fact.get("wiki") or wiki_title)
+            if thumbnail:
+                fact["image"] = thumbnail
+            page_url = summary_data.get("content_urls", {}).get("desktop", {}).get("page")
+            if page_url:
+                fact["url"] = page_url
+            extract = summary_data.get("extract", "")
+            if extract:
+                sentences = split_sentences(extract)
+                fact["description"] = " ".join(sentences[:2]) if sentences else extract
+
+        if not fact.get("description"):
+            fact["description"] = build_history_fallback_description(fact)
         enriched.append(fact)
     return enriched
 
@@ -309,6 +616,7 @@ def build_curated(spec, source_articles):
     if not quote_widget.get("text"):
         quote_widget = quote_default
     history_widget = enrich_history(sw.get("history") or [])
+    word_of_day_widget = choose_word_of_day(sw.get("word_of_day"), now)
     bauernregel_default = {"text": "Wie der März, so der Herbst", "meaning": "Das Märzwetter gibt Hinweise auf den Herbst"}
     bauernregel_widget = sw.get("bauernregel") or bauernregel_default
     if not bauernregel_widget.get("text"):
@@ -316,6 +624,8 @@ def build_curated(spec, source_articles):
     namenstag = sw.get("namenstag") or day_info_widget.get("namenstag", "")
     if namenstag:
         day_info_widget["namenstag"] = namenstag
+    morning_tiles = dict(spec.get("morning_tiles", {}))
+    morning_tiles["media_tip"] = choose_media_tip(morning_tiles.get("media_tip"), spec, source_articles)
 
     # Build categories from spec
     categories = {}
@@ -361,11 +671,12 @@ def build_curated(spec, source_articles):
             "bauernregel": bauernregel_widget,
             "pollen": pollen_widget,
             "vps": vps_widget,
+            "word_of_day": word_of_day_widget,
         },
         "categories": categories,
         "ki_modelle": spec.get("ki_modelle", {}),
         "dev_digest": spec.get("dev_digest", {}),
-        "morning_tiles": spec.get("morning_tiles", {}),
+        "morning_tiles": morning_tiles,
     }
 
     # Headlines from top articles

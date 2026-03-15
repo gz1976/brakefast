@@ -143,6 +143,7 @@ export interface VpsStatus {
 export interface HistoryFact {
   year: number;
   text: string;
+  wiki?: string;
   image?: string;
   url?: string;
   description?: string; // 3-5 sentence detail for modal/expand
