@@ -119,13 +119,26 @@ meta = {
     "legacy_html_url": f"/legacy/{year}/{month}/{day}/index.html",
     "react_url": f"/?edition={date_key}",
     "source_file": str(input_json),
-    "model": (
+    "model": "",
+}
+
+provider_chain_raw = os.environ.get("BRAKEFAST_LLM_PROVIDER_CHAIN", "").strip()
+if provider_chain_raw:
+    try:
+        provider_chain = json.loads(provider_chain_raw)
+        if isinstance(provider_chain, list) and provider_chain and isinstance(provider_chain[0], dict):
+            first_provider = provider_chain[0]
+            meta["model"] = first_provider.get("model") or first_provider.get("name") or ""
+    except json.JSONDecodeError:
+        meta["model"] = ""
+
+if not meta["model"]:
+    meta["model"] = (
         os.environ.get("BRAKEFAST_LLM_MODEL")
         or os.environ.get("OPENAI_MODEL")
         or os.environ.get("OPENROUTER_MODEL")
         or ""
-    ),
-}
+    )
 
 with meta_path.open("w", encoding="utf-8") as f:
     json.dump(meta, f, ensure_ascii=False, indent=2)

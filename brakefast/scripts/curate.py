@@ -528,7 +528,312 @@ def build_article_payload(item, source_article):
     if base.get("full_text") and not item.get("full_text"):
         article["full_text"] = base.get("full_text")
 
+    if is_wrapper_feed_link(article.get("link")):
+        resolved = resolve_final_url(article["link"])
+        if resolved:
+            article["link"] = resolved
+            article["canonical_url"] = resolved
+    if is_wrapper_feed_link(article.get("source_url")):
+        article["source_url"] = resolve_final_url(article["source_url"])
+
     return article
+
+
+def is_wrapper_feed_link(url):
+    if not isinstance(url, str) or not url.strip():
+        return False
+    host = urllib.parse.urlparse(url.strip()).netloc.lower()
+    return "feedblitz.com" in host or "feedburner.com" in host
+
+
+def is_hn_discussion_link(url):
+    return isinstance(url, str) and "news.ycombinator.com/item" in url
+
+
+def resolve_final_url(url, timeout=10):
+    if not isinstance(url, str) or not url.strip():
+        return url
+    try:
+        req = urllib.request.Request(url.strip(), headers={"User-Agent": "BrakeFast/1.0"})
+        with urllib.request.urlopen(req, timeout=timeout) as resp:
+            return resp.geturl() or url
+    except Exception:
+        return url
+
+
+def is_weak_source_label(source):
+    normalized = (source or "").strip().lower()
+    return normalized in {
+        "",
+        "hacker news",
+        "hacker news / arxiv",
+        "arxiv / hacker news",
+    }
+
+
+def source_label_from_url(url):
+    if not isinstance(url, str) or not url.strip():
+        return ""
+    host = urllib.parse.urlparse(url.strip()).netloc.lower()
+    host = re.sub(r"^www\.", "", host)
+    explicit = {
+        "openai.com": "OpenAI",
+        "github.blog": "GitHub Blog",
+        "arstechnica.com": "Ars Technica",
+        "thehackernews.com": "The Hacker News",
+        "agelesslinux.org": "Ageless Linux",
+        "ecomento.de": "Ecomento",
+        "ayushtambde.com": "Ayush Tambde",
+    }
+    if host in explicit:
+        return explicit[host]
+    base = host.split(".")[0] if host else ""
+    return " ".join(part.capitalize() for part in base.split("-"))
+
+
+def is_bad_detail_image(url, source="", link=""):
+    if not isinstance(url, str) or not url.strip():
+        return True
+    lowered = url.lower()
+    if "upload.wikimedia.org" in lowered and "wikipedia" not in (source or "").lower() and "wikipedia.org" not in (link or "").lower():
+        return True
+    return False
+
+
+def normalize_url_for_match(url):
+    if not isinstance(url, str) or not url.strip():
+        return ""
+    parsed = urllib.parse.urlparse(url.strip())
+    path = parsed.path.rstrip("/")
+    return f"{parsed.netloc.lower()}{path}"
+
+
+def slugify(value, max_len=80):
+    if not isinstance(value, str):
+        return "item"
+    normalized = re.sub(r"[^a-z0-9äöüß]+", "-", value.lower())
+    normalized = normalized.strip("-")
+    return (normalized[:max_len] or "item")
+
+
+def is_generic_section_link(url):
+    if not isinstance(url, str) or not url.strip():
+        return True
+    parsed = urllib.parse.urlparse(url.strip())
+    path = parsed.path.rstrip("/")
+    return path in ("", "/blog", "/news")
+
+
+def normalize_title_for_match(title):
+    if not isinstance(title, str):
+        return ""
+    normalized = re.sub(r"[^a-z0-9äöüß]+", " ", title.lower())
+    return re.sub(r"\s+", " ", normalized).strip()
+
+
+def title_overlap_score(a, b):
+    a_words = set(normalize_title_for_match(a).split())
+    b_words = set(normalize_title_for_match(b).split())
+    if not a_words or not b_words:
+        return 0
+    return len(a_words & b_words)
+
+
+def build_image_search_candidates(title):
+    candidates = []
+    if isinstance(title, str) and title.strip():
+        raw = title.strip()
+        candidates.append(raw)
+        for separator in (" — ", " - ", ": "):
+            if separator in raw:
+                candidates.append(raw.split(separator)[0].strip())
+        candidates.append(re.sub(r"\([^)]*\)", "", raw).strip())
+    deduped = []
+    seen = set()
+    for candidate in candidates:
+        normalized = re.sub(r"\s+", " ", candidate).strip(" -–—,:;.")
+        if not normalized:
+            continue
+        key = normalized.lower()
+        if key in seen:
+            continue
+        seen.add(key)
+        deduped.append(normalized)
+    return deduped
+
+
+def localize_remote_image(url, title, bucket="detail"):
+    if not isinstance(url, str) or not url.startswith("http"):
+        return url
+    try:
+        public_dir = Path(PUBLIC_DIR)
+        images_dir = public_dir / "images" / "detail"
+        images_dir.mkdir(parents=True, exist_ok=True)
+
+        parsed = urllib.parse.urlparse(url)
+        ext = os.path.splitext(parsed.path)[1].lower()
+        if ext not in (".jpg", ".jpeg", ".png", ".webp"):
+            ext = ".jpg"
+
+        filename = f"{bucket}-{slugify(title)}{ext}"
+        target = images_dir / filename
+        if target.exists() and target.stat().st_size > 0:
+            return f"/images/detail/{filename}"
+
+        req = urllib.request.Request(url, headers={"User-Agent": "BrakeFast/1.0"})
+        with urllib.request.urlopen(req, timeout=20) as resp:
+            content = resp.read()
+        if not content:
+            return url
+        target.write_bytes(content)
+        return f"/images/detail/{filename}"
+    except Exception:
+        return url
+
+
+def resolve_hn_item(url):
+    if not isinstance(url, str) or "news.ycombinator.com/item" not in url:
+        return None
+    try:
+        parsed = urllib.parse.urlparse(url)
+        item_id = urllib.parse.parse_qs(parsed.query).get("id", [""])[0]
+        if not item_id:
+            return None
+        api_url = f"https://hacker-news.firebaseio.com/v0/item/{item_id}.json"
+        req = urllib.request.Request(api_url, headers={"User-Agent": "BrakeFast/1.0"})
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            payload = json.loads(resp.read().decode("utf-8"))
+        if not isinstance(payload, dict):
+            return None
+        return {
+            "title": payload.get("title") or "",
+            "url": payload.get("url") or "",
+        }
+    except Exception:
+        return None
+
+
+def find_matching_source_article(item, source_articles):
+    if "index" in item and isinstance(item["index"], int):
+        idx = item["index"]
+        if 0 <= idx < len(source_articles):
+            return source_articles[idx]
+
+    item_link = normalize_url_for_match(item.get("link"))
+    item_title = item.get("title", "")
+    item_source = (item.get("source") or "").strip().lower()
+
+    best_match = None
+    best_score = -1
+
+    for article in source_articles:
+        if not isinstance(article, dict):
+            continue
+
+        article_links = {
+            normalize_url_for_match(article.get("canonical_url")),
+            normalize_url_for_match(article.get("source_url")),
+            normalize_url_for_match(article.get("link")),
+        }
+        article_links.discard("")
+
+        score = 0
+        if item_link and item_link in article_links:
+            score += 100
+
+        article_title = article.get("title") or article.get("headline") or ""
+        overlap = title_overlap_score(item_title, article_title)
+        if overlap:
+            score += overlap * 10
+
+        article_source = (article.get("source") or "").strip().lower()
+        if item_source and article_source and item_source == article_source:
+            score += 8
+
+        if item_title and article_title and normalize_title_for_match(item_title) == normalize_title_for_match(article_title):
+            score += 50
+
+        if score > best_score:
+            best_score = score
+            best_match = article
+
+    return best_match if best_score >= 18 else None
+
+
+def build_digest_item_payload(item, source_articles, preferred_articles=None):
+    item = dict(item or {})
+    resolved_hn = resolve_hn_item(item.get("link"))
+    if resolved_hn:
+        if resolved_hn.get("url"):
+            item["link"] = resolved_hn["url"]
+        if not item.get("title") and resolved_hn.get("title"):
+            item["title"] = resolved_hn["title"]
+
+    preferred_base = find_matching_source_article(item, preferred_articles or []) or {}
+    base = preferred_base or find_matching_source_article(item, source_articles) or {}
+    article_payload = build_article_payload(item, base)
+    base_link = base.get("canonical_url") or base.get("source_url") or base.get("link") or ""
+    base_source = base.get("source") or ""
+
+    content = item.get("content")
+    if not content or len(content.strip()) < 140:
+        content = (
+            article_payload.get("summary")
+            or article_payload.get("briefing_blurb")
+            or article_payload.get("dek")
+            or article_payload.get("description")
+            or ""
+        )
+
+    link = item.get("link")
+    if is_generic_section_link(link):
+        link = article_payload.get("canonical_url") or article_payload.get("link") or link
+
+    payload = {
+        "title": item.get("title") or article_payload.get("title") or "",
+        "content": content,
+        "source": item.get("source") or article_payload.get("source") or "",
+        "date": item.get("date") or article_payload.get("published_at") or article_payload.get("date") or "",
+        "tag": item.get("tag") or "Update",
+        "image": item.get("image") or article_payload.get("image") or article_payload.get("best_image"),
+        "link": link or article_payload.get("canonical_url") or article_payload.get("link"),
+    }
+
+    if is_hn_discussion_link(payload["link"]) and base_link and not is_hn_discussion_link(base_link):
+        payload["link"] = base_link
+
+    if is_wrapper_feed_link(payload["link"]):
+        payload["link"] = resolve_final_url(payload["link"])
+
+    if is_weak_source_label(payload["source"]) and base_source and not is_weak_source_label(base_source):
+        payload["source"] = base_source
+    if is_weak_source_label(payload["source"]) and payload["link"] and not is_hn_discussion_link(payload["link"]):
+        payload["source"] = source_label_from_url(payload["link"]) or payload["source"]
+
+    preferred_image = preferred_base.get("image") or preferred_base.get("best_image")
+    if preferred_image and str(payload["image"]).startswith("/images/detail/") and not str(preferred_image).startswith("/images/detail/"):
+        payload["image"] = preferred_image
+    if is_bad_detail_image(payload["image"], payload["source"], payload["link"]) and preferred_image and not is_bad_detail_image(preferred_image, payload["source"], payload["link"]):
+        payload["image"] = preferred_image
+
+    if not payload["image"] and payload["title"]:
+        for candidate in build_image_search_candidates(payload["title"]):
+            payload["image"] = search_wikimedia_image(candidate)
+            if payload["image"]:
+                break
+
+    if payload["image"]:
+        payload["image"] = localize_remote_image(payload["image"], payload["title"], bucket="detail")
+
+    return payload
+
+
+def build_detail_section(section_spec, source_articles, preferred_articles=None):
+    result = {}
+    for key, item in (section_spec or {}).items():
+        if isinstance(item, dict):
+            result[key] = build_digest_item_payload(item, source_articles, preferred_articles=preferred_articles)
+    return result
 
 
 def enrich_history(facts):
@@ -629,6 +934,7 @@ def build_curated(spec, source_articles):
 
     # Build categories from spec
     categories = {}
+    preferred_articles = []
     total_articles = 0
     total_reading_time = 0
 
@@ -647,6 +953,7 @@ def build_curated(spec, source_articles):
         total_articles += len(articles)
         for a in articles:
             total_reading_time += a.get("reading_time_minutes", 2)
+            preferred_articles.append(a)
 
         categories[cat_key] = {
             "name": cat_meta["name"],
@@ -654,6 +961,9 @@ def build_curated(spec, source_articles):
             "css_class": cat_meta["css_class"],
             "articles": articles,
         }
+
+    ki_modelle = build_detail_section(spec.get("ki_modelle", {}), source_articles, preferred_articles=preferred_articles)
+    dev_digest = build_detail_section(spec.get("dev_digest", {}), source_articles, preferred_articles=preferred_articles)
 
     # Assemble final JSON
     result = {
@@ -674,8 +984,8 @@ def build_curated(spec, source_articles):
             "word_of_day": word_of_day_widget,
         },
         "categories": categories,
-        "ki_modelle": spec.get("ki_modelle", {}),
-        "dev_digest": spec.get("dev_digest", {}),
+        "ki_modelle": ki_modelle,
+        "dev_digest": dev_digest,
         "morning_tiles": morning_tiles,
     }
 

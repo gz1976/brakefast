@@ -66,18 +66,18 @@ So sparst du Output-Tokens und die Pipeline laeuft zuverlaessig.**
        "world": [ ... ],
        "local": [ ... ]
      },
-     "ki_modelle": {
-       "releases": {"title": "...", "content": "...", "source": "...", "date": "...", "tag": "Modell", "link": "https://..."},
-       "benchmarks": {"title": "...", "content": "...", "source": "...", "date": "...", "tag": "Ranking", "link": "https://..."},
-       "pricing": {"title": "...", "content": "...", "source": "...", "date": "...", "tag": "API", "link": "https://..."},
-       "tools": {"title": "...", "content": "...", "source": "...", "date": "...", "tag": "Update", "link": "https://..."}
-     },
-     "dev_digest": {
-       "github_trending": {"title": "...", "content": "...", "source": "...", "date": "...", "tag": "Repo", "link": "https://..."},
-       "releases": {"title": "...", "content": "...", "source": "...", "date": "...", "tag": "Update", "link": "https://..."},
-       "hn_top": {"title": "...", "content": "...", "source": "...", "date": "...", "tag": "Diskussion", "link": "https://..."},
-       "security_advisory": {"title": "...", "content": "...", "source": "...", "date": "...", "tag": "CVE", "link": "https://..."}
-     },
+      "ki_modelle": {
+        "releases": {"index": 12, "title": "...", "content": "...", "source": "...", "date": "...", "tag": "Modell", "link": "https://konkreter-artikel"},
+        "benchmarks": {"index": 18, "title": "...", "content": "...", "source": "...", "date": "...", "tag": "Ranking", "link": "https://konkreter-artikel"},
+        "pricing": {"index": 3, "title": "...", "content": "...", "source": "...", "date": "...", "tag": "API", "link": "https://konkreter-artikel"},
+        "tools": {"index": 7, "title": "...", "content": "...", "source": "...", "date": "...", "tag": "Update", "link": "https://konkreter-artikel"}
+      },
+      "dev_digest": {
+        "github_trending": {"index": 20, "title": "...", "content": "...", "source": "...", "date": "...", "tag": "Repo", "link": "https://konkreter-artikel"},
+        "releases": {"index": 21, "title": "...", "content": "...", "source": "...", "date": "...", "tag": "Update", "link": "https://konkreter-artikel"},
+        "hn_top": {"index": 22, "title": "...", "content": "...", "source": "...", "date": "...", "tag": "Diskussion", "link": "https://konkreter-artikel"},
+        "security_advisory": {"index": 23, "title": "...", "content": "...", "source": "...", "date": "...", "tag": "CVE", "link": "https://konkreter-artikel"}
+      },
      "morning_tiles": {
        "knapp": {"headline": "...", "signals": [{"text": "...", "source": "...", "url": "https://..."}]},
        "streaming": [{"title": "...", "platform": "...", "type": "Serie", "url": "https://..."}],
@@ -117,8 +117,8 @@ So sparst du Output-Tokens und die Pipeline laeuft zuverlaessig.**
    - `summary` (150-250 Woerter DE) und `description` (1-2 Saetze) pro Artikel
    - `relevance_score` (0.0-1.0) und `reading_time_minutes` (1-5) pro Artikel
    - `editorial` (2-3 Saetze, persoenlich)
-   - `ki_modelle` (4 Items mit echten Daten aus raw-articles)
-   - `dev_digest` (4 Items mit echten Daten aus raw-articles)
+   - `ki_modelle` (4 Items mit echten Daten aus raw-articles; wenn moeglich mit `index` auf den konkreten Artikel, nicht nur generische Startseiten)
+   - `dev_digest` (4 Items mit echten Daten aus raw-articles; wenn moeglich mit `index` auf den konkreten Artikel, nicht nur generische Startseiten)
   - `morning_tiles` (knapp, streaming, events, media_tip — mit URLs; bevorzuge hochwertige, abwechslungsreiche Podcast-/Longread-Quellen statt immer derselben Show)
    - `headlines` (3 Top-Schlagzeilen des Tages)
   - `widgets`: namenstag, quote, history (2-3 Eintraege, IMMER mit `wiki`-Feld = deutscher Wikipedia-Artikelname), bauernregel, optional `word_of_day`
@@ -127,7 +127,7 @@ So sparst du Output-Tokens und die Pipeline laeuft zuverlaessig.**
    ```bash
    bash /data/.openclaw/workspace/brakefast/scripts/brakefast-daily.sh
    ```
-   Dieses Script erledigt: Images generieren, HTML generieren, JSON kopieren, Archiv erstellen.
+   Dieses Script erledigt: Feed-Enrichment, Image-Resolution, HTML generieren, JSON kopieren, Archiv erstellen.
 
 ### Manueller Modus
 
@@ -149,7 +149,7 @@ Wenn Gerhard sagt "Zeitung bitte" oder "BrakeFast generieren":
 - `widgets`: Du lieferst namenstag, quote, history, bauernregel und optional `word_of_day`. Rest (weather, vps, calendar, pollen) macht curate.py!
 - `history`: Fuer jeden Eintrag moeglichst einen belastbaren deutschen Wikipedia-Titel in `wiki` liefern, damit Bild und Beschreibung angereichert werden koennen
 - `media_tip`: Nicht monoton. Bevorzuge eine abwechslungsreiche Auswahl aus hochwertigen Formaten wie Hard Fork, Acquired, Decoder, Dwarkesh, Darknet Diaries, Search Engine, Ezra Klein; Lex Fridman nur wenn wirklich besonders passend
-- Bilder werden automatisch per `index` aus raw-articles.json uebernommen
+- Bilder werden bevorzugt aus Feed, Artikel-Metadaten, Wikimedia oder lokalen Editorial-Fallbacks uebernommen; generative Provider sind nur letzter Fallback
 
 ## Relevanz-Score Leitfaden
 

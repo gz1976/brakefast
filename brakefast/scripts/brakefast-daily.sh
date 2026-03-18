@@ -57,11 +57,25 @@ else
   exit 1
 fi
 
-# Step 2: Curate with LLM (if openclaw is available)
-# This step is handled by Otto via the skill prompt.
-# If curated-articles.json doesn't exist, generate-html.sh falls back to raw-articles.json
+# Step 1.5: Enrich article briefings
+log "Step 1.5: Enriching article briefings..."
 CURATED_FILE="${BRAKEFAST_DIR}/output/curated-articles.json"
 ENRICHED_FILE="${BRAKEFAST_DIR}/output/enriched-articles.json"
+RAW_FILE="${BRAKEFAST_DIR}/output/raw-articles.json"
+ENGINE_SCRIPT="${SCRIPT_DIR}/article_briefing_engine.py"
+if [ -f "$ENGINE_SCRIPT" ] && [ -f "$RAW_FILE" ]; then
+  if python3 "$ENGINE_SCRIPT" "$RAW_FILE" "$ENRICHED_FILE" 2>&1 | tee -a "$LOG_FILE"; then
+    log "Step 1.5: Enrichment complete"
+  else
+    log "WARN: Article enrichment failed (continuing with raw feed data)"
+  fi
+else
+  log "Step 1.5: Skipped (script or raw input not found)"
+fi
+
+# Step 2: Curate with OpenClaw/Otto (if available)
+# This step is handled by Otto via the brakefast skill prompt.
+# If curated-articles.json doesn't exist, generate-html.sh falls back to enriched, then raw.
 if [ -f "$CURATED_FILE" ]; then
   log "Step 2: Using curated articles"
 elif [ -f "$ENRICHED_FILE" ]; then
@@ -70,37 +84,37 @@ else
   log "Step 2: No curated articles found, using raw feed data"
 fi
 
-# Step 2.5: Generate missing article images via HuggingFace
-log "Step 2.5: Generating missing article images..."
-IMAGE_SCRIPT="${SCRIPT_DIR}/generate-images.py"
+# Step 3: Resolve images from source, metadata, fallbacks, then optional generators
+log "Step 3: Resolving article images..."
+IMAGE_SCRIPT="${SCRIPT_DIR}/resolve_images.py"
 IMAGE_INPUT="${CURATED_FILE}"
 if [ ! -f "$IMAGE_INPUT" ]; then
   IMAGE_INPUT="${ENRICHED_FILE}"
 fi
 if [ ! -f "$IMAGE_INPUT" ]; then
-  IMAGE_INPUT="${BRAKEFAST_DIR}/output/raw-articles.json"
+  IMAGE_INPUT="${RAW_FILE}"
 fi
 if [ -f "$IMAGE_SCRIPT" ] && [ -f "$IMAGE_INPUT" ]; then
   if python3 "$IMAGE_SCRIPT" "$IMAGE_INPUT" "/data/brakefast-public/images" 2>&1 | tee -a "$LOG_FILE"; then
-    log "Step 2.5: Image generation complete"
+    log "Step 3: Image resolution complete"
   else
-    log "WARN: Image generation failed (non-critical, continuing)"
+    log "WARN: Image resolution failed (non-critical, continuing)"
   fi
 else
-  log "Step 2.5: Skipped (script or input not found)"
+  log "Step 3: Skipped (script or input not found)"
 fi
 
-# Step 3: Generate HTML
-log "Step 3: Generating HTML..."
+# Step 4: Generate HTML
+log "Step 4: Generating HTML..."
 if bash "${SCRIPT_DIR}/generate-html.sh" 2>&1 | tee -a "$LOG_FILE"; then
-  log "Step 3: Done"
+  log "Step 4: Done"
 else
   log "ERROR: HTML generation failed"
   exit 1
 fi
 
-# Step 3.5: Publish JSON for React app + snapshot edition
-log "Step 3.5: Publishing JSON for React app..."
+# Step 5: Publish JSON for React app + snapshot edition
+log "Step 5: Publishing JSON for React app..."
 INPUT_JSON="${BRAKEFAST_DIR}/output/curated-articles.json"
 if [ ! -f "$INPUT_JSON" ]; then
   INPUT_JSON="${ENRICHED_FILE}"
@@ -134,33 +148,33 @@ except Exception as e:
 
   if [ "$PUBLISH_ENABLED" -eq 1 ]; then
     if bash "${SCRIPT_DIR}/publish-edition.sh" "$FINAL_JSON" 2>&1 | tee -a "$LOG_FILE"; then
-      log "Step 3.5: final-data.json published and edition archived"
+      log "Step 5: final-data.json published and edition archived"
     else
       log "ERROR: Publish step failed"
       exit 1
     fi
   else
-    log "Step 3.5: Publish skipped (--skip-publish); final JSON prepared at $FINAL_JSON"
+    log "Step 5: Publish skipped (--skip-publish); final JSON prepared at $FINAL_JSON"
   fi
 else
   log "WARN: No JSON found for React app"
 fi
 
-# Step 4: Generate archive page
-log "Step 4: Generating archive..."
+# Step 6: Generate archive page
+log "Step 6: Generating archive..."
 if bash "${SCRIPT_DIR}/generate-archive.sh" 2>&1 | tee -a "$LOG_FILE"; then
-  log "Step 4: Done"
+  log "Step 6: Done"
 else
   log "WARN: Archive generation failed (non-critical)"
 fi
 
-# Step 5: Cleanup old editions (keep 30 days)
-log "Step 5: Cleaning up old editions..."
+# Step 7: Cleanup old editions (keep 30 days)
+log "Step 7: Cleaning up old editions..."
 EDITIONS_DIR="/data/brakefast-public/editions"
 find "$EDITIONS_DIR" -name "index.html" -path "*/????/??/??/*" -mtime +30 -delete 2>/dev/null || true
 # Remove empty date directories
 find "$EDITIONS_DIR" -mindepth 1 -maxdepth 3 -type d -empty -delete 2>/dev/null || true
-log "Step 5: Done"
+log "Step 7: Done"
 
 log "=== BrakeFast Daily Pipeline Complete ==="
 log "Edition available at: https://ottobot.net/"

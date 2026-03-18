@@ -5,56 +5,22 @@ from __future__ import annotations
 
 import hashlib
 import json
-import os
 import re
 import sys
-import urllib.error
-import urllib.request
 from pathlib import Path
 from typing import Any
 
 from article_extractors import extract_article_payload, smart_truncate, split_sentences
 from article_quality import classify_content_quality, score_image_candidate, score_summary
+from openclaw_client import OpenClawChatClient
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 BRAKEFAST_DIR = SCRIPT_DIR.parent
-CONFIG_DIR = BRAKEFAST_DIR / "config"
 OUTPUT_DIR = BRAKEFAST_DIR / "output"
 DEFAULT_INPUT = OUTPUT_DIR / "raw-articles.json"
 DEFAULT_OUTPUT = OUTPUT_DIR / "enriched-articles.json"
 DEFAULT_CACHE = OUTPUT_DIR / "article-briefing-cache.json"
 CACHE_VERSION = 7
-
-
-def load_env_file(path: Path) -> None:
-    if not path.exists():
-        return
-    for raw_line in path.read_text().splitlines():
-        line = raw_line.strip()
-        if not line or line.startswith("#") or "=" not in line:
-            continue
-        key, value = line.split("=", 1)
-        key = key.strip()
-        value = value.strip().strip('"').strip("'")
-        os.environ.setdefault(key, value)
-
-
-load_env_file(CONFIG_DIR / "briefing.env")
-load_env_file(CONFIG_DIR / "briefing.local.env")
-
-def first_env(*keys: str) -> str:
-    for key in keys:
-        value = os.environ.get(key, "").strip()
-        if value:
-            return value
-    return ""
-
-
-LLM_BASE_URL = first_env("BRAKEFAST_LLM_BASE_URL", "OPENAI_BASE_URL", "OPENROUTER_BASE_URL").rstrip("/")
-LLM_API_KEY = first_env("BRAKEFAST_LLM_API_KEY", "OPENAI_API_KEY", "OPENROUTER_API_KEY")
-LLM_MODEL = first_env("BRAKEFAST_LLM_MODEL", "OPENAI_MODEL", "OPENROUTER_MODEL")
-if not LLM_BASE_URL and os.environ.get("OPENROUTER_API_KEY"):
-    LLM_BASE_URL = "https://openrouter.ai/api/v1"
 
 CATEGORY_RELEVANCE = {
     "ai": "Relevanz: zeigt neue AI-Faehigkeiten, Tools oder Modelle, die fuer Automatisierung und Produktivitaet wichtig sein koennen.",
@@ -116,7 +82,11 @@ class BriefingBuilder:
     }
 
     def __init__(self) -> None:
-        self.enabled = bool(LLM_BASE_URL and LLM_API_KEY and LLM_MODEL)
+        self.client = OpenClawChatClient()
+        self.enabled = self.client.enabled
+
+    def mode_description(self) -> str:
+        return self.client.describe_chain()
 
     def build(
         self,
@@ -150,9 +120,8 @@ class BriefingBuilder:
             "topics: 3-5 kurze Schlagworte. "
             "Wenn der Artikel wenig Substanz hat, benenne die Grenzen klar statt zu halluzinieren."
         )
-        prompt = {
-            "model": LLM_MODEL,
-            "messages": [
+        response = self.client.complete_json(
+            messages=[
                 {"role": "system", "content": instructions},
                 {
                     "role": "user",
@@ -165,34 +134,15 @@ class BriefingBuilder:
                     ),
                 },
             ],
-            "temperature": 0.2,
-            "response_format": {"type": "json_object"},
-        }
-
-        headers = {
-            "Authorization": f"Bearer {LLM_API_KEY}",
-            "Content-Type": "application/json",
-        }
-        if "openrouter.ai" in LLM_BASE_URL:
-            headers["HTTP-Referer"] = "https://ottobot.net/"
-            headers["X-Title"] = "BrakeFast Article Briefing Engine"
-
-        request = urllib.request.Request(
-            f"{LLM_BASE_URL}/chat/completions",
-            data=json.dumps(prompt).encode("utf-8"),
-            headers=headers,
-            method="POST",
+            temperature=0.2,
+            response_format={"type": "json_object"},
+            timeout=40,
         )
-
-        try:
-            with urllib.request.urlopen(request, timeout=40) as response:
-                payload = json.loads(response.read().decode("utf-8"))
-        except (urllib.error.URLError, TimeoutError, json.JSONDecodeError):
+        if response is None:
             return None
 
         try:
-            content = payload["choices"][0]["message"]["content"]
-            parsed = self._parse_llm_json(content)
+            parsed = self._parse_llm_json(response.content)
         except (KeyError, IndexError, TypeError, json.JSONDecodeError):
             return None
 
@@ -592,7 +542,7 @@ def main() -> int:
     raw_payload = load_json(input_path)
     cache = ArticleCache(cache_path)
     engine = ArticleBriefingEngine(cache)
-    mode = f"llm:{LLM_MODEL}" if engine.builder.enabled else "heuristic"
+    mode = engine.builder.mode_description()
     print(f"Briefing builder mode: {mode}", file=sys.stderr)
     enriched = engine.enrich(raw_payload)
 
