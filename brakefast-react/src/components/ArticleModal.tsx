@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useRef, useState } from 'react';
 import type { Article } from '../types';
+import { useFocusTrap } from '../hooks/useFocusTrap';
 import { isValidArticleImage, getCategoryGradient, getCategoryIcon } from '../utils/imageUtils';
 import { formatDate, getArticleBody, getReadingTime } from '../utils/textUtils';
 
@@ -14,26 +15,17 @@ export function ArticleModal({ article, categoryId, onClose }: Props) {
     article.full_text || getArticleBody(article),
     article.reading_time_minutes,
   );
+  const containerRef = useRef<HTMLDivElement>(null);
   const [imgFailed, setImgFailed] = useState(false);
   const showImage = isValidArticleImage(article.image) && !imgFailed && (article.image_quality_score ?? 0.55) >= 0.5;
   const articleBody = getArticleBody(article);
   const bulletPoints = article.bullet_points?.filter(Boolean) || [];
 
-  useEffect(() => {
-    const handleKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    };
-    document.addEventListener('keydown', handleKey);
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.removeEventListener('keydown', handleKey);
-      document.body.style.overflow = '';
-    };
-  }, [onClose]);
+  useFocusTrap(containerRef, onClose);
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+      <div className="modal-content" ref={containerRef} onClick={(e) => e.stopPropagation()}>
         <button className="modal-close" onClick={onClose}>✕</button>
 
         {showImage ? (

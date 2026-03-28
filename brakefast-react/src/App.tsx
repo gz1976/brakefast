@@ -86,6 +86,9 @@ function BrakeFastView({ viewSwitcher }: { viewSwitcher: React.ReactNode }) {
 
   return (
     <>
+      <a href="#main-content" className="skip-to-content">
+        Zum Inhalt springen
+      </a>
       <BrakeFastApp
         data={data}
         archiveEditions={archiveEditions}
