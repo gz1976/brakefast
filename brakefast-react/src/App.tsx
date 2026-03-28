@@ -75,9 +75,9 @@ function BrakeFastView({ viewSwitcher }: { viewSwitcher: React.ReactNode }) {
   if (error || !data) {
     return (
       <>
-        <div className="loading-screen">
-          <h1>Brake<span>Fast</span></h1>
-          <p>Fehler beim Laden: {error || 'Keine Daten'}</p>
+        <div className="error-screen">
+          <h2>Datenformat ungueltig</h2>
+          <p>{error || 'Die Ausgabe konnte nicht verarbeitet werden. Bitte spaeter erneut laden.'}</p>
         </div>
         {viewSwitcher}
       </>

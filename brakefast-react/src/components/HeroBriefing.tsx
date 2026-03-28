@@ -4,6 +4,7 @@ import { BriefingModal } from './BriefingModal';
 import { DetailModal } from './DetailModal';
 import { formatHeadline, getArticleTeaser, to24h, translateWeather } from '../utils/textUtils';
 import { getCategoryGradient, getCategoryIcon, isValidArticleImage } from '../utils/imageUtils';
+import { pickTopStory } from '../utils/scoring';
 
 interface Props {
   data: NewspaperData;
@@ -27,23 +28,6 @@ function getCalendarWeek(date: Date): number {
   utcDate.setUTCDate(utcDate.getUTCDate() + 4 - dayNum);
   const yearStart = new Date(Date.UTC(utcDate.getUTCFullYear(), 0, 1));
   return Math.ceil((((utcDate.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
-}
-
-function getMoonPhaseLabel(date: Date): string {
-  const synodicMonth = 29.53058867;
-  const knownNewMoon = Date.UTC(2000, 0, 6, 18, 14);
-  const daysSinceNewMoon = (date.getTime() - knownNewMoon) / 86400000;
-  const phase = ((daysSinceNewMoon % synodicMonth) + synodicMonth) % synodicMonth;
-
-  if (phase < 1.85) return 'Neumond';
-  if (phase < 5.54) return 'Zunehmende Sichel';
-  if (phase < 9.23) return 'Erstes Viertel';
-  if (phase < 12.92) return 'Zunehmender Mond';
-  if (phase < 16.61) return 'Vollmond';
-  if (phase < 20.3) return 'Abnehmender Mond';
-  if (phase < 23.99) return 'Letztes Viertel';
-  if (phase < 27.68) return 'Abnehmende Sichel';
-  return 'Neumond';
 }
 
 function TopStoryVisual({ article }: { article: Article }) {
@@ -74,26 +58,6 @@ function TopStoryVisual({ article }: { article: Article }) {
   );
 }
 
-/** Pick the best article as Top Story (highest relevance or first with image) */
-function pickTopStory(data: NewspaperData): Article | null {
-  const allArticles: Article[] = [];
-  for (const cat of Object.values(data.categories)) {
-    if (cat.articles) allArticles.push(...cat.articles);
-  }
-  if (allArticles.length === 0) return null;
-
-  const scoreArticle = (article: Article) => {
-    const hasGoodImage = isValidArticleImage(article.image) && (article.image_quality_score ?? 0.55) >= 0.5;
-    const summaryScore = article.summary_quality_score ?? (article.summary ? 0.7 : article.dek ? 0.55 : 0.2);
-    const relevanceScore = article.relevance_score ?? 0;
-    const contentBonus = article.content_quality === 'high' ? 0.18 : article.content_quality === 'medium' ? 0.08 : 0;
-    const imageBonus = hasGoodImage ? 0.16 : 0;
-    return relevanceScore + summaryScore + contentBonus + imageBonus;
-  };
-
-  return [...allArticles].sort((a, b) => scoreArticle(b) - scoreArticle(a))[0] || null;
-}
-
 /** Try to find the matching article for a headline */
 function findArticleForHeadline(headline: WorldHeadline, data: NewspaperData): Article | undefined {
   for (const cat of Object.values(data.categories)) {
@@ -122,7 +86,6 @@ export function HeroBriefing({ data, calendarRevealed, onArticleClick, isRead, m
     year: 'numeric',
   });
   const calendarWeek = getCalendarWeek(editionDate);
-  const moonPhaseLabel = getMoonPhaseLabel(editionDate);
   const weatherSummary = weather
     ? `${weather.location || 'Voitsberg'} · ${translateWeather(weather.description)}`
     : 'Wetter nicht verfügbar';
@@ -173,7 +136,7 @@ export function HeroBriefing({ data, calendarRevealed, onArticleClick, isRead, m
       {/* LEFT COLUMN: Top Story + Headlines */}
       <div className="hero-briefing-content">
         {/* Top Story */}
-        {topStory ? (
+        {topStory && (
           <div
             className="top-story-block top-story-clickable"
             onClick={() => onArticleClick?.(topStory)}
@@ -202,21 +165,25 @@ export function HeroBriefing({ data, calendarRevealed, onArticleClick, isRead, m
               <span className="top-story-original-link">Details ansehen →</span>
             </div>
           </div>
-        ) : (
+        )}
+
+        {/* Ottos Briefing — always visible */}
+        {data.editorial && (
           <div
-            className="hero-briefing-upper hero-briefing-clickable"
+            className={`editorial-banner${topStory ? '' : ' editorial-banner-hero'}`}
             onClick={() => setShowBriefing(true)}
             role="button"
             tabIndex={0}
             onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setShowBriefing(true); }}
           >
-            <div className="hero-briefing-label">Ottos Briefing</div>
-            <h1 className="hero-briefing-headline">
-              {data.headline ? formatHeadline(data.headline) : 'Guten Morgen — dein persönlicher Überblick für heute.'}
-            </h1>
-            {data.editorial && (
-              <p className="hero-briefing-text">{data.editorial}</p>
+            <div className="editorial-banner-header">
+              <span className="editorial-banner-icon">🤖</span>
+              <span className="editorial-banner-label">Ottos Briefing</span>
+            </div>
+            {!topStory && data.headline && (
+              <h1 className="hero-briefing-headline">{formatHeadline(data.headline)}</h1>
             )}
+            <p className={`editorial-banner-text${topStory ? '' : ' editorial-banner-text-full'}`}>{data.editorial}</p>
           </div>
         )}
 
@@ -229,14 +196,17 @@ export function HeroBriefing({ data, calendarRevealed, onArticleClick, isRead, m
             </div>
             <ul className="headlines-30s-list">
               {filteredHeadlines.slice(0, 3).map((h, i) => (
+                (() => {
+                  const unread = !!(isRead && !isRead(h.url || '', h.text));
+                  return (
                 <li
                   key={i}
-                  className="headlines-30s-item headlines-30s-clickable"
+                  className={`headlines-30s-item headlines-30s-clickable${unread ? ' headlines-30s-item-unread' : ''}`}
                   onClick={() => openHeadlineModal(h)}
                   role="button"
                   tabIndex={0}
                 >
-                  {isRead && !isRead(h.url || '', h.text) && <span className="unread-dot-inline" />}
+                  {unread && <span className="unread-dot-inline" />}
                   <span className="headlines-30s-text">{h.text}</span>
                   {h.source && (
                     <span className="headlines-30s-source"> — {h.source}</span>
@@ -245,6 +215,8 @@ export function HeroBriefing({ data, calendarRevealed, onArticleClick, isRead, m
                     <p className="headlines-30s-summary">{h.summary}</p>
                   )}
                 </li>
+                  );
+                })()
               ))}
             </ul>
           </div>
@@ -272,7 +244,7 @@ export function HeroBriefing({ data, calendarRevealed, onArticleClick, isRead, m
               )}
               {weather && (
                 <div className="weather-temp-subline">
-                  Gefühlt {weather.feelsLike}° · {translateWeather(weather.description)}
+                  Gefühlt {weather.feelsLike}°
                 </div>
               )}
             </div>
@@ -287,12 +259,6 @@ export function HeroBriefing({ data, calendarRevealed, onArticleClick, isRead, m
                     <span className="weather-detail-label">Min/Max</span>
                     <span className="weather-detail-value">{weather.min}° / {weather.max}°</span>
                   </div>
-                  {weather.wind && (
-                    <div className="weather-metric-card">
-                      <span className="weather-detail-label">Wind</span>
-                      <span className="weather-detail-value">{weather.wind}</span>
-                    </div>
-                  )}
                 </>
               )}
               {pollen && (
@@ -318,8 +284,14 @@ export function HeroBriefing({ data, calendarRevealed, onArticleClick, isRead, m
           </div>
           <div className="dayinfo-horizontal-layout">
             <div className="dayinfo-horizontal-main">
-              <div className="dayinfo-topline">{weekdayLabel}</div>
-              <div className="dayinfo-date-line">{fullDateLabel}</div>
+              <div className="dayinfo-horizontal-main-copy">
+                <div className="dayinfo-topline">{weekdayLabel}</div>
+                <div className="dayinfo-date-line">{fullDateLabel}</div>
+              </div>
+              <div className="dayinfo-nameplate">
+                <span className="dayinfo-nameplate-label">Namenstag</span>
+                <span className="dayinfo-nameplate-value">{dayInfo?.namenstag || 'Kein Eintrag'}</span>
+              </div>
             </div>
             <div className="dayinfo-horizontal-metrics">
               <div className="dayinfo-metric-card">
@@ -334,34 +306,26 @@ export function HeroBriefing({ data, calendarRevealed, onArticleClick, isRead, m
                 <span className="dayinfo-sun-label">Tageslänge</span>
                 <span className="dayinfo-sun-value">{dayInfo?.dayLength || '--'}</span>
               </div>
-              <div className="dayinfo-metric-card">
-                <span className="dayinfo-sun-label">Namenstag</span>
-                <span className="dayinfo-sun-value">{dayInfo?.namenstag || 'Kein Eintrag'}</span>
-              </div>
-              <div className="dayinfo-metric-card">
+              <div className="dayinfo-metric-card dayinfo-metric-card-kalenderwoche">
                 <span className="dayinfo-sun-label">KW</span>
-                <span className="dayinfo-sun-value">KW {calendarWeek}</span>
+                <span className="dayinfo-sun-value">{calendarWeek}</span>
               </div>
-            </div>
-            <div className="dayinfo-horizontal-footer">
-              <span className="dayinfo-rich-label">Mondphase</span>
-              <span className="dayinfo-rich-value">{moonPhaseLabel}</span>
             </div>
           </div>
         </div>
 
-        {/* 3. Termine — grün */}
-        <div
-          className={`status-card status-card-calendar${calendarRevealed ? '' : ' status-card-blurred'}`}
-        >
-          <div className="status-card-header-inline">
-            <span className="status-card-icon">📅</span>
-            <span className="status-card-label">Termine</span>
-          </div>
-          <div className="status-card-value-small calendar-blur-target">
-            {calendarCount > 0 ? `${calendarCount} heute` : 'Freier Tag'}
-          </div>
-          {calendar.length > 0 ? (
+        {/* 3. Termine — nur anzeigen wenn es Termine gibt */}
+        {calendarCount > 0 && (
+          <div
+            className={`status-card status-card-calendar${!calendarRevealed ? ' status-card-blurred' : ''}`}
+          >
+            <div className="status-card-header-inline">
+              <span className="status-card-icon">📅</span>
+              <span className="status-card-label">Termine</span>
+            </div>
+            <div className="status-card-value-small calendar-blur-target">
+              {calendarCount} heute
+            </div>
             <div className="status-card-list calendar-blur-target">
               {calendar.map((ev, i) => (
                 <div key={i} className="status-card-list-item">
@@ -370,12 +334,36 @@ export function HeroBriefing({ data, calendarRevealed, onArticleClick, isRead, m
                 </div>
               ))}
             </div>
-          ) : (
-            <div className="status-card-detail calendar-blur-target">Keine Termine eingetragen</div>
-          )}
-        </div>
+          </div>
+        )}
 
-        {/* 4. Zitat des Tages */}
+        {/* 4. Dieser Tag in der Geschichte — clickable with popup */}
+        {historyFacts.length > 0 && (
+          <div className="status-card status-card-history">
+            <div className="status-card-header-inline">
+              <span className="status-card-icon">📜</span>
+              <span className="status-card-label">Dieser Tag</span>
+            </div>
+            <div className="status-card-history-list">
+              {historyFacts.slice(0, 3).map((fact, i) => (
+                <div
+                  key={i}
+                  className="status-card-history-item status-card-history-clickable"
+                  onClick={() => openHistoryModal(fact)}
+                  role="button"
+                  tabIndex={0}
+                >
+                  <div className="history-item-content">
+                    <span className="status-card-history-year">{fact.year}</span>
+                    <span className="status-card-history-text">{fact.text}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* 5. Zitat des Tages */}
         {data.widgets?.quote && (
           <div className="status-card status-card-quote">
             <div className="status-card-header-inline">
@@ -388,42 +376,6 @@ export function HeroBriefing({ data, calendarRevealed, onArticleClick, isRead, m
             <div className="quote-author">— {data.widgets.quote.author}</div>
           </div>
         )}
-
-        {/* 5. Dieser Tag in der Geschichte — clickable with popup */}
-        <div className="status-card status-card-history">
-          <div className="status-card-header-inline">
-            <span className="status-card-icon">📜</span>
-            <span className="status-card-label">Dieser Tag</span>
-          </div>
-          {historyFacts.length > 0 ? (
-            <div className="status-card-history-list">
-              {historyFacts.slice(0, 3).map((fact, i) => (
-                <div
-                  key={i}
-                  className="status-card-history-item status-card-history-clickable"
-                  onClick={() => openHistoryModal(fact)}
-                  role="button"
-                  tabIndex={0}
-                >
-                  {fact.image && (
-                    <img
-                      src={fact.image}
-                      alt={fact.text}
-                      className="history-item-image"
-                      loading="lazy"
-                    />
-                  )}
-                  <div className="history-item-content">
-                    <span className="status-card-history-year">{fact.year}</span>
-                    <span className="status-card-history-text">{fact.text}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="status-card-detail">Kein historisches Ereignis für heute</div>
-          )}
-        </div>
       </div>
 
       {showBriefing && (

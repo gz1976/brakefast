@@ -9,30 +9,36 @@ export function useMonitoring() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const url = import.meta.env.DEV
-      ? '/sample-monitoring.json'
-      : '/latest/monitoring.json';
+    const urls = import.meta.env.DEV
+      ? ['/local-monitoring.json', '/sample-monitoring.json']
+      : ['/latest/monitoring.json'];
 
-    fetch(url)
-      .then((r) => {
-        if (!r.ok) throw new Error(`HTTP ${r.status}`);
-        return r.json();
-      })
-      .then((json: unknown) => {
-        const result = z.safeParse(MonitoringDataSchema, json);
-        if (!result.success) {
-          console.error('Monitoring validation failed:', result.error.issues);
-          setError('Monitoring-Datenformat ungueltig');
+    const load = async () => {
+      try {
+        for (const url of urls) {
+          const response = await fetch(url);
+          if (!response.ok) continue;
+          const json = await response.json();
+          const result = z.safeParse(MonitoringDataSchema, json);
+          if (!result.success) {
+            console.error('Monitoring validation failed:', result.error.issues);
+            setError('Monitoring-Datenformat ungueltig');
+            setLoading(false);
+            return;
+          }
+          setData(result.data as MonitoringData);
           setLoading(false);
           return;
         }
-        setData(result.data as MonitoringData);
-        setLoading(false);
-      })
-      .catch((err) => {
+
+        throw new Error('Keine Monitoring-Daten gefunden');
+      } catch (err) {
         setError(err instanceof Error ? err.message : 'Unbekannter Fehler');
         setLoading(false);
-      });
+      }
+    };
+
+    void load();
   }, []);
 
   return { data, loading, error };

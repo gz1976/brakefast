@@ -72,6 +72,13 @@ export function ArticleModal({ article, onClose }: Props) {
             </ul>
           )}
 
+          {article.why_it_matters && (
+            <div className="modal-why">
+              <span className="modal-why-label">Warum es wichtig ist</span>
+              <p className="modal-why-text">{article.why_it_matters}</p>
+            </div>
+          )}
+
           {article.author && (
             <div className="modal-author">Autor: {article.author}</div>
           )}

@@ -8,9 +8,12 @@ import { deduplicateArticles } from '../utils/urlUtils';
 function normalizeData(raw: NewspaperData): NewspaperData {
   const data = { ...raw };
 
-  // Ensure widgets object exists
+  // Ensure core objects exist
   if (!data.widgets) {
     data.widgets = {};
+  }
+  if (!data.categories) {
+    data.categories = {};
   }
 
   // Parse legacy weather string into structured weather if needed
@@ -37,7 +40,7 @@ function normalizeData(raw: NewspaperData): NewspaperData {
   // Fallback for missing totalArticles
   if (!data.totalArticles) {
     data.totalArticles = Object.values(data.categories).reduce(
-      (sum, cat) => sum + cat.articles.length, 0
+      (sum, cat) => sum + (cat.articles?.length || 0), 0
     );
   }
 
@@ -45,7 +48,7 @@ function normalizeData(raw: NewspaperData): NewspaperData {
   if (!data.reading_time_total) {
     let totalMinutes = 0;
     for (const cat of Object.values(data.categories)) {
-      for (const article of cat.articles) {
+      for (const article of (cat.articles || [])) {
         const rt = getReadingTime(
           article.summary || article.description,
           article.reading_time_minutes,
