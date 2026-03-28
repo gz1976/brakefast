@@ -2808,3 +2808,71 @@ a { color: inherit; text-decoration: none; }
   color: var(--text-muted);
   font-style: italic;
 }
+
+/* --- Error Boundary Fallback --- */
+.section-error-fallback {
+  padding: 16px 24px;
+  color: var(--text-muted);
+  font-size: 13px;
+  line-height: 1.4;
+  text-align: center;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-sm);
+  margin: 8px 0;
+}
+
+/* --- Schema Validation Error Screen --- */
+.error-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  padding: 32px;
+  text-align: center;
+  color: var(--text-secondary);
+}
+
+.error-screen h2 {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+
+.error-screen p {
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--text-muted);
+  max-width: 400px;
+}
+
+/* --- "Why It Matters" Modal Subsections --- */
+.modal-why-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--accent);
+  margin-bottom: 8px;
+}
+
+.modal-why-text {
+  font-size: 15px;
+  line-height: 1.65;
+  color: var(--text-primary);
+  font-style: italic;
+}
+
+/* --- Article Dek --- */
+.article-dek {
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--text-secondary);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  margin-top: 4px;
+}
