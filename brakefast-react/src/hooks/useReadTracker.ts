@@ -44,5 +44,16 @@ export function useReadTracker() {
     return readItems.has(toItemKey(link, title));
   }, [readItems]);
 
-  return { markAsRead, isRead };
+  const clearAll = useCallback(() => {
+    setReadItems(new Set<string>());
+    try {
+      window.localStorage.removeItem(STORAGE_KEY);
+    } catch {
+      // Ignore storage failures
+    }
+  }, []);
+
+  const readCount = readItems.size;
+
+  return { markAsRead, isRead, clearAll, readCount };
 }
