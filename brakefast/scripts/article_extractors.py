@@ -9,6 +9,7 @@ import re
 import urllib.parse
 import urllib.request
 from typing import Any
+from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
 
 import trafilatura
 
@@ -414,6 +415,29 @@ def extract_image_candidates(html_text: str, page_url: str, feed_image: str = ""
         add_candidate(feed_image, "feed")
 
     return candidates
+
+
+TRACKING_PARAMS = frozenset([
+    "utm_source", "utm_medium", "utm_campaign", "utm_term", "utm_content",
+    "ref", "source", "fbclid", "gclid", "mc_cid", "mc_eid",
+])
+
+
+def normalize_url(raw_url: str) -> str:
+    """Normalize a URL for deduplication: lowercase hostname, strip tracking params, remove trailing slash.
+
+    Mirrors the frontend normalizeUrl() in src/utils/urlUtils.ts for consistent dedup (D-08).
+    """
+    try:
+        parsed = urlparse(raw_url)
+        hostname = (parsed.hostname or "").lower()
+        path = parsed.path.rstrip("/") or "/"
+        params = parse_qs(parsed.query, keep_blank_values=True)
+        filtered = {k: v for k, v in params.items() if k not in TRACKING_PARAMS}
+        query = urlencode(sorted(filtered.items()), doseq=True) if filtered else ""
+        return urlunparse((parsed.scheme, hostname, path, "", query, ""))
+    except Exception:
+        return raw_url.lower().rstrip("/")
 
 
 def extract_article_payload(url: str, fallback_title: str = "", feed_image: str = "") -> dict[str, Any]:

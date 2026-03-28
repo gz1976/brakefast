@@ -10,7 +10,7 @@ import sys
 from pathlib import Path
 from typing import Any
 
-from article_extractors import extract_article_payload, smart_truncate, split_sentences
+from article_extractors import extract_article_payload, normalize_url, smart_truncate, split_sentences
 from article_quality import classify_content_quality, score_image_candidate, score_summary
 from openclaw_client import OpenClawChatClient
 
@@ -379,6 +379,7 @@ class ArticleBriefingEngine:
                 self._enrich_article(article, category_id)
                 for article in articles
             ]
+            enriched_articles = self._deduplicate_articles(enriched_articles)
             total_articles += len(enriched_articles)
             result_categories[category_id] = {
                 **category_data,
@@ -390,6 +391,29 @@ class ArticleBriefingEngine:
             "totalArticles": total_articles,
             "categories": result_categories,
         }
+
+    def _deduplicate_articles(self, articles: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        """Remove duplicate articles by normalized URL, keeping the higher-quality version (D-09)."""
+        quality_rank = {"high": 3, "medium": 2, "low": 1}
+        seen: dict[str, dict[str, Any]] = {}
+        result: list[dict[str, Any]] = []
+        for article in articles:
+            url = (article.get("source_url") or article.get("link") or "").strip()
+            key = normalize_url(url)
+            existing = seen.get(key)
+            if existing is None:
+                seen[key] = article
+                result.append(article)
+            else:
+                existing_rank = quality_rank.get(existing.get("content_quality", ""), 0)
+                new_rank = quality_rank.get(article.get("content_quality", ""), 0)
+                existing_summary_len = len(existing.get("summary", ""))
+                new_summary_len = len(article.get("summary", ""))
+                if new_rank > existing_rank or (new_rank == existing_rank and new_summary_len > existing_summary_len):
+                    idx = result.index(existing)
+                    result[idx] = article
+                    seen[key] = article
+        return result
 
     def _enrich_article(self, article: dict[str, Any], category_id: str) -> dict[str, Any]:
         article_url = (article.get("source_url") or article.get("link") or "").strip()
