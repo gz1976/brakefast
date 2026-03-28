@@ -4,6 +4,7 @@ import { BriefingModal } from './BriefingModal';
 import { DetailModal } from './DetailModal';
 import { formatHeadline, getArticleTeaser, to24h, translateWeather } from '../utils/textUtils';
 import { getCategoryGradient, getCategoryIcon, isValidArticleImage } from '../utils/imageUtils';
+import { pickTopStory } from '../utils/scoring';
 
 interface Props {
   data: NewspaperData;
@@ -72,26 +73,6 @@ function TopStoryVisual({ article }: { article: Article }) {
       <span className="top-story-image-placeholder-icon">{getCategoryIcon(categoryId)}</span>
     </div>
   );
-}
-
-/** Pick the best article as Top Story (highest relevance or first with image) */
-function pickTopStory(data: NewspaperData): Article | null {
-  const allArticles: Article[] = [];
-  for (const cat of Object.values(data.categories)) {
-    if (cat.articles) allArticles.push(...cat.articles);
-  }
-  if (allArticles.length === 0) return null;
-
-  const scoreArticle = (article: Article) => {
-    const hasGoodImage = isValidArticleImage(article.image) && (article.image_quality_score ?? 0.55) >= 0.5;
-    const summaryScore = article.summary_quality_score ?? (article.summary ? 0.7 : article.dek ? 0.55 : 0.2);
-    const relevanceScore = article.relevance_score ?? 0;
-    const contentBonus = article.content_quality === 'high' ? 0.18 : article.content_quality === 'medium' ? 0.08 : 0;
-    const imageBonus = hasGoodImage ? 0.16 : 0;
-    return relevanceScore + summaryScore + contentBonus + imageBonus;
-  };
-
-  return [...allArticles].sort((a, b) => scoreArticle(b) - scoreArticle(a))[0] || null;
 }
 
 /** Try to find the matching article for a headline */
