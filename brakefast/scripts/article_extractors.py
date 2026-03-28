@@ -10,6 +10,8 @@ import urllib.parse
 import urllib.request
 from typing import Any
 
+import trafilatura
+
 USER_AGENT = "BrakeFast/1.0 (Article Briefing Engine)"
 DEFAULT_TIMEOUT = 12
 MAX_HTML_BYTES = 700_000
@@ -349,6 +351,38 @@ def extract_main_text(html_text: str) -> str:
     return normalize_whitespace(text)
 
 
+def extract_main_text_trafilatura(html_text: str, url: str = "") -> str:
+    """Extract article text using trafilatura library."""
+    result = trafilatura.extract(
+        html_text,
+        url=url,
+        include_comments=False,
+        include_tables=False,
+        favor_recall=True,
+    )
+    return normalize_whitespace(result) if result else ""
+
+
+def extract_main_text_dual(html_text: str, url: str = "") -> str:
+    """Run both extractors, return the higher-quality result.
+
+    Per D-05: both extractors run on every URL. Compare by word count
+    as primary quality signal. Prefer trafilatura when it extracts
+    substantially more content or when regex extraction is very short.
+    """
+    regex_result = extract_main_text(html_text)
+    traf_result = extract_main_text_trafilatura(html_text, url)
+
+    regex_words = len(regex_result.split()) if regex_result else 0
+    traf_words = len(traf_result.split()) if traf_result else 0
+
+    # Prefer trafilatura when it extracts substantially more content
+    # or when regex extraction is very short (likely failed)
+    if traf_words > regex_words * 1.2 or regex_words < 80:
+        return traf_result if traf_words >= 80 else regex_result
+    return regex_result
+
+
 def extract_image_candidates(html_text: str, page_url: str, feed_image: str = "") -> list[dict[str, str]]:
     candidates: list[dict[str, str]] = []
     seen: set[str] = set()
@@ -388,7 +422,7 @@ def extract_article_payload(url: str, fallback_title: str = "", feed_image: str 
 
     author = _extract_author(html_text) or _extract_json_ld_author(json_ld_blocks)
     published_at = _extract_published_at(html_text) or _extract_json_ld_published(json_ld_blocks)
-    full_text = _extract_json_ld_text(json_ld_blocks) or extract_main_text(html_text)
+    full_text = _extract_json_ld_text(json_ld_blocks) or extract_main_text_dual(html_text, url)
     alt_headline = _extract_json_ld_alt_headline(json_ld_blocks)
 
     return {

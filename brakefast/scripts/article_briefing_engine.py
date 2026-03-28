@@ -96,11 +96,15 @@ class BriefingBuilder:
         full_text: str,
         fallback_text: str,
     ) -> tuple[dict[str, Any], bool]:
-        if self.enabled and full_text:
-            llm_payload = self._build_with_llm(article, category_id, full_text)
-            if llm_payload:
-                return llm_payload, True
-        return self._build_heuristic(article, category_id, full_text or fallback_text), False
+        if self.enabled:
+            text_for_llm = full_text or fallback_text
+            if text_for_llm:
+                llm_payload = self._build_with_llm(article, category_id, text_for_llm)
+                if llm_payload:
+                    return llm_payload, True
+        # LLM failed or unavailable -- still produce heuristic but mark it
+        heuristic = self._build_heuristic(article, category_id, full_text or fallback_text)
+        return heuristic, False
 
     def _build_with_llm(
         self,
@@ -489,6 +493,7 @@ class ArticleBriefingEngine:
             "summary_quality_score": round(summary_quality_score, 2),
             "image_quality_score": round(best_image_score, 2),
             "content_quality": content_quality,
+            "processing_status": "complete" if used_llm else ("heuristic" if (full_text or fallback_text) else "unprocessed"),
             "needs_review": (summary_quality_score < 0.5 or not content_extracted) and not is_paywalled,
             "image_candidates": image_candidates,
             "best_image": best_image,
