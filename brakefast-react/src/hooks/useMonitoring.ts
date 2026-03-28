@@ -10,7 +10,7 @@ export function useMonitoring() {
 
   useEffect(() => {
     const urls = import.meta.env.DEV
-      ? ['/local-monitoring.json', '/sample-monitoring.json']
+      ? ['/latest/monitoring.json', '/local-monitoring.json', '/sample-monitoring.json']
       : ['/latest/monitoring.json'];
 
     const load = async () => {

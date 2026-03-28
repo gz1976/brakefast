@@ -70,13 +70,13 @@ function getEditionFromLocation(): string | null {
 
 function getArchiveIndexUrls(): string[] {
   return import.meta.env.DEV
-    ? ['/archive-index.json']
+    ? ['/legacy/archive-index.json', '/archive-index.json']
     : ['/legacy/archive-index.json'];
 }
 
 function getDefaultDataUrls(): string[] {
   return import.meta.env.DEV
-    ? ['/local-data.json', '/sample-data.json']
+    ? ['/latest/data.json', '/local-data.json', '/sample-data.json']
     : ['/latest/data.json'];
 }
 
@@ -87,7 +87,7 @@ function getEditionFallbackUrls(edition: string): string[] {
 
   const [year, month, day] = edition.split('-');
   return import.meta.env.DEV
-    ? [`/time-machine/${edition}.json`, '/local-data.json', '/sample-data.json']
+    ? [`/legacy/${year}/${month}/${day}/data.json`, `/time-machine/${edition}.json`, '/local-data.json', '/sample-data.json']
     : [`/legacy/${year}/${month}/${day}/data.json`, '/latest/data.json'];
 }
 
