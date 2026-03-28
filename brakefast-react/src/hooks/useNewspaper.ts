@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react';
+import { z } from 'zod';
 import type { ArchiveEdition, ArchiveIndex, NewspaperData } from '../types';
 import { getReadingTime } from '../utils/textUtils';
+import { NewspaperDataSchema } from '../utils/schemas';
+import { deduplicateArticles } from '../utils/urlUtils';
 
 function normalizeData(raw: NewspaperData): NewspaperData {
   const data = { ...raw };
@@ -135,7 +138,15 @@ export function useNewspaper() {
           const response = await fetch(url);
           if (!response.ok) continue;
           const json = await response.json();
-          setData(normalizeData(json as NewspaperData));
+          const result = z.safeParse(NewspaperDataSchema, json);
+          if (!result.success) {
+            console.error('Data validation failed:', result.error.issues);
+            setError('Datenformat konnte nicht verarbeitet werden');
+            setLoading(false);
+            return;
+          }
+          const validated = deduplicateArticles(normalizeData(result.data));
+          setData(validated);
           setLoading(false);
           return;
         }

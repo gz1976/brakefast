@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
+import { z } from 'zod';
 import type { MonitoringData } from '../types';
+import { MonitoringDataSchema } from '../utils/schemas';
 
 export function useMonitoring() {
   const [data, setData] = useState<MonitoringData | null>(null);
@@ -16,12 +18,19 @@ export function useMonitoring() {
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
         return r.json();
       })
-      .then((json: MonitoringData) => {
-        setData(json);
+      .then((json: unknown) => {
+        const result = z.safeParse(MonitoringDataSchema, json);
+        if (!result.success) {
+          console.error('Monitoring validation failed:', result.error.issues);
+          setError('Monitoring-Datenformat ungueltig');
+          setLoading(false);
+          return;
+        }
+        setData(result.data as MonitoringData);
         setLoading(false);
       })
       .catch((err) => {
-        setError(err.message);
+        setError(err instanceof Error ? err.message : 'Unbekannter Fehler');
         setLoading(false);
       });
   }, []);
