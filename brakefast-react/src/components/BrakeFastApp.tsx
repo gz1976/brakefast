@@ -7,13 +7,11 @@ import { NavTabs } from './NavTabs';
 import { HeroBriefing } from './HeroBriefing';
 import { TechHub } from './TechHub';
 import { CategorySection } from './CategorySection';
-import { KiModelleSection } from './KiModelleSection';
-import { DevDigestSection } from './DevDigestSection';
 import { Footer } from './Footer';
 import { ArticleModal } from './ArticleModal';
 import { MorningTiles } from './MorningTiles';
-import { KnappSection } from './KnappSection';
 import { TimeMachineBar } from './TimeMachineBar';
+import { ErrorBoundary } from './ErrorBoundary';
 import type { ArchiveEdition } from '../types';
 
 interface Props {
@@ -52,6 +50,9 @@ export function BrakeFastApp({
 
   const securityArticles = data.categories.security?.articles || [];
   const aiArticles = data.categories.ai?.articles || [];
+  const knappArticles = data.categories.knapp?.articles || [];
+  const devDigestArticles = data.categories.dev_digest?.articles || [];
+  const kiModelleArticles = data.categories.ki_modelle?.articles || [];
   const evArticles = data.categories.ev?.articles || [];
   const worldArticles = data.categories.world?.articles || [];
   const localArticles = data.categories.local?.articles || [];
@@ -61,16 +62,15 @@ export function BrakeFastApp({
     const s: NavSection[] = [{ id: 'top-stories', label: 'Titelseite' }];
 
     if (aiArticles.length) s.push({ id: 'ai-tech', label: 'AI & Tech' });
-    if (data.dev_digest && Object.keys(data.dev_digest).length > 0) s.push({ id: 'dev-digest', label: 'Dev Digest' });
-    if (data.ki_modelle) s.push({ id: 'ki-modelle', label: 'KI Modelle' });
+    if (knappArticles.length) s.push({ id: 'knapp', label: 'KNAPP' });
+    if (devDigestArticles.length) s.push({ id: 'dev-digest', label: 'Dev Digest' });
+    if (kiModelleArticles.length) s.push({ id: 'ki-modelle', label: 'KI Modelle' });
     if (securityArticles.length) s.push({ id: 'security', label: 'Security' });
-    const knappData = data.morning_tiles?.knapp;
-    if (knappData?.signals?.length || knappData?.headline) s.push({ id: 'knapp', label: 'KNAPP' });
     if (worldArticles.length) s.push({ id: 'welt', label: 'Welt' });
     if (localArticles.length) s.push({ id: 'steiermark', label: 'Steiermark' });
     if (evArticles.length) s.push({ id: 'ev', label: 'E-Mobilität' });
     return s;
-  }, [data, aiArticles, securityArticles, evArticles, worldArticles, localArticles]);
+  }, [data, aiArticles, knappArticles, devDigestArticles, kiModelleArticles, securityArticles, evArticles, worldArticles, localArticles]);
 
   const sectionIds = useMemo(() => sections.map((s) => s.id), [sections]);
   const { activeId, scrollTo } = useActiveSection(sectionIds);
@@ -101,41 +101,74 @@ export function BrakeFastApp({
       <div className="container">
         {/* First Screen: Hero + Morning Tiles fill iPad viewport */}
         <div className="first-screen">
-          <HeroBriefing data={data} calendarRevealed={calendarRevealed} onArticleClick={handleArticleClick} isRead={isRead} markAsRead={markAsRead} />
-          <MorningTiles data={data} />
+          <ErrorBoundary label="Titelseite">
+            <HeroBriefing data={data} calendarRevealed={calendarRevealed} onArticleClick={handleArticleClick} isRead={isRead} markAsRead={markAsRead} />
+          </ErrorBoundary>
+          <ErrorBoundary label="Morgen-Kacheln">
+            <MorningTiles data={data} />
+          </ErrorBoundary>
         </div>
 
         {/* 2. AI & Tech */}
         {aiArticles.length > 0 && (
-          <>
+          <ErrorBoundary label="AI & Tech">
             <SectionDivider label="AI & Tech" colorClass="ai" />
             <TechHub
               aiArticles={aiArticles}
               onArticleClick={handleArticleClick}
               isRead={isRead}
             />
-          </>
+          </ErrorBoundary>
         )}
 
-        {/* 3. Dev Digest (eigene Sektion) */}
-        {data.dev_digest && Object.keys(data.dev_digest).length > 0 && (
-          <>
+        {/* 3. KNAPP & Intralogistik */}
+        {knappArticles.length > 0 && (
+          <ErrorBoundary label="KNAPP & Intralogistik">
+            <SectionDivider label="KNAPP & Intralogistik" colorClass="knapp" />
+            <CategorySection
+              articles={knappArticles}
+              categoryId="knapp"
+              label="KNAPP & Intralogistik"
+              sectionId="knapp"
+              onArticleClick={handleArticleClick}
+              isRead={isRead}
+            />
+          </ErrorBoundary>
+        )}
+
+        {/* 4. Dev Digest */}
+        {devDigestArticles.length > 0 && (
+          <ErrorBoundary label="Dev Digest">
             <SectionDivider label="Dev Digest" colorClass="dev" />
-            <DevDigestSection data={data.dev_digest} />
-          </>
+            <CategorySection
+              articles={devDigestArticles}
+              categoryId="dev_digest"
+              label="Dev Digest"
+              sectionId="dev-digest"
+              onArticleClick={handleArticleClick}
+              isRead={isRead}
+            />
+          </ErrorBoundary>
         )}
 
-        {/* 4. KI Modelle */}
-        {data.ki_modelle && (
-          <>
+        {/* 5. KI Modelle */}
+        {kiModelleArticles.length > 0 && (
+          <ErrorBoundary label="KI Modelle">
             <SectionDivider label="KI Modelle" colorClass="ki" />
-            <KiModelleSection data={data.ki_modelle} />
-          </>
+            <CategorySection
+              articles={kiModelleArticles}
+              categoryId="ki_modelle"
+              label="KI Modelle"
+              sectionId="ki-modelle"
+              onArticleClick={handleArticleClick}
+              isRead={isRead}
+            />
+          </ErrorBoundary>
         )}
 
-        {/* 5. Security */}
+        {/* 6. Security */}
         {securityArticles.length > 0 && (
-          <>
+          <ErrorBoundary label="Security">
             <SectionDivider label="Security" colorClass="security" />
             <CategorySection
               articles={securityArticles}
@@ -145,20 +178,12 @@ export function BrakeFastApp({
               onArticleClick={handleArticleClick}
               isRead={isRead}
             />
-          </>
-        )}
-
-        {/* 6. KNAPP & Intralogistik */}
-        {data.morning_tiles?.knapp && (data.morning_tiles.knapp.signals?.length > 0 || data.morning_tiles.knapp.headline) && (
-          <>
-            <SectionDivider label="KNAPP & Intralogistik" colorClass="knapp" />
-            <KnappSection data={data.morning_tiles.knapp} />
-          </>
+          </ErrorBoundary>
         )}
 
         {/* 7. Welt */}
         {worldArticles.length > 0 && (
-          <>
+          <ErrorBoundary label="Welt">
             <SectionDivider label="Welt" colorClass="world" />
             <CategorySection
               articles={worldArticles}
@@ -168,12 +193,12 @@ export function BrakeFastApp({
               onArticleClick={handleArticleClick}
               isRead={isRead}
             />
-          </>
+          </ErrorBoundary>
         )}
 
         {/* 7. Steiermark */}
         {localArticles.length > 0 && (
-          <>
+          <ErrorBoundary label="Steiermark">
             <SectionDivider label="Steiermark" colorClass="local" />
             <CategorySection
               articles={localArticles}
@@ -183,12 +208,12 @@ export function BrakeFastApp({
               onArticleClick={handleArticleClick}
               isRead={isRead}
             />
-          </>
+          </ErrorBoundary>
         )}
 
         {/* 8. E-Mobilität */}
         {evArticles.length > 0 && (
-          <>
+          <ErrorBoundary label="E-Mobilitaet">
             <SectionDivider label="E-Mobilität" colorClass="ev" />
             <CategorySection
               articles={evArticles}
@@ -198,7 +223,7 @@ export function BrakeFastApp({
               onArticleClick={handleArticleClick}
               isRead={isRead}
             />
-          </>
+          </ErrorBoundary>
         )}
 
       </div>

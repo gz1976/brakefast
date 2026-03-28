@@ -250,8 +250,12 @@ export interface MonitoringData {
 // ─── Morning Tiles ───
 export interface KnappSignal {
   text: string;
+  title?: string;
+  summary?: string;
   source?: string;
   url?: string;
+  image?: string;
+  tag?: string;
 }
 
 export interface MorningTileKnapp {

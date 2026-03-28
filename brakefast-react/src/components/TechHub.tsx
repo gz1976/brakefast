@@ -4,9 +4,10 @@ import { CategorySection } from './CategorySection';
 interface Props {
   aiArticles: Article[];
   onArticleClick: (article: Article) => void;
+  isRead?: (link: string, title?: string) => boolean;
 }
 
-export function TechHub({ aiArticles, onArticleClick }: Props) {
+export function TechHub({ aiArticles, onArticleClick, isRead }: Props) {
   if (aiArticles.length === 0) return null;
 
   return (
@@ -16,6 +17,7 @@ export function TechHub({ aiArticles, onArticleClick }: Props) {
       label="AI & Tech"
       sectionId="ai-tech"
       onArticleClick={onArticleClick}
+      isRead={isRead}
     />
   );
 }
