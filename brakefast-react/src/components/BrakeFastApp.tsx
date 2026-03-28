@@ -104,7 +104,7 @@ export function BrakeFastApp({
           <ErrorBoundary label="Titelseite">
             <HeroBriefing data={data} calendarRevealed={calendarRevealed} onArticleClick={handleArticleClick} isRead={isRead} markAsRead={markAsRead} />
           </ErrorBoundary>
-          <ErrorBoundary label="Morgen-Kacheln">
+          <ErrorBoundary label="Morgenueberblick">
             <MorningTiles data={data} />
           </ErrorBoundary>
         </div>
