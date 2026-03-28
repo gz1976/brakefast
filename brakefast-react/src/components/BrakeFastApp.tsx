@@ -98,7 +98,7 @@ export function BrakeFastApp({
         onGoToEdition={onGoToEdition}
       />
 
-      <div className="container">
+      <div className="container" id="main-content">
         {/* First Screen: Hero + Morning Tiles fill iPad viewport */}
         <div className="first-screen">
           <HeroBriefing data={data} calendarRevealed={calendarRevealed} onArticleClick={handleArticleClick} isRead={isRead} markAsRead={markAsRead} />
