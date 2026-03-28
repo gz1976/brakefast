@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react';
+import { useRef, useState } from 'react';
+import { useFocusTrap } from '../hooks/useFocusTrap';
 import { sanitizeHtml } from '../utils/textUtils';
 
 interface Props {
@@ -13,23 +14,14 @@ interface Props {
 
 /** Generic detail modal for headlines, KNAPP signals, history facts, dev digest, ki modelle etc. */
 export function DetailModal({ title, text, html, source, url, image, onClose }: Props) {
+  const containerRef = useRef<HTMLDivElement>(null);
   const [imgFailed, setImgFailed] = useState(false);
 
-  useEffect(() => {
-    const handleKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    };
-    document.addEventListener('keydown', handleKey);
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.removeEventListener('keydown', handleKey);
-      document.body.style.overflow = '';
-    };
-  }, [onClose]);
+  useFocusTrap(containerRef, onClose);
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+      <div className="modal-content" ref={containerRef} onClick={(e) => e.stopPropagation()}>
         <button className="modal-close" onClick={onClose}>✕</button>
 
         {image && !imgFailed && (

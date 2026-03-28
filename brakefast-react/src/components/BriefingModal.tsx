@@ -1,4 +1,5 @@
-import { useEffect } from 'react';
+import { useRef } from 'react';
+import { useFocusTrap } from '../hooks/useFocusTrap';
 import { formatDate } from '../utils/textUtils';
 
 interface Props {
@@ -9,17 +10,9 @@ interface Props {
 }
 
 export function BriefingModal({ headline, editorial, date, onClose }: Props) {
-  useEffect(() => {
-    const handleKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    };
-    document.addEventListener('keydown', handleKey);
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.removeEventListener('keydown', handleKey);
-      document.body.style.overflow = '';
-    };
-  }, [onClose]);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useFocusTrap(containerRef, onClose);
 
   // Split pipe-separated headline into individual topics
   const topics = headline.includes('|')
@@ -28,7 +21,7 @@ export function BriefingModal({ headline, editorial, date, onClose }: Props) {
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content briefing-modal" onClick={(e) => e.stopPropagation()}>
+      <div className="modal-content briefing-modal" ref={containerRef} onClick={(e) => e.stopPropagation()}>
         <button className="modal-close" onClick={onClose}>✕</button>
 
         <div className="modal-body">
