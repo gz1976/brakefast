@@ -1,14 +1,15 @@
 import { useEffect, useState } from 'react';
 import type { Article } from '../types';
-import { isValidArticleImage } from '../utils/imageUtils';
+import { isValidArticleImage, getCategoryGradient, getCategoryIcon } from '../utils/imageUtils';
 import { formatDate, getArticleBody, getReadingTime } from '../utils/textUtils';
 
 interface Props {
   article: Article;
+  categoryId?: string;
   onClose: () => void;
 }
 
-export function ArticleModal({ article, onClose }: Props) {
+export function ArticleModal({ article, categoryId, onClose }: Props) {
   const readTime = getReadingTime(
     article.full_text || getArticleBody(article),
     article.reading_time_minutes,
@@ -35,13 +36,20 @@ export function ArticleModal({ article, onClose }: Props) {
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
         <button className="modal-close" onClick={onClose}>✕</button>
 
-        {showImage && (
+        {showImage ? (
           <img
             className="modal-image"
             src={article.image}
             alt={article.title}
             onError={() => setImgFailed(true)}
           />
+        ) : (
+          <div
+            className="modal-image-placeholder"
+            style={{ background: getCategoryGradient(categoryId || 'default') }}
+          >
+            <span style={{ fontSize: '48px' }}>{getCategoryIcon(categoryId || 'default')}</span>
+          </div>
         )}
 
         <div className="modal-body">

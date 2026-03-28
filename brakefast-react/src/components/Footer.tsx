@@ -10,7 +10,7 @@ interface Props {
 
 export function Footer({ generated, editionNumber, clearAll, readCount, onToast }: Props) {
   const [confirming, setConfirming] = useState(false);
-  const timerRef = useRef<ReturnType<typeof setTimeout>>();
+  const timerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   const handleClear = () => {
     if (!clearAll) return;
