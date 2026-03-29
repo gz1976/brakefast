@@ -5,6 +5,28 @@ import { getReadingTime } from '../utils/textUtils';
 import { NewspaperDataSchema } from '../utils/schemas';
 import { deduplicateArticles } from '../utils/urlUtils';
 
+/** Names for categories when pipeline sends bare arrays */
+const CATEGORY_NAMES: Record<string, string> = {
+  ai: 'AI & Tech', security: 'Security', tech: 'Tech & Dev',
+  ev: 'Elektromobilität', world: 'Welt & Politik', local: 'Steiermark & Lokal',
+  knapp: 'KNAPP & Intralogistik', ki_modelle: 'KI-Modelle', dev_digest: 'Dev Digest',
+};
+
+/** Pre-process raw JSON before Zod validation to handle format drift from pipeline */
+function preprocess(raw: Record<string, unknown>): Record<string, unknown> {
+  const data = { ...raw };
+  // Fix: pipeline sometimes sends categories as { "ai": [article, ...] } instead of { "ai": { name, articles } }
+  if (data.categories && typeof data.categories === 'object' && !Array.isArray(data.categories)) {
+    const cats = data.categories as Record<string, unknown>;
+    for (const [key, value] of Object.entries(cats)) {
+      if (Array.isArray(value)) {
+        cats[key] = { name: CATEGORY_NAMES[key] || key, emoji: '', css_class: '', articles: value };
+      }
+    }
+  }
+  return data;
+}
+
 function normalizeData(raw: NewspaperData): NewspaperData {
   const data = { ...raw };
 
@@ -140,7 +162,7 @@ export function useNewspaper() {
         for (const url of urls) {
           const response = await fetch(url);
           if (!response.ok) continue;
-          const json = await response.json();
+          const json = preprocess(await response.json());
           const result = z.safeParse(NewspaperDataSchema, json);
           if (!result.success) {
             console.error('Data validation failed:', result.error.issues);
