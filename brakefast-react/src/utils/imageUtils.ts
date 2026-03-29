@@ -9,10 +9,8 @@
 const BAD_IMAGE_PATTERNS = [
   /static\.wikia\.nocookie/i,
   /chatgpt/i,
-  /screenshot/i,
   /placeholder/i,
   /kein(?:%20|-)?titel/i,
-  /avatar/i,
   /favicon/i,
   /icon[-_]?\d/i,
   /pixel\.gif/i,
@@ -21,14 +19,10 @@ const BAD_IMAGE_PATTERNS = [
   /blank\.(gif|png|jpg)/i,
   /by-4\.0\.png/i,
   /arxiv-logo/i,
-  /generic-github-.*logo/i,
   /\/icons?\//i,
-  /\/logo/i,
   /gravatar\.com/i,
   /feeds\.feedburner/i,
   /\/embed\//i,  // YouTube embeds are not images
-  /upload\.wikimedia/i,  // Otto pipeline generates fake Wikipedia image URLs (404s)
-  /wikipedia\.org/i,
 ];
 
 // Minimum dimensions we'd want for display images

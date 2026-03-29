@@ -401,20 +401,20 @@ a { color: inherit; text-decoration: none; }
 
 .hero-briefing-headline {
   font-family: 'Playfair Display', serif;
-  font-size: 32px;
+  font-size: 28px;
   font-weight: 700;
-  line-height: 1.2;
+  line-height: 1.15;
   color: var(--text-primary);
-  margin-bottom: 12px;
+  margin-bottom: 8px;
 }
 
 .hero-briefing-text {
-  font-size: 14px;
-  line-height: 1.5;
+  font-size: 13px;
+  line-height: 1.4;
   color: var(--text-secondary);
-  margin-bottom: 12px;
+  margin-bottom: 8px;
   display: -webkit-box;
-  -webkit-line-clamp: 3;
+  -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
@@ -511,13 +511,13 @@ a { color: inherit; text-decoration: none; }
 }
 
 .headlines-30s-summary {
-  font-size: 12px;
+  font-size: 11px;
   color: var(--text-muted);
-  line-height: 1.4;
-  margin-top: 3px;
+  line-height: 1.3;
+  margin-top: 2px;
   padding-left: 0;
   display: -webkit-box;
-  -webkit-line-clamp: 2;
+  -webkit-line-clamp: 1;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
