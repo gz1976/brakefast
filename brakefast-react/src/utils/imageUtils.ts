@@ -69,7 +69,7 @@ const CATEGORY_GRADIENTS: Record<string, string> = {
   security: 'linear-gradient(135deg, #1a0f0a 0%, #6b2d10 50%, #8b3a15 100%)',
   tech: 'linear-gradient(135deg, #0a1a2a 0%, #0d3b66 50%, #1a5276 100%)',
   world: 'linear-gradient(135deg, #0a1a1a 0%, #0d4040 50%, #156060 100%)',
-  local: 'linear-gradient(135deg, #0a1a0f 0%, #1a4a25 50%, #2d6a3a 100%)',
+  local: 'linear-gradient(135deg, #1a140a 0%, #5a3a1a 50%, #7a5530 100%)',
   dev: 'linear-gradient(135deg, #0a1a2a 0%, #10404a 50%, #155a6a 100%)',
   ev: 'linear-gradient(135deg, #0a1a12 0%, #1a5a30 50%, #2d8a4a 100%)',
   ki: 'linear-gradient(135deg, #1a0a2a 0%, #3b1069 50%, #5a1d96 100%)',
