@@ -376,6 +376,15 @@ export function HeroBriefing({ data, calendarRevealed, onArticleClick, isRead, m
                   role="button"
                   tabIndex={0}
                 >
+                  {fact.image && (
+                    <img
+                      src={fact.image}
+                      alt={fact.text}
+                      className="status-card-history-thumb"
+                      loading="lazy"
+                      onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                    />
+                  )}
                   <div className="history-item-content">
                     <span className="status-card-history-year">{fact.year}</span>
                     <span className="status-card-history-text">{fact.text}</span>
