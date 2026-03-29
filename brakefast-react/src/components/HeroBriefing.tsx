@@ -6,6 +6,25 @@ import { formatHeadline, getArticleTeaser, to24h, translateWeather } from '../ut
 import { getCategoryGradient, getCategoryIcon, isValidArticleImage } from '../utils/imageUtils';
 import { pickTopStory } from '../utils/scoring';
 
+/** Map text icon names from pipeline to emoji */
+const WEATHER_ICONS: Record<string, string> = {
+  cloud: '☁️', clouds: '☁️', cloudy: '☁️', overcast: '☁️',
+  sun: '☀️', sunny: '☀️', clear: '☀️',
+  rain: '🌧️', rainy: '🌧️', drizzle: '🌧️',
+  snow: '❄️', snowy: '❄️',
+  storm: '⛈️', thunder: '⛈️', thunderstorm: '⛈️',
+  fog: '🌫️', mist: '🌫️', haze: '🌫️',
+  wind: '💨', windy: '💨',
+  'partly-cloudy': '⛅', 'partly cloudy': '⛅', partlycloudy: '⛅',
+};
+
+function getWeatherEmoji(icon: string | undefined): string {
+  if (!icon) return '☁️';
+  // Already an emoji
+  if (/[\u{1F300}-\u{1F9FF}]|[\u2600-\u26FF]|[\u2700-\u27BF]/u.test(icon)) return icon;
+  return WEATHER_ICONS[icon.toLowerCase()] || '☁️';
+}
+
 interface Props {
   data: NewspaperData;
   calendarRevealed: boolean;
@@ -237,7 +256,7 @@ export function HeroBriefing({ data, calendarRevealed, onArticleClick, isRead, m
               {weather ? (
                 <div className="weather-horizontal-hero">
                   <div className="weather-temp-display">{weather.temp}°C</div>
-                  <div className="weather-condition-icon" aria-hidden="true">{weather.icon || '☁️'}</div>
+                  <div className="weather-condition-icon" aria-hidden="true">{getWeatherEmoji(weather.icon)}</div>
                 </div>
               ) : (
                 <div className="status-card-detail">Wetter nicht verfügbar</div>
