@@ -32,9 +32,9 @@ export function MorningTiles({ data }: Props) {
           {wordOfDay ? (
             <div className="word-of-day-content">
               <div className="word-of-day-term">{wordOfDay.word}</div>
-              <div className="word-of-day-explanation">{wordOfDay.explanation}</div>
-              {wordOfDay.origin && (
-                <div className="word-of-day-origin">{wordOfDay.origin}</div>
+              <div className="word-of-day-explanation">{wordOfDay.explanation || wordOfDay.meaning || ''}</div>
+              {(wordOfDay.origin || wordOfDay.example) && (
+                <div className="word-of-day-origin">{wordOfDay.origin || wordOfDay.example}</div>
               )}
             </div>
           ) : (
@@ -122,7 +122,7 @@ export function MorningTiles({ data }: Props) {
                   className="morning-tile-link morning-tile-link-enhanced morning-tile-clickable"
                   onClick={() => ev.url
                     ? window.open(ev.url, '_blank', 'noopener,noreferrer')
-                    : setModalData({ title: ev.title, text: `${ev.date} · ${ev.location} · ${ev.type}` })
+                    : setModalData({ title: ev.title, text: [ev.date, ev.location, ev.type].filter(Boolean).join(' · ') })
                   }
                   role="button"
                   tabIndex={0}

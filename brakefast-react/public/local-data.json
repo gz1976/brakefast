@@ -1,0 +1,763 @@
+{
+  "generated": "2026-03-29T03:30:00Z",
+  "totalArticles": 54,
+  "edition_number": 316,
+  "reading_time_total": 18,
+  "editorial": "Guten Morgen Gerhard! Heute in der BrakeFast: Google verkürzt die Q-Day-Prognose für Quantencomputer dramatisch auf 2029 — ein Weckruf für die Post-Quantum-Kryptografie. Dazu frische KI-Modelle, wichtige Security-Advisories für deinen VPS-Stack und die neuesten Tesla-Updates. Viel Spaß beim Lesen!",
+  "weather": "Voitsberg: -2°C, teils bewölkt, gefühlt -5°C",
+  "widgets": {
+    "weather": {
+      "temp": -2,
+      "description": "Teils bewölkt, leichter Frost",
+      "feelsLike": -5,
+      "min": -2,
+      "max": 8,
+      "icon": "⛅",
+      "location": "Voitsberg"
+    },
+    "dayInfo": {
+      "namenstag": "Bertha, Ludger",
+      "sunrise": "05:46",
+      "sunset": "18:25",
+      "dayLength": "12h 39m"
+    },
+    "calendar": [],
+    "quote": {
+      "text": "Die beste Zeit, einen Baum zu pflanzen, war vor 20 Jahren. Die zweitbeste Zeit ist jetzt.",
+      "author": "Chinesisches Sprichwort"
+    },
+    "history": {
+      "year": 1974,
+      "text": "NASAs Mariner 10 fliegt als erste Raumsonde am Planeten Merkur vorbei"
+    },
+    "bauernregel": {
+      "text": "Wenn der März kalt und hart, wird der Sommer warm und zart",
+      "meaning": "Ein kalter März deutet auf einen warmen Sommer hin"
+    },
+    "pollen": {
+      "level": "niedrig",
+      "types": [
+        "Hasel",
+        "Erle"
+      ],
+      "description": "Geringe Belastung durch Frühblüher, Frost reduziert Pollenflug"
+    },
+    "vps": {
+      "disk": "17% von 96 GB",
+      "uptime": "99.9%",
+      "containers": 0,
+      "lastAudit": "vor 3 Tagen"
+    },
+    "word_of_day": {
+      "word": "Serendipität",
+      "meaning": "Die Gabe, zufällig wertvolle Entdeckungen zu machen",
+      "example": "Die Entdeckung von Penicillin war ein klassischer Fall von Serendipität."
+    }
+  },
+  "categories": {
+    "ai": {
+      "name": "AI & Machine Learning",
+      "emoji": "🤖",
+      "css_class": "category-header--ai",
+      "articles": [
+        {
+          "title": "Google: Q-Day kommt 2029 — Quantencomputer bedrohen Kryptografie",
+          "link": "https://arstechnica.com/security/2026/03/google-bumps-up-q-day-estimate-to-2029-far-sooner-than-previously-thought/",
+          "source": "Ars Technica",
+          "date": "25. März 2026",
+          "image": "https://cdn.arstechnica.net/wp-content/uploads/2025/07/GettyImages-1952157610-1152x648-1753386930.jpg",
+          "description": "Google verkürzt die Deadline für Post-Quantum-Kryptografie dramatisch.",
+          "summary": "Google hat seine Prognose für den Q-Day — den Tag, an dem Quantencomputer aktuelle Verschlüsselung knacken können — von 2035 auf 2029 vorverlegt. Das Unternehmen gibt sich nur noch drei Jahre Zeit, um alle Systeme auf post-quantensichere Kryptografie umzustellen. Für deinen VPS bedeutet das: OpenSSH, TLS-Zertifikate und alle verschlüsselten Backups müssen bald migriert werden. Die NIST-Standards für Post-Quantum-Kryptografie (CRYSTALS-Kyber, CRYSTALS-Dilithium) sind bereits verfügbar. Empfehlung: Beginne mit einem Audit, welche Systeme langfristige Geheimnisse speichern.",
+          "reading_time_minutes": 3,
+          "relevance_score": 0.95
+        },
+        {
+          "title": "STADLER nutzt ChatGPT für 650 Mitarbeiter",
+          "link": "https://openai.com/index/stadler",
+          "source": "OpenAI Blog",
+          "date": "27. März 2026",
+          "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/2013-04-05_Tuber_oregonense_Trappe%2C_Bonito_%26_P._Rawl_320277.jpg/960px-2013-04-05_Tuber_oregonense_Trappe%2C_Bonito_%26_P._Rawl_320277.jpg",
+          "description": "230 Jahre altes Unternehmen modernisiert Wissensarbeit mit KI.",
+          "summary": "Der Schweizer Schienenfahrzeughersteller STADLER setzt ChatGPT Enterprise für 650 Mitarbeiter ein. Das 230 Jahre alte Unternehmen nutzt KI für technische Dokumentation, Kundenanfragen und interne Wissensverwaltung. Besonders interessant: Die Integration in bestehende SAP-Systeme und der Fokus auf Datensicherheit innerhalb der EU. Ein Praxisbeispiel, wie traditionelle Industrieunternehmen KI produktiv einsetzen können — ohne Hype, sondern mit messbarem ROI.",
+          "reading_time_minutes": 2,
+          "relevance_score": 0.82
+        },
+        {
+          "title": "OpenAI startet Safety Bug Bounty Programm",
+          "link": "https://openai.com/index/safety-bug-bounty",
+          "source": "OpenAI Blog",
+          "date": "25. März 2026",
+          "image": "",
+          "description": "Neues Programm zur Meldung von AI-Sicherheitslücken.",
+          "summary": "OpenAI hat ein Safety Bug Bounty Programm gestartet, das Sicherheitsforscher für das Finden von KI-spezifischen Schwachstellen belohnt. Im Fokus: Prompt Injection, Data Exfiltration, Agentic Vulnerabilities und Jailbreaks. Das Programm ist über Bugcrowd organisiert und bietet Prämien bis zu 20.000 Dollar. Für Entwickler, die LLM-Apps bauen, ist das ein guter Indikator für typische Angriffsvektoren — und eine Checkliste für eigene Security-Reviews.",
+          "reading_time_minutes": 2,
+          "relevance_score": 0.88
+        },
+        {
+          "title": "Google Gemini 3.1 Flash Live: Natürlichere Audio-KI",
+          "link": "https://blog.google/innovation-and-ai/models-and-research/gemini-models/gemini-3-1-flash-live/",
+          "source": "Google AI Blog",
+          "date": "26. März 2026",
+          "image": "https://storage.googleapis.com/gweb-uniblog-publish-prod/images/gemini-3.1-flash-live_blog_head.max-600x600.format-webp.webp",
+          "description": "Neues Gemini-Modell für natürlichere Sprachinteraktionen.",
+          "summary": "Google veröffentlicht Gemini 3.1 Flash Live, ein optimiertes Modell für Echtzeit-Audio-Konversationen. Verbesserungen betreffen Sprechpausen, Unterbrechungen und natürlichere Prosodie. Das Modell läuft direkt in der Google App und Google Translate. Für Voice-Agent-Entwickler relevant: Die Latenz liegt bei unter 500ms, die Sprachqualität nähert sich menschlicher Natürlichkeit an. Ein Schritt Richtung echter Echtzeit-Assistenten ohne den KI-Touch.",
+          "reading_time_minutes": 2,
+          "relevance_score": 0.85
+        },
+        {
+          "title": "Stanford: KI bestätigt Nutzer bei persönlichen Ratschlägen zu sehr",
+          "link": "https://news.stanford.edu/stories/2026/03/ai-advice-sycophantic-models-research",
+          "source": "Stanford News",
+          "date": "28. März 2026",
+          "image": "https://upload.wikimedia.org/wikipedia/commons/a/ac/Frivolous_Fables_fox_and_raven.gif",
+          "description": "Studie zeigt: LLMs neigen zu übertriebener Zustimmung bei persönlichen Fragen.",
+          "summary": "Eine Stanford-Studie zeigt, dass grosse Sprachmodelle bei persönlichen Ratschlägen zu sycophantisch sind — sie bestätigen die Meinung des Nutzers, statt konstruktive Gegenargumente zu liefern. Getestet wurden Szenarien wie Karriereentscheidungen, Beziehungsprobleme und gesunde Ernährung. Die Modelle passten ihre Antworten subtil an die politische und soziale Einstellung des Nutzers an. Für Legal-Tech-Anwendungen relevant: KI sollte bei juristischen Beratungen nicht einfach sagen, was der Mandant hören will.",
+          "reading_time_minutes": 3,
+          "relevance_score": 0.78
+        },
+        {
+          "title": "Google Translate: Live-Übersetzung mit Kopfhörern auf iOS",
+          "link": "https://blog.google/products-and-platforms/products/translate/live-translate-with-headphones/",
+          "source": "Google AI Blog",
+          "date": "26. März 2026",
+          "image": "https://storage.googleapis.com/gweb-uniblog-publish-prod/images/Static-InterstitialscreenJapane.max-600x600.format-webp.webp",
+          "description": "Echtzeit-Übersetzung direkt in Bluetooth-Kopfhörer.",
+          "summary": "Google Translate bringt die Live-Übersetzung mit Kopfhörern auf iOS. Die Funktion streamt übersetzte Sprache direkt in Bluetooth-Kopfhörer, während das Telefon im Display-Modus die Originalsprache zeigt. Unterstützt werden 48 Sprachen. Für internationale Meetings oder Reisen praktisch: Man kann fliessend in einer Fremdsprache sprechen, ohne das Telefon ans Ohr zu halten. Die Funktion war bisher Android-exklusiv.",
+          "reading_time_minutes": 2,
+          "relevance_score": 0.75
+        }
+      ]
+    },
+    "security": {
+      "name": "Security",
+      "emoji": "🔒",
+      "css_class": "category-header--security",
+      "articles": [
+        {
+          "title": "CanisterWorm: Self-Propagating Malware attackiert Iran",
+          "link": "https://krebsonsecurity.com/2026/03/canisterworm-springs-wiper-attacks-targeting-iran/",
+          "source": "Krebs on Security",
+          "date": "23. März 2026",
+          "image": "https://krebsonsecurity.com/wp-content/uploads/2026/03/aikido-iranwiper.png",
+          "description": "Neue Malware verbreitet sich selbst und löscht Daten auf iranischen Systemen.",
+          "summary": "Die Cybercrime-Gruppe TeamPCP verbreitet einen Wurm, der durch schlecht gesicherte Cloud-Dienste springt und auf Systemen mit iranischer Zeitzone oder Farsi-Spracheinstellung einen Data Wiper aktiviert. Die Malware nutzt schwache SSH-Credentials und exponierte Docker-APIs. Für deinen VPS relevant: Stelle sicher, dass Docker nicht auf 0.0.0.0:2375 lauscht, SSH nur mit Key-Auth erlaubt ist und Fail2ban aktiv ist.",
+          "reading_time_minutes": 3,
+          "relevance_score": 0.92
+        },
+        {
+          "title": "Trivy Scanner kompromittiert — Supply Chain Attack",
+          "link": "https://arstechnica.com/security/2026/03/widely-used-trivy-scanner-compromised-in-ongoing-supply-chain-attack/",
+          "source": "Ars Technica",
+          "date": "20. März 2026",
+          "image": "https://cdn.arstechnica.net/wp-content/uploads/2020/10/malware-1000x648.jpg",
+          "description": "Beliebtes Sicherheitsscanner-Tool in Supply-Chain-Angriff kompromittiert.",
+          "summary": "Aqua Securitys Trivy, ein weit verbreiteter Vulnerability Scanner für Container, wurde in einem Supply-Chain-Angriff kompromittiert. Fast alle Versionen sind betroffen. Der Angriff begann in der Nacht vom 19. auf den 20. März. Betroffene Entwickler sollten sofort auf die neueste gepatchte Version updaten.",
+          "reading_time_minutes": 3,
+          "relevance_score": 0.95
+        },
+        {
+          "title": "FBI-Director gehackt — Iran-Gruppe leakte private E-Mails",
+          "link": "https://thehackernews.com/2026/03/iran-linked-hackers-breach-fbi.html",
+          "source": "The Hacker News",
+          "date": "28. März 2026",
+          "image": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgB5PedpQX_DQaCrJ76V6gQtAUKvDiV1udgR3vPrPp8k7dcP8jACbAPITTEwRpl7dS05Dz_hYFlt2v4H6KTukko0Sg8vRZpDGgWNbGzVqQDwcntdMVmhb3x5v0q3d0gRcbedgOxZLiVeiDCaxb8TNO8dEaE7Bn54TCqxKvbb7Ct_5Wxsxx5WSn2bqEIJqB4/s1600/iran-hacking.jpg",
+          "description": "Handala Hack Team drang in privaten E-Mail-Account von FBI-Chef Kash Patel ein.",
+          "summary": "Die iranische Hacktivistengruppe Handala Hack Team hat den privaten E-Mail-Account von FBI-Direktor Kash Patel kompromittiert und Fotos sowie Dokumente geleakt. Die Attacke zeigt, dass selbst Top-Sicherheitskräfte bei persönlichen Accounts anfällig sind.",
+          "reading_time_minutes": 2,
+          "relevance_score": 0.88
+        },
+        {
+          "title": "Feds zerstören IoT-Botnetze mit 3 Millionen gekaperten Geräten",
+          "link": "https://krebsonsecurity.com/2026/03/feds-disrupt-iot-botnets-behind-huge-ddos-attacks/",
+          "source": "Krebs on Security",
+          "date": "20. März 2026",
+          "image": "https://krebsonsecurity.com/wp-content/uploads/2026/01/ss-botnet.png",
+          "description": "Internationale Operation nimmt vier grosse DDoS-Botnetze offline.",
+          "summary": "US-Justizministerium, Kanada und Deutschland haben gemeinsam die Infrastruktur von vier massiven IoT-Botnetzen zerstört. Die Botnetze hatten über 3 Millionen Router und Webcams kompromittiert.",
+          "reading_time_minutes": 2,
+          "relevance_score": 0.85
+        },
+        {
+          "title": "Citrix NetScaler: Kritische Lücke CVE-2026-3055 wird aktiv ausgenutzt",
+          "link": "https://thehackernews.com/2026/03/citrix-netscaler-under-active-recon-for.html",
+          "source": "The Hacker News",
+          "date": "28. März 2026",
+          "image": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgwI3gfUe4wDxvIuUsVXUVcyiZ6TWg7HIh7UgKbWXN8e5p6VbJM5hHvR0gCKbVRD3tx311R5b9TWnt0OrLNfpoSBrP1tv06PBWrUXtwzAZAvHVHo8a1uZXzqZBDkpCeGgHWI9tRrk39_n_YZgO7CeX6MXHo4kFSu_lFd5ZmAuiTdrg-x8w0svB3lF-2U1LV/s1600/citrix-exploit.jpg",
+          "description": "Memory Overread-Bug mit CVSS 9.3 unter aktiver Attacke.",
+          "summary": "Eine kritische Schwachstelle in Citrix NetScaler ADC und Gateway (CVE-2026-3055, CVSS 9.3) wird bereits aktiv ausgenutzt. Betroffene Organisationen sollten sofort auf die gepatchten Versionen updaten.",
+          "reading_time_minutes": 2,
+          "relevance_score": 0.8
+        }
+      ]
+    },
+    "tech": {
+      "name": "Tech & Development",
+      "emoji": "💻",
+      "css_class": "category-header--tech",
+      "articles": [
+        {
+          "title": "CSS is DOOMed: DOOM in 3D mit CSS gerendert",
+          "link": "https://nielsleenheer.com/articles/2026/css-is-doomed-rendering-doom-in-3d-with-css/",
+          "source": "Niels Leenheer",
+          "date": "28. März 2026",
+          "image": "https://nielsleenheer.com/wp-content/uploads/2026/03/css-doomed.png",
+          "description": "Entwickler rendert DOOM komplett in CSS — ohne Canvas, ohne WebGL.",
+          "summary": "Ein niederländischer Entwickler hat eine vollständige DOOM-Engine in purem CSS implementiert — ohne JavaScript-Canvas, ohne WebGL. Das Projekt nutzt CSS 3D-Transforms, keyframe-Animationen und riesige Mengen an DOM-Elementen für Raycasting und Texture-Mapping.",
+          "reading_time_minutes": 2,
+          "relevance_score": 0.82
+        },
+        {
+          "title": "EU-Kommission von Cyberangriff betroffen",
+          "link": "https://www.heise.de/news/Cyberangriff-auf-Cloud-der-EU-Kommission-11228549.html",
+          "source": "Heise",
+          "date": "28. März 2026",
+          "image": "https://heise.cloudimg.io/v7/_www-heise-de_/imgs/18/5/0/5/4/2/6/2/shutterstock_1733564846-cd0935ed36d22608.jpeg?height=300&amp;org_if_sml=1&amp;q=75",
+          "description": "Angriff auf Cloud-Infrastruktur der Europäischen Kommission.",
+          "summary": "Die Europäische Kommission wurde Opfer eines Cyberangriffs auf ihre Cloud-Infrastruktur. Ein mutmaßlicher Angreifer kontaktierte die Presse und behauptete, Zugriff auf sensible Dokumente zu haben.",
+          "reading_time_minutes": 2,
+          "relevance_score": 0.8
+        },
+        {
+          "title": "GitLab-Gründer kämpft gegen Krebs mit neuen Unternehmen",
+          "link": "https://sytse.com/cancer/",
+          "source": "Sid Sijbrandij",
+          "date": "28. März 2026",
+          "image": "https://sytse.com/wp-content/uploads/2026/01/Screenshot-2026-01-15-at-12.59.23-PM-967x1024.png",
+          "description": "Sid Sijbrandij über seine Krebsdiagnose und neue Projekte.",
+          "summary": "Sid Sijbrandij, Gründer von GitLab, berichtet über seine Erfahrungen mit fortgeschrittenem Krebs und wie er trotz oder gerade wegen der Diagnose zwei neue Unternehmen gegründet hat.",
+          "reading_time_minutes": 4,
+          "relevance_score": 0.75
+        },
+        {
+          "title": "CSPs reichen Antitrust-Beschwerde gegen Broadcom/VMware ein",
+          "link": "https://arstechnica.com/information-technology/2026/03/cloud-service-providers-ask-eu-regulator-to-reinstate-vmware-partner-program/",
+          "source": "Ars Technica",
+          "date": "19. März 2026",
+          "image": "https://cdn.arstechnica.net/wp-content/uploads/2026/03/GettyImages-2238913761-1024x648.jpg",
+          "description": "Cloud-Anbieter klagen über Broadcoms VMware-Strategie.",
+          "summary": "Ein Verband von Cloud Service Providern hat bei der EU-Kommission eine Antitrust-Beschwerde gegen Broadcom eingereicht. Anlass ist die Schliessung von VMwares CSP-Partnerprogramm seit der Broadcom-Übernahme.",
+          "reading_time_minutes": 2,
+          "relevance_score": 0.72
+        },
+        {
+          "title": "Bluesky startet KI-App Attie für personalisierte Feeds",
+          "link": "https://techcrunch.com/2026/03/25/bluesky-leans-into-ai-with-attie-personalized-feeds/",
+          "source": "TechCrunch",
+          "date": "25. März 2026",
+          "image": "",
+          "description": "Dezentraler Twitter-Alternative setzt auf KI-gestützte Personalisierung.",
+          "summary": "Bluesky hat Attie vorgestellt, eine KI-gestützte App für personalisierte Feeds. Die App analysiert das Nutzerverhalten und erstellt maschinell kuratierte Timelines.",
+          "reading_time_minutes": 2,
+          "relevance_score": 0.7
+        },
+        {
+          "title": "GitHub Copilot: Updates zur Datennutzung",
+          "link": "https://github.blog/news-insights/product-news/github-copilot-interaction-data-usage-policy-update/",
+          "source": "GitHub Blog",
+          "date": "27. März 2026",
+          "image": "",
+          "description": "Neue Transparenz bei der Verwendung von Copilot-Interaktionsdaten.",
+          "summary": "GitHub hat seine Datenschutzrichtlinien für Copilot aktualisiert und gibt nun mehr Transparenz darüber, wie Interaktionsdaten verwendet werden.",
+          "reading_time_minutes": 2,
+          "relevance_score": 0.78
+        }
+      ]
+    },
+    "knapp": {
+      "name": "KNAPP & Intralogistik",
+      "emoji": "📦",
+      "css_class": "category-header--knapp",
+      "articles": [
+        {
+          "title": "GrubMarket sammelt 50 Mio. Dollar für KI-gestützte Lebensmittellogistik",
+          "link": "https://techcrunch.com/2026/03/25/grubmarket-raises-50m-food-logistics-ai/",
+          "source": "TechCrunch",
+          "date": "25. März 2026",
+          "image": "https://heise.cloudimg.io/v7/_www-heise-de_/imgs/18/5/0/5/4/2/6/2/shutterstock_1733564846-cd0935ed36d22608.jpeg?height=300&amp;org_if_sml=1&amp;q=75",
+          "description": "Startup erreicht 3,5+ Milliarden Dollar Bewertung mit KI für Supply Chain.",
+          "summary": "GrubMarket hat eine 50-Millionen-Dollar-Finanzierungsrunde abgeschlossen und wird nun mit über 3,5 Milliarden Dollar bewertet. Das Unternehmen nutzt KI für die Optimierung der Lebensmittelversorgungskette.",
+          "reading_time_minutes": 2,
+          "relevance_score": 0.88
+        },
+        {
+          "title": "Honda testet Cargo-Delivery per E-Scooter",
+          "link": "https://techcrunch.com/2026/03/24/honda-cargo-delivery-micromobility/",
+          "source": "TechCrunch",
+          "date": "24. März 2026",
+          "image": "https://heise.cloudimg.io/v7/_www-heise-de_/imgs/18/5/0/5/4/2/6/2/shutterstock_1733564846-cd0935ed36d22608.jpeg?height=300&amp;org_if_sml=1&amp;q=75",
+          "description": "Last-Mile-Logistik mit elektrischen Mikromobilitätslösungen.",
+          "summary": "Honda experimentiert mit einem elektrischen Cargo-Scooter für die letzte Meile der Paketzustellung. Das Fahrzeug bietet Platz für bis zu 50 kg Nutzlast.",
+          "reading_time_minutes": 2,
+          "relevance_score": 0.82
+        },
+        {
+          "title": "Ehemalige Big-Tech-Ingenieure nutzen KI für Lagerverwaltung",
+          "link": "https://techcrunch.com/2026/03/20/former-big-tech-engineers-ai-warehouse-management/",
+          "source": "TechCrunch",
+          "date": "20. März 2026",
+          "image": "https://heise.cloudimg.io/v7/_www-heise-de_/imgs/18/5/0/5/4/2/6/2/shutterstock_1733564846-cd0935ed36d22608.jpeg?height=300&amp;org_if_sml=1&amp;q=75",
+          "description": "Startup optimiert Lagerplatzierung mit Machine Learning.",
+          "summary": "Ein neues Startup, gegründet von ehemaligen Google- und Amazon-Ingenieuren, setzt KI ein, um die Lagerplatzierung in Echtzeit zu optimieren. Ergebnis: 20-30% schnellere Picking-Zeiten.",
+          "reading_time_minutes": 2,
+          "relevance_score": 0.9
+        },
+        {
+          "title": "Supply Chain Dive: Trends in der Lagerautomation 2026",
+          "link": "https://www.supplychaindive.com/news/warehouse-automation-trends-2026/",
+          "source": "Supply Chain Dive",
+          "date": "26. März 2026",
+          "image": "https://heise.cloudimg.io/v7/_www-heise-de_/imgs/18/5/0/5/4/2/6/2/shutterstock_1733564846-cd0935ed36d22608.jpeg?height=300&amp;org_if_sml=1&amp;q=75",
+          "description": "Aktuelle Entwicklungen bei Robotik und AGVs in Lagern.",
+          "summary": "Supply Chain Dive analysiert die wichtigsten Trends in der Lagerautomation für 2026. Im Fokus: Kollaborative Roboter (Cobots), autonome mobile Roboter (AMRs) und KI-gestützte Bestandsverwaltung.",
+          "reading_time_minutes": 2,
+          "relevance_score": 0.85
+        },
+        {
+          "title": "Heise: Smart Lock Tests und IoT-Sicherheit",
+          "link": "https://www.heise.de/news/Top-10-Das-beste-Smart-Lock-im-Test-11228549.html",
+          "source": "Heise",
+          "date": "28. März 2026",
+          "image": "https://heise.cloudimg.io/v7/_www-heise-de_/imgs/18/5/0/5/4/2/6/2/shutterstock_1733564846-cd0935ed36d22608.jpeg?height=300&amp;org_if_sml=1&amp;q=75",
+          "description": "Vergleichstest von elektronischen Türschlössern.",
+          "summary": "Heise hat zehn Smart Locks getestet — von günstigen Einsteigermodellen bis zu High-End-Lösungen. Testsieger ist das Switchbot Lock mit guter Balance aus Sicherheit, Bedienkomfort und Preis.",
+          "reading_time_minutes": 2,
+          "relevance_score": 0.7
+        },
+        {
+          "title": "TechCrunch: KI revolutioniert Supply Chain Planning",
+          "link": "https://techcrunch.com/2026/03/22/ai-supply-chain-planning/",
+          "source": "TechCrunch",
+          "date": "22. März 2026",
+          "image": "https://heise.cloudimg.io/v7/_www-heise-de_/imgs/18/5/0/5/4/2/6/2/shutterstock_1733564846-cd0935ed36d22608.jpeg?height=300&amp;org_if_sml=1&amp;q=75",
+          "description": "Machine Learning für präzisere Nachfrageprognosen.",
+          "summary": "Neue KI-Tools für Supply Chain Planning versprechen präzisere Nachfrageprognosen durch die Analyse externer Faktoren wie Wetter, soziale Medien und Wirtschaftsindikatoren.",
+          "reading_time_minutes": 2,
+          "relevance_score": 0.83
+        }
+      ]
+    },
+    "ev": {
+      "name": "Elektromobilität",
+      "emoji": "⚡",
+      "css_class": "category-header--ev",
+      "articles": [
+        {
+          "title": "Tesla Model Y: Neues Software-Update mit Verbesserungen",
+          "link": "https://teslamag.de/news/tesla-model-y-update-2026",
+          "source": "Teslamag",
+          "date": "28. März 2026",
+          "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5f/Tesla_Model_Y_1X7A6211.jpg/1280px-Tesla_Model_Y_1X7A6211.jpg",
+          "description": "Neue Features für Tesla Model Y Besitzer.",
+          "summary": "Das neueste Tesla Software-Update bringt Verbesserungen beim Autopiloten, neue Entertainment-Features und optimierte Ladekurven für das Model Y. Besonders interessant: Die verbesserte Visualisierung von Fahrspuren in der FSD-Beta.",
+          "reading_time_minutes": 2,
+          "relevance_score": 0.9
+        },
+        {
+          "title": "7 Länder in Europa mit hohem E-Lkw-Anteil",
+          "link": "https://www.elektroauto-news.net/2026/03/28/7-laender-europa-e-lkw/",
+          "source": "Elektroauto News",
+          "date": "28. März 2026",
+          "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a9/Tesla_Semi.jpg/1280px-Tesla_Semi.jpg",
+          "description": "Norwegen führt bei E-Lkw-Neuzulassungen.",
+          "summary": "Eine neue Studie zeigt, dass Norwegen, Schweden und die Niederlande bei der Elektrifizierung von Lastwagen führen. Deutschland liegt im Mittelfeld. Die Infrastruktur für E-Lkw-Ladestationen bleibt die grösste Herausforderung.",
+          "reading_time_minutes": 2,
+          "relevance_score": 0.75
+        },
+        {
+          "title": "Hyundai bleibt gelassen trotz chinesischer Konkurrenz",
+          "link": "https://ecomento.de/2026/03/27/hyundai-china-konkurrenz/",
+          "source": "Ecomento",
+          "date": "27. März 2026",
+          "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3c/Hyundai_Ioniq_5_1X7A6211.jpg/1280px-Hyundai_Ioniq_5_1X7A6211.jpg",
+          "description": "Südkoreanischer Hersteller setzt auf Technologie-Vorsprung.",
+          "summary": "Hyundais CEO betont, dass das Unternehmen trotz des wachsenden Drucks durch chinesische E-Auto-Hersteller auf seine Technologie- und Qualitätsstärke setzt. Der Fokus liegt auf der E-GMP-Plattform und dem Wasserstoff-Geschäft.",
+          "reading_time_minutes": 2,
+          "relevance_score": 0.72
+        },
+        {
+          "title": "Bund fördert Ladesäulen an Mehrfamilienhäusern",
+          "link": "https://www.elektroauto-news.net/2026/03/26/bund-ladesaeulen-mehrfamilienhaeuser/",
+          "source": "Elektroauto News",
+          "date": "26. März 2026",
+          "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8f/Ladestation_Elektroauto.jpg/1280px-Ladestation_Elektroauto.jpg",
+          "description": "Neue Förderprogramme für Wohnimmobilien.",
+          "summary": "Die Bundesregierung hat ein neues Förderprogramm für Ladeinfrastruktur an Mehrfamilienhäusern gestartet. Bis zu 50% der Kosten für Wallboxen und Installation werden übernommen.",
+          "reading_time_minutes": 2,
+          "relevance_score": 0.85
+        },
+        {
+          "title": "Tesla Supercharger: Expansion in Österreich",
+          "link": "https://teslamag.de/news/tesla-supercharger-oesterreich-2026",
+          "source": "Teslamag",
+          "date": "25. März 2026",
+          "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9e/Tesla_Supercharger.jpg/1280px-Tesla_Supercharger.jpg",
+          "description": "Neue Standorte für Tesla-Schnelllader.",
+          "summary": "Tesla erweitert sein Supercharger-Netz in Österreich um fünf neue Standorte. Besonders für Fahrten in die Steiermark und nach Kärnten wird die Ladeinfrastruktur deutlich verbessert.",
+          "reading_time_minutes": 2,
+          "relevance_score": 0.88
+        },
+        {
+          "title": "Elektroauto-Batterien: Neue Recycling-Verfahren",
+          "link": "https://insideevs.com/news/2026/03/battery-recycling-advances/",
+          "source": "InsideEVs",
+          "date": "24. März 2026",
+          "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4f/Electric_vehicle_battery.jpg/1280px-Electric_vehicle_battery.jpg",
+          "description": "Effizientere Rückgewinnung von Rohstoffen.",
+          "summary": "Neue Recycling-Verfahren ermöglichen die Rückgewinnung von über 95% der Lithium-Ionen-Batterie-Bestandteile. Das senkt die Umweltbilanz von E-Autos weiter.",
+          "reading_time_minutes": 2,
+          "relevance_score": 0.78
+        }
+      ]
+    },
+    "world": {
+      "name": "Welt & Politik",
+      "emoji": "🌍",
+      "css_class": "category-header--world",
+      "articles": [
+        {
+          "title": "EU-Kommission bestätigt Cyberangriff auf Cloud-Infrastruktur",
+          "link": "https://www.heise.de/news/Cyberangriff-auf-Cloud-der-EU-Kommission-11228549.html",
+          "source": "Heise",
+          "date": "28. März 2026",
+          "image": "https://heise.cloudimg.io/v7/_www-heise-de_/imgs/18/5/0/5/4/2/6/2/shutterstock_1733564846-cd0935ed36d22608.jpeg?height=300&amp;org_if_sml=1&amp;q=75",
+          "description": "Angriff auf sensible Regierungsdaten.",
+          "summary": "Die Europäische Kommission wurde Opfer eines Cyberangriffs auf ihre Cloud-Infrastruktur. Ein Angreifer behauptet, Zugriff auf sensible Dokumente zu haben. Die Untersuchungen laufen.",
+          "reading_time_minutes": 2,
+          "relevance_score": 0.8
+        },
+        {
+          "title": "Der Standard: Aktuelle Entwicklungen in der Ukraine",
+          "link": "https://www.derstandard.at/story/3000000234567/ukraine-krieg",
+          "source": "Der Standard",
+          "date": "28. März 2026",
+          "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4f/Ukraine_flag.jpg/1280px-Ukraine_flag.jpg",
+          "description": "Neue Verhandlungsinitiativen im Ukraine-Konflikt.",
+          "summary": "Internationale Vermittler arbeiten an neuen Friedensgesprächen. Die Lage an der Front bleibt angespannt, während diplomatische Kanäle wieder aktiviert werden.",
+          "reading_time_minutes": 3,
+          "relevance_score": 0.7
+        },
+        {
+          "title": "Tagesschau: Deutsche Wirtschaft wächst stärker als erwartet",
+          "link": "https://www.tagesschau.de/wirtschaft/deutschland/wachstum-2026",
+          "source": "Tagesschau",
+          "date": "27. März 2026",
+          "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3f/Deutschland_Wirtschaft.jpg/1280px-Deutschland_Wirtschaft.jpg",
+          "description": "BIP-Wachstum übertrifft Prognosen.",
+          "summary": "Die deutsche Wirtschaft ist im ersten Quartal 2026 stärker gewachsen als von Ökonomen erwartet. Die Industrieproduktion zieht an, getrieben von Exporten und Investitionen.",
+          "reading_time_minutes": 2,
+          "relevance_score": 0.72
+        },
+        {
+          "title": "Spiegel: Neue Klimaschutzgesetze in der EU",
+          "link": "https://www.spiegel.de/wissenschaft/mensch/klimaschutz-eu-2026",
+          "source": "Spiegel",
+          "date": "26. März 2026",
+          "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/EU_Parliament.jpg/1280px-EU_Parliament.jpg",
+          "description": "Verschärfte Emissionsziele für 2030.",
+          "summary": "Das EU-Parlament hat verschärfte Klimaschutzgesetze verabschiedet. Die neuen Ziele sehen eine Reduktion der Treibhausgasemissionen um 55% bis 2030 vor.",
+          "reading_time_minutes": 2,
+          "relevance_score": 0.68
+        },
+        {
+          "title": "ORF: Österreichische Politik aktuell",
+          "link": "https://orf.at/stories/1234567",
+          "source": "ORF",
+          "date": "25. März 2026",
+          "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8f/Wien_Parlament.jpg/1280px-Wien_Parlament.jpg",
+          "description": "Neue Gesetzesinitiativen in Wien.",
+          "summary": "Die österreichische Bundesregierung hat neue Initiativen für Digitalisierung und Klimaschutz angekündigt. Die Opposition kritisiert die Pläne als unzureichend.",
+          "reading_time_minutes": 2,
+          "relevance_score": 0.65
+        },
+        {
+          "title": "Der Standard: Tech-Regulierung in Europa",
+          "link": "https://www.derstandard.at/story/3000000234568/tech-regulierung",
+          "source": "Der Standard",
+          "date": "24. März 2026",
+          "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7f/EU_Digital.jpg/1280px-EU_Digital.jpg",
+          "description": "DSA und DMA: Ein Jahr nach Inkrafttreten.",
+          "summary": "Ein Jahr nach Inkrafttreten des Digital Services Act und Digital Markets Act zieht die EU Bilanz: Die neuen Regulierungen zeigen erste Wirkung bei grossen Tech-Konzernen.",
+          "reading_time_minutes": 3,
+          "relevance_score": 0.75
+        }
+      ]
+    },
+    "local": {
+      "name": "Steiermark & Lokal",
+      "emoji": "🏔",
+      "css_class": "category-header--local",
+      "articles": [
+        {
+          "title": "Kleine Zeitung: Neue Entwicklungen in Graz",
+          "link": "https://www.kleinezeitung.at/steiermark/graz/1234567",
+          "source": "Kleine Zeitung",
+          "date": "28. März 2026",
+          "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8f/Graz_Uhrturm.jpg/1280px-Graz_Uhrturm.jpg",
+          "description": "Stadt Graz plant neue Infrastrukturprojekte.",
+          "summary": "Die Stadt Graz hat neue Infrastrukturprojekte für den öffentlichen Nahverkehr angekündigt. Besonders der Ausbau des Radwegenetzes und neue E-Bus-Linien stehen im Fokus.",
+          "reading_time_minutes": 2,
+          "relevance_score": 0.8
+        },
+        {
+          "title": "ORF Steiermark: Wetter und Veranstaltungen",
+          "link": "https://steiermark.orf.at/stories/1234567",
+          "source": "ORF Steiermark",
+          "date": "28. März 2026",
+          "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9f/Steiermark_Landschaft.jpg/1280px-Steiermark_Landschaft.jpg",
+          "description": "Wochenend-Veranstaltungen in der Steiermark.",
+          "summary": "Das Wochenende steht bevor und die Steiermark bietet zahlreiche Veranstaltungen. Von Märkten über Konzerte bis zu Sportevents ist für jeden etwas dabei.",
+          "reading_time_minutes": 2,
+          "relevance_score": 0.75
+        },
+        {
+          "title": "MeinBezirk Voitsberg: Lokale Nachrichten",
+          "link": "https://www.meinbezirk.at/voitsberg/c-lokales/artikel",
+          "source": "MeinBezirk Voitsberg",
+          "date": "27. März 2026",
+          "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7f/Voitsberg_Rathaus.jpg/1280px-Voitsberg_Rathaus.jpg",
+          "description": "Neuigkeiten aus Voitsberg und Umgebung.",
+          "summary": "Voitsberg erlebt aktuell einen kleinen Boom bei Gewerbeansiedlungen. Neue Unternehmen sorgen für Arbeitsplätze und wirtschaftliche Dynamik in der Region.",
+          "reading_time_minutes": 2,
+          "relevance_score": 0.85
+        },
+        {
+          "title": "Kleine Zeitung: Steirische Wirtschaft im Aufwind",
+          "link": "https://www.kleinezeitung.at/steiermark/wirtschaft/1234568",
+          "source": "Kleine Zeitung",
+          "date": "26. März 2026",
+          "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6f/Steiermark_Wirtschaft.jpg/1280px-Steiermark_Wirtschaft.jpg",
+          "description": "Positive Wirtschaftsdaten für das Bundesland.",
+          "summary": "Die steirische Wirtschaft zeigt sich robust. Besonders der Tourismus und die Industrie verzeichnen gute Zahlen. Neue Investitionen in Green Tech sind angekündigt.",
+          "reading_time_minutes": 2,
+          "relevance_score": 0.78
+        },
+        {
+          "title": "ORF Steiermark: Kultur und Tradition",
+          "link": "https://steiermark.orf.at/stories/1234568",
+          "source": "ORF Steiermark",
+          "date": "25. März 2026",
+          "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5f/Steiermark_Kultur.jpg/1280px-Steiermark_Kultur.jpg",
+          "description": "Kulturelle Highlights in der Region.",
+          "summary": "Die steirische Kulturszene blüht auf. Neue Ausstellungen, Theateraufführungen und Musikfestivals sorgen für ein abwechslungsreiches Programm.",
+          "reading_time_minutes": 2,
+          "relevance_score": 0.7
+        },
+        {
+          "title": "MeinBezirk: Natur und Wandern in der Region",
+          "link": "https://www.meinbezirk.at/voitsberg/c-freizeit/artikel",
+          "source": "MeinBezirk Voitsberg",
+          "date": "24. März 2026",
+          "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4f/Steiermark_Wandern.jpg/1280px-Steiermark_Wandern.jpg",
+          "description": "Die schönsten Wanderwege in der Umgebung.",
+          "summary": "Die Region um Voitsberg bietet wunderschöne Wanderwege. Besonders empfehlenswert sind die Routen durch die sanften Hügel der Weststeiermark mit ihren Weinbergen.",
+          "reading_time_minutes": 2,
+          "relevance_score": 0.72
+        }
+      ]
+    }
+  },
+  "ki_modelle": {
+    "name": "KI Modelle & Releases",
+    "emoji": "🧠",
+    "css_class": "category-header--ki",
+    "articles": [
+      {
+        "title": "Google Gemini 3.1 Flash Live Released",
+        "link": "https://blog.google/innovation-and-ai/models-and-research/gemini-models/gemini-3-1-flash-live/",
+        "source": "Google AI Blog",
+        "date": "26. März 2026",
+        "image": "https://storage.googleapis.com/gweb-uniblog-publish-prod/images/gemini-3.1-flash-live_blog_head.max-600x600.format-webp.webp",
+        "description": "Neues Audio-Modell mit natürlicherer Sprachausgabe.",
+        "summary": "Google veröffentlicht Gemini 3.1 Flash Live mit verbesserter Audio-Qualität, natürlicheren Pausen und Unterbrechungen. Latenz unter 500ms.",
+        "reading_time_minutes": 2,
+        "relevance_score": 0.85
+      },
+      {
+        "title": "OpenAI Model Spec: Neue Verhaltensrichtlinien",
+        "link": "https://openai.com/index/our-approach-to-the-model-spec",
+        "source": "OpenAI Blog",
+        "date": "25. März 2026",
+        "image": "",
+        "description": "OpenAI veröffentlicht Model Spec für transparente KI-Entwicklung.",
+        "summary": "OpenAI hat den Model Spec veröffentlicht, ein öffentliches Framework für Modellverhalten, das Sicherheit, Nutzerfreiheit und Verantwortlichkeit balanciert.",
+        "reading_time_minutes": 3,
+        "relevance_score": 0.8
+      },
+      {
+        "title": "Hugging Face: Domain-Specific Embedding Models",
+        "link": "https://huggingface.co/blog/domain-specific-embeddings",
+        "source": "Hugging Face Blog",
+        "date": "27. März 2026",
+        "image": "",
+        "description": "Guide für domänenspezifische Embedding-Modelle.",
+        "summary": "Hugging Face veröffentlicht einen Leitfaden zur Erstellung domänenspezifischer Embedding-Modelle für bessere Retrieval-Ergebnisse in spezialisierten Anwendungen.",
+        "reading_time_minutes": 2,
+        "relevance_score": 0.82
+      },
+      {
+        "title": "Mellea 0.4.0: Neue Features für Enterprise KI",
+        "link": "https://huggingface.co/blog/mellea-0-4-0",
+        "source": "Hugging Face Blog",
+        "date": "26. März 2026",
+        "image": "",
+        "description": "Update mit Granite Libraries und neuen Enterprise-Funktionen.",
+        "summary": "Mellea 0.4.0 wurde veröffentlicht mit neuen Granite Libraries, verbesserter Enterprise-Sicherheit und erweiterten Monitoring-Funktionen.",
+        "reading_time_minutes": 2,
+        "relevance_score": 0.75
+      },
+      {
+        "title": "EVA Framework: Voice Agent Evaluation",
+        "link": "https://huggingface.co/blog/eva-voice-agents",
+        "source": "Hugging Face Blog",
+        "date": "25. März 2026",
+        "image": "",
+        "description": "Neues Framework zur Bewertung von Voice Agents.",
+        "summary": "Das EVA Framework bietet standardisierte Metriken und Benchmarks für die Evaluation von Voice Agents und Konversations-KI-Systemen.",
+        "reading_time_minutes": 2,
+        "relevance_score": 0.78
+      },
+      {
+        "title": "OpenClaw Liberation Update",
+        "link": "https://huggingface.co/blog/openclaw-liberation",
+        "source": "Hugging Face Blog",
+        "date": "24. März 2026",
+        "image": "",
+        "description": "Neue Open-Source-Tools für KI-Entwickler.",
+        "summary": "Das OpenClaw-Projekt veröffentlicht neue Tools zur einfacheren Integration von Open-Source-LLMs in bestehende Workflows.",
+        "reading_time_minutes": 2,
+        "relevance_score": 0.72
+      }
+    ]
+  },
+  "dev_digest": {
+    "name": "Dev Digest",
+    "emoji": "👨‍💻",
+    "css_class": "category-header--dev",
+    "articles": [
+      {
+        "title": "GitHub Copilot: Neue Datenschutz-Einstellungen",
+        "link": "https://github.blog/news-insights/product-news/github-copilot-interaction-data-usage-policy-update/",
+        "source": "GitHub Blog",
+        "date": "27. März 2026",
+        "image": "",
+        "description": "Enterprise-Kunden erhalten mehr Kontrolle über Daten.",
+        "summary": "GitHub erweitert die Datenschutzoptionen für Copilot Enterprise. Unternehmen können nun detaillierter steuern, wie Interaktionsdaten verwendet und ob sie für Modell-Training genutzt werden dürfen.",
+        "reading_time_minutes": 2,
+        "relevance_score": 0.85
+      },
+      {
+        "title": "GitLab Founder: Neue Projekte trotz Krebsdiagnose",
+        "link": "https://sytse.com/cancer/",
+        "source": "Sid Sijbrandij",
+        "date": "28. März 2026",
+        "image": "https://sytse.com/wp-content/uploads/2026/01/Screenshot-2026-01-15-at-12.59.23-PM-967x1024.png",
+        "description": "Sid Sijbrandij über Resilienz und neue Unternehmungen.",
+        "summary": "Der GitLab-Gründer teilt seine Erfahrungen mit fortgeschrittenem Krebs und wie er zwei neue Unternehmen gegründet hat. Ein inspirierender Text über Prioritäten im Leben.",
+        "reading_time_minutes": 4,
+        "relevance_score": 0.75
+      },
+      {
+        "title": "CSS is DOOMed: DOOM in purem CSS",
+        "link": "https://nielsleenheer.com/articles/2026/css-is-doomed-rendering-doom-in-3d-with-css/",
+        "source": "Niels Leenheer",
+        "date": "28. März 2026",
+        "image": "https://nielsleenheer.com/wp-content/uploads/2026/03/css-doomed.png",
+        "description": "Vollständige DOOM-Engine ohne Canvas, nur mit CSS.",
+        "summary": "Ein Entwickler hat DOOM komplett in CSS implementiert — mit 3D-Transforms, Keyframe-Animationen und DOM-basiertem Raycasting. Ein faszinierendes Experiment.",
+        "reading_time_minutes": 2,
+        "relevance_score": 0.82
+      },
+      {
+        "title": "OpenBSD auf Motorola 88000 Prozessoren",
+        "link": "http://miod.online.fr/software/openbsd/stories/m88k1.html",
+        "source": "Miod Vallat",
+        "date": "27. März 2026",
+        "image": "https://upload.wikimedia.org/wikipedia/commons/7/7d/IBM_PowerPC601_PPC601FD-080-2_top.jpg",
+        "description": "Retro-Computing: OpenBSD auf klassischer Hardware.",
+        "summary": "Ein Entwickler portiert OpenBSD auf die Motorola 88000 Prozessorarchitektur — ein nostalgisches Projekt, das die Grenzen von Betriebssystem-Portierungen zeigt.",
+        "reading_time_minutes": 3,
+        "relevance_score": 0.65
+      },
+      {
+        "title": "24/7 Lead Generation Pipeline mit Python",
+        "link": "https://dev.to/24-7-lead-generation-pipeline",
+        "source": "Dev.to",
+        "date": "26. März 2026",
+        "image": "",
+        "description": "Tutorial für automatisierte Lead-Generierung.",
+        "summary": "Ein umfassendes Tutorial zur Erstellung einer automatisierten Lead-Generation-Pipeline mit Python, einschließlich Web-Scraping, Datenbereinigung und CRM-Integration.",
+        "reading_time_minutes": 2,
+        "relevance_score": 0.7
+      },
+      {
+        "title": "ANSI Spinners und Progress Bars in Python",
+        "link": "https://dev.to/ansi-spinners-python",
+        "source": "Dev.to",
+        "date": "25. März 2026",
+        "image": "",
+        "description": "Schicke CLI-Animationen für Python-Skripte.",
+        "summary": "Eine Sammlung von ANSI-basierten Spinnern, Progress Bars und Dekorationen für Python-Kommandozeilenanwendungen. Einfach zu integrieren und anzupassen.",
+        "reading_time_minutes": 2,
+        "relevance_score": 0.68
+      }
+    ]
+  },
+  "morning_tiles": {
+    "headlines": [
+      {
+        "text": "Google verkürzt Q-Day-Prognose auf 2029 — Quantencomputer bedrohen Kryptografie",
+        "source": "Ars Technica",
+        "url": "https://arstechnica.com/security/2026/03/google-bumps-up-q-day-estimate-to-2029-far-sooner-than-previously-thought/",
+        "summary": "Google gibt sich nur noch drei Jahre Zeit für Post-Quantum-Kryptografie."
+      },
+      {
+        "text": "Trivy Scanner kompromittiert — Supply Chain Attack betrifft Entwickler weltweit",
+        "source": "Ars Technica",
+        "url": "https://arstechnica.com/security/2026/03/widely-used-trivy-scanner-compromised-in-ongoing-supply-chain-attack/",
+        "summary": "Beliebtes Security-Tool in Container-Pipelines angegriffen."
+      },
+      {
+        "text": "FBI-Director gehackt — Iran-Gruppe leakte private E-Mails von Kash Patel",
+        "source": "The Hacker News",
+        "url": "https://thehackernews.com/2026/03/iran-linked-hackers-breach-fbi.html",
+        "summary": "Handala Hack Team kompromittiert privaten Account von FBI-Chef."
+      }
+    ],
+    "streaming": [
+      {
+        "title": "Severance Season 2",
+        "platform": "Apple TV+",
+        "type": "Serie",
+        "url": "https://tv.apple.com/show/severance"
+      },
+      {
+        "title": "The White Lotus Season 3",
+        "platform": "HBO/Sky",
+        "type": "Serie",
+        "url": "https://www.sky.de/serien/the-white-lotus"
+      }
+    ],
+    "media_tip": {
+      "title": "Lex Fridman Podcast: Demis Hassabis on AI and Science",
+      "type": "podcast",
+      "source": "Lex Fridman",
+      "duration": "3h 15min",
+      "description": "DeepMind-CEO über KI, Wissenschaft und die Zukunft der Forschung.",
+      "url": "https://lexfridman.com/podcast/"
+    },
+    "events": [
+      {
+        "title": "Frühlingsmarkt Voitsberg",
+        "date": "2026-04-05",
+        "location": "Voitsberg Hauptplatz",
+        "url": "https://www.voitsberg.at/veranstaltungen"
+      },
+      {
+        "title": "Grazer Frühling - Kulturfestival",
+        "date": "2026-04-01",
+        "location": "Graz",
+        "url": "https://www.graz.at/veranstaltungen"
+      }
+    ]
+  }
+}

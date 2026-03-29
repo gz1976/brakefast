@@ -27,7 +27,7 @@ const BAD_IMAGE_PATTERNS = [
   /gravatar\.com/i,
   /feeds\.feedburner/i,
   /\/embed\//i,  // YouTube embeds are not images
-  /upload\.wikimedia/i,
+  /upload\.wikimedia/i,  // Otto pipeline generates fake Wikipedia image URLs (404s)
   /wikipedia\.org/i,
 ];
 

@@ -318,8 +318,6 @@ a { color: inherit; text-decoration: none; }
 }
 
 .hero-briefing {
-  flex: 1;
-  min-height: 0;
   display: grid;
   grid-template-columns: 1.2fr 0.8fr;
   gap: 16px;
@@ -526,23 +524,24 @@ a { color: inherit; text-decoration: none; }
 .hero-briefing-status {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  grid-template-rows: auto auto minmax(0, 1fr) auto;
+  grid-template-rows: auto auto auto auto auto;
   gap: 8px;
   min-height: 0;
-  height: 100%;
-  align-content: stretch;
+  align-content: start;
 }
 .status-card-weather,
 .status-card-dayinfo,
 .status-card-calendar,
-.status-card-history {
+.status-card-history,
+.status-card-quote {
   grid-column: span 2;
 }
 
-.status-card-weather { grid-row: 1; align-self: start; min-height: 108px; }
-.status-card-dayinfo { grid-row: 2; align-self: start; min-height: 116px; }
-.status-card-calendar { grid-row: 3; align-self: stretch; min-height: 0; }
-.status-card-history { grid-row: 4; align-self: start; min-height: 108px; }
+.status-card-weather { grid-row: 1; align-self: start; }
+.status-card-dayinfo { grid-row: 2; align-self: start; }
+.status-card-calendar { grid-row: 3; align-self: start; }
+.status-card-history { grid-row: 4; align-self: start; }
+.status-card-quote { grid-row: 5; align-self: start; }
 
 .status-card {
   background: rgba(30, 30, 48, 0.6);

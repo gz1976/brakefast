@@ -166,8 +166,10 @@ export interface PollenData {
 // ─── Word of Day ───
 export interface WordOfDay {
   word: string;
-  explanation: string;
+  explanation?: string;
+  meaning?: string;
   origin?: string;
+  example?: string;
 }
 
 // ─── Widgets ───
@@ -293,7 +295,7 @@ export interface LocalEvent {
   title: string;
   date: string;
   location: string;
-  type: string;
+  type?: string;
   url?: string;
 }
 

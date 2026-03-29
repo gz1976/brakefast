@@ -314,28 +314,32 @@ export function HeroBriefing({ data, calendarRevealed, onArticleClick, isRead, m
           </div>
         </div>
 
-        {/* 3. Termine — nur anzeigen wenn es Termine gibt */}
-        {calendarCount > 0 && (
-          <div
-            className={`status-card status-card-calendar${!calendarRevealed ? ' status-card-blurred' : ''}`}
-          >
-            <div className="status-card-header-inline">
-              <span className="status-card-icon">📅</span>
-              <span className="status-card-label">Termine</span>
-            </div>
-            <div className="status-card-value-small calendar-blur-target">
-              {calendarCount} heute
-            </div>
-            <div className="status-card-list calendar-blur-target">
-              {calendar.map((ev, i) => (
-                <div key={i} className="status-card-list-item">
-                  <span className="status-card-list-time">{ev.time}</span>
-                  <span>{ev.title}</span>
-                </div>
-              ))}
-            </div>
+        {/* 3. Termine — immer anzeigen, ggf. mit leerem Zustand */}
+        <div
+          className={`status-card status-card-calendar${!calendarRevealed ? ' status-card-blurred' : ''}`}
+        >
+          <div className="status-card-header-inline">
+            <span className="status-card-icon">📅</span>
+            <span className="status-card-label">Termine</span>
           </div>
-        )}
+          {calendarCount > 0 ? (
+            <>
+              <div className="status-card-value-small calendar-blur-target">
+                {calendarCount} heute
+              </div>
+              <div className="status-card-list calendar-blur-target">
+                {calendar.map((ev, i) => (
+                  <div key={i} className="status-card-list-item">
+                    <span className="status-card-list-time">{ev.time}</span>
+                    <span>{ev.title}</span>
+                  </div>
+                ))}
+              </div>
+            </>
+          ) : (
+            <div className="status-card-value-small">Keine Termine heute</div>
+          )}
+        </div>
 
         {/* 4. Dieser Tag in der Geschichte — clickable with popup */}
         {historyFacts.length > 0 && (

@@ -7,14 +7,16 @@ export default defineConfig({
   server: {
     proxy: {
       '/latest': {
-        target: 'https://clogzoehrer.ddns.net',
+        target: 'https://ottobot.net',
         changeOrigin: true,
         secure: false,
+        timeout: 5000,
       },
       '/legacy': {
-        target: 'https://clogzoehrer.ddns.net',
+        target: 'https://ottobot.net',
         changeOrigin: true,
         secure: false,
+        timeout: 5000,
       },
     },
   },

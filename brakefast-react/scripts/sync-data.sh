@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-BASE_URL="https://clogzoehrer.ddns.net"
+BASE_URL="https://ottobot.net"
 PUBLIC_DIR="$(cd "$(dirname "$0")/../public" && pwd)"
 
 download() {
@@ -24,7 +24,6 @@ ERRORS=0
 
 download "$BASE_URL/latest/data.json" "$PUBLIC_DIR/local-data.json" || ((ERRORS++)) || true
 download "$BASE_URL/latest/monitoring.json" "$PUBLIC_DIR/local-monitoring.json" || ((ERRORS++)) || true
-download "$BASE_URL/legacy/archive-index.json" "$PUBLIC_DIR/archive-index.json" || ((ERRORS++)) || true
 
 echo ""
 if [ "$ERRORS" -eq 0 ]; then

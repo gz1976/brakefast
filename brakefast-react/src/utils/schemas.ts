@@ -125,8 +125,10 @@ const PollenSchema = z.object({
 
 const WordOfDaySchema = z.object({
   word: z.string(),
-  explanation: z.string(),
+  explanation: z.string().optional(),
+  meaning: z.string().optional(),
   origin: z.string().optional(),
+  example: z.string().optional(),
 }).passthrough();
 
 /** Zod schema for Widgets -- all sub-widgets optional. */
@@ -217,7 +219,7 @@ const LocalEventSchema = z.object({
   title: z.string(),
   date: z.string(),
   location: z.string(),
-  type: z.string(),
+  type: z.string().optional(),
   url: z.string().optional(),
 }).passthrough();
 

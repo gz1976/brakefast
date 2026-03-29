@@ -1,0 +1,254 @@
+{
+  "generated": "2026-03-29T09:00:02.063276Z",
+  "period": "Letzte 7 Tage",
+  "agents": {
+    "main": {
+      "model": "Nexos Gpt 5 2",
+      "status": "active",
+      "sessions_total": 26
+    },
+    "worker": {
+      "model": "Nexos Gpt 5 2",
+      "status": "active",
+      "sessions_total": 2
+    },
+    "expert": {
+      "model": "Nexos Gpt 5 2",
+      "status": "active",
+      "sessions_total": 0
+    }
+  },
+  "activity_7d": [
+    {
+      "date": "2026-03-23",
+      "main": 0,
+      "worker": 48,
+      "expert": 0
+    },
+    {
+      "date": "2026-03-24",
+      "main": 0,
+      "worker": 48,
+      "expert": 0
+    },
+    {
+      "date": "2026-03-25",
+      "main": 11,
+      "worker": 48,
+      "expert": 0
+    },
+    {
+      "date": "2026-03-26",
+      "main": 0,
+      "worker": 48,
+      "expert": 0
+    },
+    {
+      "date": "2026-03-27",
+      "main": 2,
+      "worker": 48,
+      "expert": 0
+    },
+    {
+      "date": "2026-03-28",
+      "main": 0,
+      "worker": 48,
+      "expert": 0
+    },
+    {
+      "date": "2026-03-29",
+      "main": 3,
+      "worker": 0,
+      "expert": 0
+    }
+  ],
+  "costs": {
+    "today_usd": 0.0,
+    "month_usd": 0.0,
+    "daily_limit_usd": 5.0,
+    "monthly_limit_usd": 100.0,
+    "history_7d": [
+      {
+        "date": "2026-03-23",
+        "total_usd": 0.0,
+        "calls": 0,
+        "by_model": {}
+      },
+      {
+        "date": "2026-03-24",
+        "total_usd": 0.0,
+        "calls": 0,
+        "by_model": {}
+      },
+      {
+        "date": "2026-03-25",
+        "total_usd": 0.0,
+        "calls": 0,
+        "by_model": {}
+      },
+      {
+        "date": "2026-03-26",
+        "total_usd": 0.0,
+        "calls": 0,
+        "by_model": {}
+      },
+      {
+        "date": "2026-03-27",
+        "total_usd": 0.0,
+        "calls": 0,
+        "by_model": {}
+      },
+      {
+        "date": "2026-03-28",
+        "total_usd": 0.0,
+        "calls": 0,
+        "by_model": {}
+      },
+      {
+        "date": "2026-03-29",
+        "total_usd": 0.0,
+        "calls": 0,
+        "by_model": {}
+      }
+    ]
+  },
+  "routing": [
+    {
+      "agent": "self",
+      "count": 16
+    },
+    {
+      "agent": "worker",
+      "count": 1
+    }
+  ],
+  "models": [
+    {
+      "model": "Nexos Gpt 5 2",
+      "tier": "Tier 2",
+      "calls": 26,
+      "avg_latency_ms": 0,
+      "errors": 0,
+      "success_rate": 100.0,
+      "estimated_cost_usd": 0.0
+    },
+    {
+      "model": "Nexos Gpt 5 2",
+      "tier": "Tier 1",
+      "calls": 2,
+      "avg_latency_ms": 0,
+      "errors": 0,
+      "success_rate": 100.0,
+      "estimated_cost_usd": 0.0
+    },
+    {
+      "model": "Nexos Gpt 5 2",
+      "tier": "Tier 3",
+      "calls": 0,
+      "avg_latency_ms": 0,
+      "errors": 0,
+      "success_rate": 0,
+      "estimated_cost_usd": 0.0
+    }
+  ],
+  "system": {
+    "disk_percent": 16,
+    "uptime": "18d 2h",
+    "containers": 0,
+    "last_heartbeat": "2026-03-25T06:06:11.637Z",
+    "heartbeat_status": "healthy",
+    "last_audit": ""
+  },
+  "recent_events": [
+    {
+      "timestamp": "2026-03-29T06:30:43.158Z",
+      "type": "heartbeat",
+      "agent": "main",
+      "summary": "Heartbeat Check"
+    },
+    {
+      "timestamp": "2026-03-29T06:00:43.204Z",
+      "type": "heartbeat",
+      "agent": "main",
+      "summary": "Heartbeat Check"
+    },
+    {
+      "timestamp": "2026-03-29T05:30:43.041Z",
+      "type": "heartbeat",
+      "agent": "main",
+      "summary": "Heartbeat Check"
+    },
+    {
+      "timestamp": "2026-03-29T05:00:43.119Z",
+      "type": "heartbeat",
+      "agent": "main",
+      "summary": "Heartbeat Check"
+    },
+    {
+      "timestamp": "2026-03-29T04:30:43.039Z",
+      "type": "heartbeat",
+      "agent": "main",
+      "summary": "Heartbeat Check"
+    },
+    {
+      "timestamp": "2026-03-29T04:00:43.166Z",
+      "type": "heartbeat",
+      "agent": "main",
+      "summary": "Heartbeat Check"
+    },
+    {
+      "timestamp": "2026-03-29T03:30:41.079Z",
+      "type": "heartbeat",
+      "agent": "main",
+      "summary": "Heartbeat Check"
+    },
+    {
+      "timestamp": "2026-03-29T03:30:01.025Z",
+      "type": "cron",
+      "agent": "main",
+      "summary": "BrakeFast Morgenzeitung"
+    },
+    {
+      "timestamp": "2026-03-29T03:30:01.013Z",
+      "type": "session",
+      "agent": "main",
+      "summary": "Neue Session gestartet"
+    },
+    {
+      "timestamp": "2026-03-29T03:00:41.182Z",
+      "type": "heartbeat",
+      "agent": "main",
+      "summary": "Heartbeat Check"
+    },
+    {
+      "timestamp": "2026-03-29T02:30:41.116Z",
+      "type": "heartbeat",
+      "agent": "main",
+      "summary": "Heartbeat Check"
+    },
+    {
+      "timestamp": "2026-03-29T02:00:41.231Z",
+      "type": "heartbeat",
+      "agent": "main",
+      "summary": "Heartbeat Check"
+    },
+    {
+      "timestamp": "2026-03-29T02:00:41.225Z",
+      "type": "session",
+      "agent": "main",
+      "summary": "Neue Session gestartet"
+    },
+    {
+      "timestamp": "2026-03-29T01:00:45.257Z",
+      "type": "cron",
+      "agent": "main",
+      "summary": "Security Audit"
+    },
+    {
+      "timestamp": "2026-03-29T01:00:01.360Z",
+      "type": "cron",
+      "agent": "main",
+      "summary": "Security Audit"
+    }
+  ]
+}
