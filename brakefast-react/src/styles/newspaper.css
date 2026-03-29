@@ -313,10 +313,8 @@ a { color: inherit; text-decoration: none; }
    ═══════════════════════════════════════════ */
 /* Wrapper: Hero + Morning Tiles fill the first screen */
 .first-screen {
-  max-height: calc(100dvh - var(--safe-top) - 150px);
   display: flex;
   flex-direction: column;
-  overflow: hidden;
 }
 
 .hero-briefing {
@@ -325,9 +323,6 @@ a { color: inherit; text-decoration: none; }
   gap: 16px;
   padding: 16px 0 12px;
   scroll-margin-top: 70px;
-  flex: 1;
-  min-height: 0;
-  overflow: hidden;
 }
 
 /* (rotating card removed — all cards now fixed) */

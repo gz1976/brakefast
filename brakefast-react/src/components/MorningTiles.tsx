@@ -57,7 +57,7 @@ export function MorningTiles({ data }: Props) {
                   className="morning-tile-link morning-tile-link-enhanced morning-tile-clickable"
                   onClick={() => s.url
                     ? window.open(s.url, '_blank', 'noopener,noreferrer')
-                    : setModalData({ title: s.title, text: `${s.platform} · ${s.type}`, source: s.platform })
+                    : setModalData({ title: s.title, text: `${s.type} auf ${s.platform}.\n\nSuche nach „${s.title}" auf ${s.platform} oder in deiner Streaming-App.`, source: s.platform })
                   }
                   role="button"
                   tabIndex={0}
@@ -89,7 +89,7 @@ export function MorningTiles({ data }: Props) {
               className="morning-tile-link morning-tile-link-enhanced morning-tile-media-content morning-tile-clickable"
               onClick={() => mediaTip.url
                 ? window.open(mediaTip.url, '_blank', 'noopener,noreferrer')
-                : setModalData({ title: mediaTip.title, text: `${mediaTip.type} · ${mediaTip.source}${mediaTip.duration ? ` · ${mediaTip.duration}` : ''}`, source: mediaTip.source })
+                : setModalData({ title: mediaTip.title, text: `${mediaTip.type} von ${mediaTip.source}${mediaTip.duration ? ` (${mediaTip.duration})` : ''}.\n\nSuche nach „${mediaTip.title}" in deiner Podcast-App oder auf YouTube.`, source: mediaTip.source })
               }
               role="button"
               tabIndex={0}
@@ -122,7 +122,7 @@ export function MorningTiles({ data }: Props) {
                   className="morning-tile-link morning-tile-link-enhanced morning-tile-clickable"
                   onClick={() => ev.url
                     ? window.open(ev.url, '_blank', 'noopener,noreferrer')
-                    : setModalData({ title: ev.title, text: [ev.date, ev.location, ev.type].filter(Boolean).join(' · ') })
+                    : setModalData({ title: ev.title, text: `📅 ${ev.date}\n📍 ${ev.location}${ev.type ? `\n🏷️ ${ev.type}` : ''}` })
                   }
                   role="button"
                   tabIndex={0}
