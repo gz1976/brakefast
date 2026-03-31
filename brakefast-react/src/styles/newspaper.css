@@ -1518,11 +1518,11 @@ a { color: inherit; text-decoration: none; }
   overflow: hidden;
 }
 
-.morning-tile-knapp     { border-top: 3px solid var(--accent-amber); }
-.morning-tile-streaming { border-top: 3px solid var(--accent-orange); }
-.morning-tile-media     { border-top: 3px solid var(--accent-cyan); }
-.morning-tile-events    { border-top: 3px solid var(--accent-pink); }
-.morning-tile-word      { border-top: 3px solid var(--accent-purple); }
+.morning-tile-knapp       { border-top: 3px solid var(--accent-amber); }
+.morning-tile-media       { border-top: 3px solid var(--accent-cyan); }
+.morning-tile-word        { border-top: 3px solid var(--accent-purple); }
+.morning-tile-quote       { border-top: 3px solid var(--accent-orange); }
+.morning-tile-bauernregel { border-top: 3px solid var(--accent-pink); }
 
 .morning-tile-header {
   display: flex;
@@ -1540,10 +1540,11 @@ a { color: inherit; text-decoration: none; }
   font-weight: 700;
 }
 
-.morning-tile-knapp     .morning-tile-label { color: var(--accent-amber); }
-.morning-tile-streaming .morning-tile-label { color: var(--accent-orange); }
-.morning-tile-media     .morning-tile-label { color: var(--accent-cyan); }
-.morning-tile-events    .morning-tile-label { color: var(--accent-pink); }
+.morning-tile-knapp       .morning-tile-label { color: var(--accent-amber); }
+.morning-tile-media       .morning-tile-label { color: var(--accent-cyan); }
+.morning-tile-word        .morning-tile-label { color: var(--accent-purple); }
+.morning-tile-quote       .morning-tile-label { color: var(--accent-orange); }
+.morning-tile-bauernregel .morning-tile-label { color: var(--accent-pink); }
 
 .morning-tile-body { flex: 1; }
 
@@ -1744,6 +1745,33 @@ a { color: inherit; text-decoration: none; }
 .morning-tile-media-meta {
   font-size: 10px;
   color: var(--text-muted);
+}
+
+/* ─── Quote Tile ─── */
+.morning-tile-quote-text {
+  font-style: italic;
+  font-size: 13px;
+  color: var(--text-primary);
+  line-height: 1.5;
+  margin: 0;
+}
+.morning-tile-quote-author {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 6px;
+}
+
+/* ─── Bauernregel Tile ─── */
+.morning-tile-bauernregel-text {
+  font-style: italic;
+  font-size: 13px;
+  color: var(--text-primary);
+  line-height: 1.4;
+}
+.morning-tile-bauernregel-meaning {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 4px;
 }
 
 /* ═══════════════════════════════════════════

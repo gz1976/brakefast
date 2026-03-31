@@ -14,22 +14,26 @@ interface ModalData {
 }
 
 export function MorningTiles({ data }: Props) {
-  const streaming = data.morning_tiles?.streaming || [];
-  const events = data.morning_tiles?.events || [];
   const mediaTip = data.morning_tiles?.media_tip;
   const wordOfDay = data.widgets?.word_of_day;
+  const quote = data.widgets?.quote;
+  const bauernregel = data.widgets?.bauernregel;
   const [modalData, setModalData] = useState<ModalData | null>(null);
+
+  // Only render if we have at least one real tile
+  const hasTiles = wordOfDay || mediaTip || quote || bauernregel;
+  if (!hasTiles) return null;
 
   return (
     <section className="morning-tiles">
       {/* 1. Wort des Tages */}
-      <div className="morning-tile morning-tile-word">
-        <div className="morning-tile-header">
-          <span className="morning-tile-icon">🔤</span>
-          <span className="morning-tile-label">Wort des Tages</span>
-        </div>
-        <div className="morning-tile-body">
-          {wordOfDay ? (
+      {wordOfDay && (
+        <div className="morning-tile morning-tile-word">
+          <div className="morning-tile-header">
+            <span className="morning-tile-icon">🔤</span>
+            <span className="morning-tile-label">Wort des Tages</span>
+          </div>
+          <div className="morning-tile-body">
             <div className="word-of-day-content">
               <div className="word-of-day-term">{wordOfDay.word}</div>
               <div className="word-of-day-explanation">{wordOfDay.explanation || wordOfDay.meaning || ''}</div>
@@ -37,62 +41,26 @@ export function MorningTiles({ data }: Props) {
                 <div className="word-of-day-origin">{wordOfDay.origin || wordOfDay.example}</div>
               )}
             </div>
-          ) : (
-            <p className="morning-tile-empty">Heute kein Wort des Tages</p>
-          )}
+          </div>
         </div>
-      </div>
+      )}
 
-      {/* 2. Streaming-Tipps — always clickable */}
-      <div className="morning-tile morning-tile-streaming">
-        <div className="morning-tile-header">
-          <span className="morning-tile-icon">🎬</span>
-          <span className="morning-tile-label">Streaming-Tipps</span>
-        </div>
-        <div className="morning-tile-body">
-          <ul className="morning-tile-signals">
-            {streaming.slice(0, 3).map((s, i) => (
-              <li key={i} className="morning-tile-signal">
-                <span
-                  className="morning-tile-link morning-tile-link-enhanced morning-tile-clickable"
-                  onClick={() => s.url
-                    ? window.open(s.url, '_blank', 'noopener,noreferrer')
-                    : setModalData({ title: s.title, text: `${s.type} auf ${s.platform}.\n\nSuche nach „${s.title}" auf ${s.platform} oder in deiner Streaming-App.`, source: s.platform })
-                  }
-                  role="button"
-                  tabIndex={0}
-                >
-                  <span className="morning-tile-streaming-title">{s.title}</span>
-                  <span className="morning-tile-streaming-meta"> — {s.platform} · {s.type}</span>
-                  <span className="morning-tile-arrow">→</span>
-                </span>
-              </li>
-            ))}
-            {streaming.length === 0 && (
-              <li className="morning-tile-signal morning-tile-empty">
-                Keine Streaming-Tipps heute
-              </li>
-            )}
-          </ul>
-        </div>
-      </div>
-
-      {/* 3. Hör-/Lesetipp — always clickable */}
-      <div className="morning-tile morning-tile-media">
-        <div className="morning-tile-header">
-          <span className="morning-tile-icon">🎧</span>
-          <span className="morning-tile-label">Hör-/Lesetipp</span>
-        </div>
-        <div className="morning-tile-body">
-          {mediaTip ? (
+      {/* 2. Hör-/Lesetipp */}
+      {mediaTip && (
+        <div className="morning-tile morning-tile-media">
+          <div className="morning-tile-header">
+            <span className="morning-tile-icon">🎧</span>
+            <span className="morning-tile-label">Hör-/Lesetipp</span>
+          </div>
+          <div className="morning-tile-body">
             <span
-              className="morning-tile-link morning-tile-link-enhanced morning-tile-media-content morning-tile-clickable"
+              className={`morning-tile-link morning-tile-link-enhanced morning-tile-media-content${mediaTip.url ? ' morning-tile-clickable' : ''}`}
               onClick={() => mediaTip.url
                 ? window.open(mediaTip.url, '_blank', 'noopener,noreferrer')
-                : setModalData({ title: mediaTip.title, text: `${mediaTip.type} von ${mediaTip.source}${mediaTip.duration ? ` (${mediaTip.duration})` : ''}.\n\nSuche nach „${mediaTip.title}" in deiner Podcast-App oder auf YouTube.`, source: mediaTip.source })
+                : undefined
               }
-              role="button"
-              tabIndex={0}
+              role={mediaTip.url ? 'button' : undefined}
+              tabIndex={mediaTip.url ? 0 : undefined}
             >
               <div className="morning-tile-media-type">{mediaTip.type}</div>
               <div className="morning-tile-media-title">{mediaTip.title}</div>
@@ -100,49 +68,39 @@ export function MorningTiles({ data }: Props) {
                 {mediaTip.source}
                 {mediaTip.duration && ` · ${mediaTip.duration}`}
               </div>
-              <span className="morning-tile-arrow">→</span>
+              {mediaTip.url && <span className="morning-tile-arrow">→</span>}
             </span>
-          ) : (
-            <p className="morning-tile-empty">Kein Tipp heute</p>
-          )}
+          </div>
         </div>
-      </div>
+      )}
 
-      {/* 4. Events / Was ist los? — always clickable */}
-      <div className="morning-tile morning-tile-events">
-        <div className="morning-tile-header">
-          <span className="morning-tile-icon">🎉</span>
-          <span className="morning-tile-label">Events</span>
+      {/* 3. Zitat des Tages */}
+      {quote && quote.text && (
+        <div className="morning-tile morning-tile-quote">
+          <div className="morning-tile-header">
+            <span className="morning-tile-icon">💬</span>
+            <span className="morning-tile-label">Zitat des Tages</span>
+          </div>
+          <div className="morning-tile-body">
+            <blockquote className="morning-tile-quote-text">„{quote.text}"</blockquote>
+            {quote.author && <div className="morning-tile-quote-author">— {quote.author}</div>}
+          </div>
         </div>
-        <div className="morning-tile-body">
-          <ul className="morning-tile-signals">
-            {events.slice(0, 3).map((ev, i) => (
-              <li key={i} className="morning-tile-signal morning-tile-event-item">
-                <span
-                  className="morning-tile-link morning-tile-link-enhanced morning-tile-clickable"
-                  onClick={() => ev.url
-                    ? window.open(ev.url, '_blank', 'noopener,noreferrer')
-                    : setModalData({ title: ev.title, text: `📅 ${ev.date}\n📍 ${ev.location}${ev.type ? `\n🏷️ ${ev.type}` : ''}` })
-                  }
-                  role="button"
-                  tabIndex={0}
-                >
-                  <span className="morning-tile-event-title">{ev.title}</span>
-                  <span className="morning-tile-event-meta">
-                    {ev.date} · {ev.location}
-                  </span>
-                  <span className="morning-tile-arrow">→</span>
-                </span>
-              </li>
-            ))}
-            {events.length === 0 && (
-              <li className="morning-tile-signal morning-tile-empty">
-                Keine Events diese Woche
-              </li>
-            )}
-          </ul>
+      )}
+
+      {/* 4. Bauernregel */}
+      {bauernregel && bauernregel.text && (
+        <div className="morning-tile morning-tile-bauernregel">
+          <div className="morning-tile-header">
+            <span className="morning-tile-icon">🌾</span>
+            <span className="morning-tile-label">Bauernregel</span>
+          </div>
+          <div className="morning-tile-body">
+            <div className="morning-tile-bauernregel-text">„{bauernregel.text}"</div>
+            {bauernregel.meaning && <div className="morning-tile-bauernregel-meaning">{bauernregel.meaning}</div>}
+          </div>
         </div>
-      </div>
+      )}
 
       {modalData && (
         <DetailModal

@@ -411,19 +411,6 @@ export function HeroBriefing({ data, calendarRevealed, onArticleClick, isRead, m
           </div>
         )}
 
-        {/* 5. Zitat des Tages */}
-        {data.widgets?.quote && (
-          <div className="status-card status-card-quote">
-            <div className="status-card-header-inline">
-              <span className="status-card-icon">💡</span>
-              <span className="status-card-label">Zitat des Tages</span>
-            </div>
-            <blockquote className="quote-text">
-              &bdquo;{data.widgets.quote.text}&ldquo;
-            </blockquote>
-            <div className="quote-author">— {data.widgets.quote.author}</div>
-          </div>
-        )}
       </div>
 
       {showBriefing && (

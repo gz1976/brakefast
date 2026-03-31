@@ -117,11 +117,16 @@ So sparst du Output-Tokens und die Pipeline laeuft zuverlaessig.**
    - `summary` (150-250 Woerter DE) und `description` (1-2 Saetze) pro Artikel
    - `relevance_score` (0.0-1.0) und `reading_time_minutes` (1-5) pro Artikel
    - `editorial` (2-3 Saetze, persoenlich)
-   - `ki_modelle` (4 Items mit echten Daten aus raw-articles; wenn moeglich mit `index` auf den konkreten Artikel, nicht nur generische Startseiten)
-   - `dev_digest` (4 Items mit echten Daten aus raw-articles; wenn moeglich mit `index` auf den konkreten Artikel, nicht nur generische Startseiten)
-  - `morning_tiles` (media_tip — mit URLs; bevorzuge hochwertige, abwechslungsreiche Podcast-/Longread-Quellen statt immer derselben Show; KEINE streaming/events — diese wurden entfernt weil nicht verifizierbar)
-   - `headlines` (3 Top-Schlagzeilen des Tages)
-  - `widgets`: namenstag, quote, history (2-3 Eintraege, IMMER mit `wiki`-Feld = deutscher Wikipedia-Artikelname), bauernregel, optional `word_of_day`
+   - `ki_modelle` (4 Items — JEDES Item MUSS `link` haben! Nimm die echte URL aus raw-articles per `index`. NIEMALS link weglassen)
+   - `dev_digest` (4 Items — JEDES Item MUSS `link` haben! Nimm die echte URL aus raw-articles per `index`. NIEMALS link weglassen)
+   - `morning_tiles` (media_tip — mit URL; KEINE streaming/events — diese wurden entfernt weil nicht verifizierbar)
+   - `headlines` (3 Top-Schlagzeilen — JEDE Headline MUSS `link` haben! Verwende die URL des zugehoerigen Artikels aus raw-articles. Headlines OHNE link sind WERTLOS)
+   - `widgets` (ALLE folgenden sind PFLICHT, nicht optional):
+     - `namenstag`: Name des heutigen Namenstages
+     - `quote`: Zitat mit `text` und `author` — PFLICHT, niemals weglassen
+     - `history`: 3 Eintraege, JEDER mit `wiki`-Feld (deutscher Wikipedia-Artikelname). Ohne `wiki` koennen keine Bilder geladen werden! Beispiel: `"wiki": "Telefon"` oder `"wiki": "Eiserner_Vorhang"`
+     - `bauernregel`: Mit `text` und `meaning` — PFLICHT, niemals weglassen
+     - optional: `word_of_day` als Override
 
 4. Fuehre die restliche Pipeline aus:
    ```bash
@@ -145,8 +150,9 @@ Wenn Gerhard sagt "Zeitung bitte" oder "BrakeFast generieren":
 - Duplikate erkennen und entfernen (gleiche Story, verschiedene Quellen)
 - **EXAKT 6 Artikel pro Kategorie** (verteilt auf 6 Kategorien = ~36 Artikel gesamt)
 - Kategorien: ai (6), security (6), tech (6), ev (6), world (6), knapp (4), local (6)
-- `ki_modelle` und `dev_digest` Sektionen IMMER befuellen (je 4 Items)
-- `widgets`: Du lieferst namenstag, quote, history, bauernregel und optional `word_of_day`. Rest (weather, vps, calendar, pollen) macht curate.py!
+- `ki_modelle` und `dev_digest` Sektionen IMMER befuellen (je 4 Items, JEDES mit `link`!)
+- `headlines`: 3 Schlagzeilen, JEDE mit `link` zur Originalquelle — NIEMALS ohne URL!
+- `widgets`: Du lieferst namenstag, quote (PFLICHT!), history (3 Items mit `wiki`!), bauernregel (PFLICHT!) und optional `word_of_day`. Rest (weather, vps, calendar, pollen) macht curate.py!
 - `history`: Fuer jeden Eintrag moeglichst einen belastbaren deutschen Wikipedia-Titel in `wiki` liefern, damit Bild und Beschreibung angereichert werden koennen
 - `media_tip`: Nicht monoton. Bevorzuge eine abwechslungsreiche Auswahl aus hochwertigen Formaten wie Hard Fork, Acquired, Decoder, Dwarkesh, Darknet Diaries, Search Engine, Ezra Klein; Lex Fridman nur wenn wirklich besonders passend
 - Bilder werden bevorzugt aus Feed, Artikel-Metadaten, Wikimedia oder lokalen Editorial-Fallbacks uebernommen; generative Provider sind nur letzter Fallback
@@ -166,7 +172,7 @@ Wenn ein Widget oder eine Sektion nicht befuellt werden kann:
 - **pollen**: Setze `level: "unbekannt"`, `types: []`, `description: "Keine Daten verfuegbar"`
 - **calendar**: Setze `[]`
 - **vps**: Leeres Objekt `{}` (wird im Frontend ignoriert)
-- **quote/history/bauernregel**: Generiere plausible Daten aus deinem Wissen (diese Widgets haben keine externe API-Abhaengigkeit)
+- **quote/history/bauernregel**: Diese sind PFLICHT und haben keine API-Abhaengigkeit — generiere sie IMMER aus deinem Wissen. History MUSS `wiki`-Feld enthalten
 - **ki_modelle/dev_digest**: Falls keine passenden Artikel in raw-articles.json, verwende dein Wissen ueber aktuelle Entwicklungen. IMMER befuellen!
 - **morning_tiles**: Nur media_tip liefern. KEINE streaming/events erfinden — lieber weglassen als halluzinieren
 
