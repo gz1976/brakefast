@@ -1462,6 +1462,15 @@ a { color: inherit; text-decoration: none; }
   cursor: default;
 }
 
+.status-card-clickable {
+  cursor: pointer;
+  transition: background 0.2s, transform 0.15s;
+}
+.status-card-clickable:hover {
+  background: rgba(255, 255, 255, 0.06);
+  transform: translateY(-1px);
+}
+
 /* Clickable article items in all sections */
 .news-article-item,
 .local-item,

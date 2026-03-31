@@ -138,6 +138,18 @@ export function HeroBriefing({ data, calendarRevealed, onArticleClick, isRead, m
     });
   };
 
+  const openWeatherModal = () => {
+    if (!weather) return;
+    const pollenLine = pollen && pollen.level !== 'unbekannt'
+      ? `\n\nPollen: ${pollen.level}${pollen.types.length > 0 ? ` (${pollen.types.join(', ')})` : ''}\n${pollen.description || ''}`
+      : pollen?.description ? `\n\nPollen: ${pollen.description}` : '';
+    const windLine = weather.wind ? `\nWind: ${weather.wind}` : '';
+    setModalData({
+      title: `Wetter — ${weather.location || 'Voitsberg'}`,
+      text: `${translateWeather(weather.description)}\n\nTemperatur: ${weather.temp}°C\nGefühlt: ${weather.feelsLike}°C\nMin: ${weather.min}°C / Max: ${weather.max}°C${windLine}${pollenLine}`,
+    });
+  };
+
   const openHistoryModal = (fact: HistoryFact) => {
     const fallbackText = fact.description
       || `${fact.text}. Dieses historische Ereignis jährt sich heute im Jahr ${fact.year}.`;
@@ -245,7 +257,12 @@ export function HeroBriefing({ data, calendarRevealed, onArticleClick, isRead, m
       {/* RIGHT COLUMN: Status Cards */}
       <div className="hero-briefing-status">
         {/* 1. Wetter — quer */}
-        <div className="status-card status-card-weather status-card-weather-horizontal">
+        <div
+          className="status-card status-card-weather status-card-weather-horizontal status-card-clickable"
+          onClick={openWeatherModal}
+          role="button"
+          tabIndex={0}
+        >
           <div className="status-card-header-inline">
             <span className="status-card-icon">🌤️</span>
             <span className="status-card-label">Wetter</span>
