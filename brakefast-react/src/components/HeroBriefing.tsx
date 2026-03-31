@@ -376,7 +376,7 @@ export function HeroBriefing({ data, calendarRevealed, onArticleClick, isRead, m
                   role="button"
                   tabIndex={0}
                 >
-                  {fact.image && (
+                  {fact.image ? (
                     <img
                       src={fact.image}
                       alt={fact.text}
@@ -384,11 +384,10 @@ export function HeroBriefing({ data, calendarRevealed, onArticleClick, isRead, m
                       loading="lazy"
                       onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
                     />
+                  ) : (
+                    <div className="history-year-badge">{fact.year}</div>
                   )}
-                  <div className="history-item-content">
-                    <span className="status-card-history-year">{fact.year}</span>
-                    <span className="status-card-history-text">{fact.text}</span>
-                  </div>
+                  <span className="status-card-history-text">{fact.text}</span>
                 </div>
               ))}
             </div>
