@@ -44,11 +44,11 @@ So sparst du Output-Tokens und die Pipeline laeuft zuverlaessig.**
    "
    ```
 
-2. Kuratiere: Waehle 6 Artikel pro Kategorie aus der Liste oben.
+2. Kuratiere: Waehle 6 Artikel pro Kategorie aus der Liste oben (4 fuer knapp).
    Schreibe fuer jeden Artikel: `summary` (150-250 Woerter DE), `description` (1-2 Saetze), `relevance_score`, `reading_time_minutes`.
    Schreibe Editorial, ki_modelle, dev_digest, morning_tiles, widgets (quote, history, bauernregel, namenstag, optional `word_of_day` als Override).
 
-   **KRITISCH: Genau 6 Artikel pro Kategorie (ai, security, tech, ev, world, local)!**
+   **KRITISCH: Genau 6 Artikel pro Kategorie (ai, security, tech, ev, world, local) + 4 fuer knapp!**
 
 3. Pipe die Kuration als JSON an `curate.py` — das Script baut das vollstaendige `curated-articles.json`:
    ```bash
@@ -64,6 +64,9 @@ So sparst du Output-Tokens und die Pipeline laeuft zuverlaessig.**
        "tech": [ ... ],
        "ev": [ ... ],
        "world": [ ... ],
+       "knapp": [
+         {"index": 30, "summary": "...", "description": "...", "relevance_score": 0.9, "reading_time_minutes": 2}
+       ],
        "local": [ ... ]
      },
       "ki_modelle": {
@@ -79,9 +82,6 @@ So sparst du Output-Tokens und die Pipeline laeuft zuverlaessig.**
         "security_advisory": {"index": 23, "title": "...", "content": "...", "source": "...", "date": "...", "tag": "CVE", "link": "https://konkreter-artikel"}
       },
      "morning_tiles": {
-       "knapp": {"headline": "...", "signals": [{"text": "...", "source": "...", "url": "https://..."}]},
-       "streaming": [{"title": "...", "platform": "...", "type": "Serie", "url": "https://..."}],
-       "events": [{"title": "...", "date": "...", "location": "...", "type": "...", "url": "https://..."}],
       "media_tip": {"title": "...", "type": "Podcast", "source": "...", "url": "https://...", "duration": "..."}
      },
      "headlines": [
@@ -119,7 +119,7 @@ So sparst du Output-Tokens und die Pipeline laeuft zuverlaessig.**
    - `editorial` (2-3 Saetze, persoenlich)
    - `ki_modelle` (4 Items mit echten Daten aus raw-articles; wenn moeglich mit `index` auf den konkreten Artikel, nicht nur generische Startseiten)
    - `dev_digest` (4 Items mit echten Daten aus raw-articles; wenn moeglich mit `index` auf den konkreten Artikel, nicht nur generische Startseiten)
-  - `morning_tiles` (knapp, streaming, events, media_tip — mit URLs; bevorzuge hochwertige, abwechslungsreiche Podcast-/Longread-Quellen statt immer derselben Show)
+  - `morning_tiles` (media_tip — mit URLs; bevorzuge hochwertige, abwechslungsreiche Podcast-/Longread-Quellen statt immer derselben Show; KEINE streaming/events — diese wurden entfernt weil nicht verifizierbar)
    - `headlines` (3 Top-Schlagzeilen des Tages)
   - `widgets`: namenstag, quote, history (2-3 Eintraege, IMMER mit `wiki`-Feld = deutscher Wikipedia-Artikelname), bauernregel, optional `word_of_day`
 
@@ -144,7 +144,7 @@ Wenn Gerhard sagt "Zeitung bitte" oder "BrakeFast generieren":
 - Bei EV-News: Tesla-Relevanz hervorheben, Ladeinfrastruktur Oesterreich beachten
 - Duplikate erkennen und entfernen (gleiche Story, verschiedene Quellen)
 - **EXAKT 6 Artikel pro Kategorie** (verteilt auf 6 Kategorien = ~36 Artikel gesamt)
-- Kategorien: ai (6), security (6), tech (6), ev (6), world (6), local (6)
+- Kategorien: ai (6), security (6), tech (6), ev (6), world (6), knapp (4), local (6)
 - `ki_modelle` und `dev_digest` Sektionen IMMER befuellen (je 4 Items)
 - `widgets`: Du lieferst namenstag, quote, history, bauernregel und optional `word_of_day`. Rest (weather, vps, calendar, pollen) macht curate.py!
 - `history`: Fuer jeden Eintrag moeglichst einen belastbaren deutschen Wikipedia-Titel in `wiki` liefern, damit Bild und Beschreibung angereichert werden koennen
@@ -168,7 +168,7 @@ Wenn ein Widget oder eine Sektion nicht befuellt werden kann:
 - **vps**: Leeres Objekt `{}` (wird im Frontend ignoriert)
 - **quote/history/bauernregel**: Generiere plausible Daten aus deinem Wissen (diese Widgets haben keine externe API-Abhaengigkeit)
 - **ki_modelle/dev_digest**: Falls keine passenden Artikel in raw-articles.json, verwende dein Wissen ueber aktuelle Entwicklungen. IMMER befuellen!
-- **morning_tiles**: Falls keine spezifischen Daten, generiere plausible Inhalte (aktuelle Streaming-Tipps, bekannte regionale Events)
+- **morning_tiles**: Nur media_tip liefern. KEINE streaming/events erfinden — lieber weglassen als halluzinieren
 
 ## Dateien
 

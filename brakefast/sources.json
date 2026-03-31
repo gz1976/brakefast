@@ -62,6 +62,18 @@
       ]
     },
     {
+      "id": "knapp",
+      "name": "KNAPP & Intralogistik",
+      "emoji": "\ud83d\udce6",
+      "css_class": "category-header--knapp",
+      "feeds": [
+        {"url": "https://logistik-watchblog.de/feed", "name": "Logistik Watchblog", "maxItems": 4},
+        {"url": "https://www.supplychaindive.com/feeds/news/", "name": "Supply Chain Dive", "maxItems": 3},
+        {"url": "https://www.logistik-heute.de/rss.xml", "name": "Logistik Heute", "maxItems": 3},
+        {"url": "https://www.knapp.com/feed/", "name": "KNAPP AG", "maxItems": 3}
+      ]
+    },
+    {
       "id": "local",
       "name": "Steiermark & Lokal",
       "emoji": "\ud83c\udfd4",
@@ -74,7 +86,7 @@
     }
   ],
   "settings": {
-    "maxArticlesTotal": 42,
+    "maxArticlesTotal": 46,
     "maxArticlesPerCategory": 8,
     "language": "de",
     "summaryWords": 200,

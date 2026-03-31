@@ -48,6 +48,7 @@ CATEGORY_META = {
     "tech":     {"name": "Tech & Dev",             "emoji": "\U0001f4bb", "css_class": "category-header--tech"},
     "ev":       {"name": "Elektromobilit\u00e4t",  "emoji": "\u26a1",     "css_class": "category-header--ev"},
     "world":    {"name": "Welt & Politik",         "emoji": "\U0001f30d", "css_class": "category-header--world"},
+    "knapp":    {"name": "KNAPP & Intralogistik",   "emoji": "\U0001f4e6", "css_class": "category-header--knapp"},
     "local":    {"name": "Steiermark & Lokal",     "emoji": "\U0001f3d4", "css_class": "category-header--local"},
 }
 
