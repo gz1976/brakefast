@@ -100,12 +100,6 @@ export function BrakeFastApp({
       />
 
       <NavTabs sections={sections} activeId={activeId} onNavigate={scrollTo} />
-      <TimeMachineBar
-        archiveEditions={archiveEditions}
-        selectedEdition={selectedEdition}
-        onGoToLatest={onGoToLatest}
-        onGoToEdition={onGoToEdition}
-      />
 
       <div className="container" id="main-content">
         {/* First Screen: Hero + Morning Tiles fill iPad viewport */}
@@ -235,6 +229,12 @@ export function BrakeFastApp({
           </ErrorBoundary>
         )}
 
+        <TimeMachineBar
+          archiveEditions={archiveEditions}
+          selectedEdition={selectedEdition}
+          onGoToLatest={onGoToLatest}
+          onGoToEdition={onGoToEdition}
+        />
       </div>
 
       <Footer
