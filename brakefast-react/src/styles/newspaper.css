@@ -536,17 +536,15 @@ a { color: inherit; text-decoration: none; }
   flex-shrink: 0;
 }
 
-/* Termine gets more space, Dieser Tag stays compact */
+/* Termine and Dieser Tag share remaining space */
 .status-card-calendar {
-  flex: 2 1 0;
+  flex: 1 1 auto;
   min-height: 0;
-  overflow: hidden;
 }
 
 .status-card-history {
-  flex: 1 1 0;
+  flex: 1 1 auto;
   min-height: 0;
-  overflow: hidden;
 }
 
 .status-card {

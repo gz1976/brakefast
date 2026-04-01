@@ -94,6 +94,18 @@ def validate_image_url(url):
     for pattern in skip_patterns:
         if pattern in url_lower:
             return None
+    # Fix double-domain URLs (e.g. teslamag.de/teslamag.de/wp-content/...)
+    try:
+        from urllib.parse import urlparse
+        parsed = urlparse(url)
+        if parsed.hostname and parsed.path.startswith('/' + parsed.hostname):
+            url = parsed.scheme + '://' + parsed.hostname + parsed.path[len('/' + parsed.hostname):]
+            print(f"    Fixed double-domain URL: {url[:80]}", file=sys.stderr)
+    except Exception:
+        pass
+    # Skip YouTube embeds
+    if '/embed/' in url:
+        return None
     return url
 
 def extract_image_from_item(item, feed_type):
