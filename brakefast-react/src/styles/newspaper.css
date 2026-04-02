@@ -536,13 +536,13 @@ a { color: inherit; text-decoration: none; }
   flex-shrink: 0;
 }
 
-/* Termine gets more space, Dieser Tag stays compact */
-.status-card-calendar {
-  flex: 2 1 0;
-  min-height: 0;
+/* Dieser Tag — fixed size for 3 items with images */
+.status-card-history {
+  flex: 0 0 auto;
 }
 
-.status-card-history {
+/* Termine — fills remaining space */
+.status-card-calendar {
   flex: 1 1 0;
   min-height: 0;
 }
@@ -751,10 +751,9 @@ a { color: inherit; text-decoration: none; }
 .status-card-history-list {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  margin-top: 4px;
+  gap: 12px;
+  margin-top: 6px;
   flex: 1;
-  overflow: hidden;
 }
 
 /* ─── Compact Status Cards ─── */
@@ -1172,31 +1171,31 @@ a { color: inherit; text-decoration: none; }
 
 .status-card-history-item {
   display: flex;
-  gap: 8px;
-  font-size: 11px;
+  gap: 10px;
+  font-size: 13px;
   color: var(--text-secondary);
-  line-height: 1.3;
-  align-items: flex-start;
+  line-height: 1.4;
+  align-items: center;
 }
 
 .history-item-image,
 .status-card-history-thumb {
-  width: 40px;
-  height: 40px;
+  width: 38px;
+  height: 38px;
   border-radius: 6px;
   object-fit: cover;
   flex-shrink: 0;
 }
 
 .history-year-badge {
-  width: 40px;
-  height: 40px;
+  width: 38px;
+  height: 38px;
   border-radius: 6px;
   background: linear-gradient(135deg, var(--accent-purple), rgba(155, 117, 250, 0.4));
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 700;
   color: #fff;
   flex-shrink: 0;
@@ -1204,7 +1203,7 @@ a { color: inherit; text-decoration: none; }
 
 .status-card-history-text {
   display: -webkit-box;
-  -webkit-line-clamp: 2;
+  -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
   flex: 1;
@@ -1520,7 +1519,7 @@ a { color: inherit; text-decoration: none; }
 .morning-tile-media       { border-top: 3px solid var(--accent-cyan); }
 .morning-tile-word        { border-top: 3px solid var(--accent-purple); }
 .morning-tile-quote       { border-top: 3px solid var(--accent-orange); }
-.morning-tile-bauernregel { border-top: 3px solid var(--accent-pink); }
+.morning-tile-events      { border-top: 3px solid var(--accent-pink); }
 
 .morning-tile-header {
   display: flex;
@@ -1542,7 +1541,7 @@ a { color: inherit; text-decoration: none; }
 .morning-tile-media       .morning-tile-label { color: var(--accent-cyan); }
 .morning-tile-word        .morning-tile-label { color: var(--accent-purple); }
 .morning-tile-quote       .morning-tile-label { color: var(--accent-orange); }
-.morning-tile-bauernregel .morning-tile-label { color: var(--accent-pink); }
+.morning-tile-events      .morning-tile-label { color: var(--accent-pink); }
 
 .morning-tile-body { flex: 1; }
 
@@ -1759,17 +1758,160 @@ a { color: inherit; text-decoration: none; }
   margin-top: 6px;
 }
 
-/* ─── Bauernregel Tile ─── */
-.morning-tile-bauernregel-text {
-  font-style: italic;
-  font-size: 13px;
-  color: var(--text-primary);
-  line-height: 1.4;
+/* ─── Events Tile ─── */
+.morning-tile-events-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
-.morning-tile-bauernregel-meaning {
-  font-size: 11px;
+.morning-tile-event-item {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.morning-tile-event-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1.3;
+}
+.morning-tile-event-title::before {
+  content: '• ';
+  color: var(--accent-pink);
+}
+.morning-tile-event-meta {
+  font-size: 10px;
   color: var(--text-muted);
-  margin-top: 4px;
+  padding-left: 10px;
+}
+
+/* ─── Weather Modal ─── */
+.weather-modal {
+  max-width: 420px;
+  padding: 32px;
+  text-align: center;
+}
+.weather-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-bottom: 8px;
+}
+.weather-modal-icon {
+  font-size: 48px;
+}
+.weather-modal-temp {
+  font-size: 48px;
+  font-weight: 800;
+  color: var(--text-primary);
+  font-family: var(--font-display);
+}
+.weather-modal-location {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+.weather-modal-desc {
+  font-size: 14px;
+  color: var(--text-muted);
+  margin-bottom: 24px;
+}
+.weather-modal-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  gap: 10px;
+}
+.weather-modal-card {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+  padding: 14px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: center;
+}
+.weather-modal-card-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+}
+.weather-modal-card-value {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+/* ─── Pollen Modal ─── */
+.pollen-modal {
+  max-width: 400px;
+  padding: 32px;
+  text-align: center;
+}
+.pollen-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.pollen-modal-icon {
+  font-size: 32px;
+}
+.pollen-modal-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text-primary);
+  font-family: var(--font-display);
+}
+.pollen-modal-level {
+  display: inline-block;
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  padding: 8px 24px;
+  border-radius: 20px;
+  margin-bottom: 20px;
+}
+.pollen-modal-level-niedrig { background: rgba(76, 175, 80, 0.2); color: #66bb6a; }
+.pollen-modal-level-niedrig-mittel { background: rgba(156, 204, 101, 0.2); color: #9ccc65; }
+.pollen-modal-level-mittel { background: rgba(255, 193, 7, 0.2); color: #ffc107; }
+.pollen-modal-level-mittel-hoch { background: rgba(255, 152, 0, 0.2); color: #ff9800; }
+.pollen-modal-level-hoch { background: rgba(244, 67, 54, 0.2); color: #f44336; }
+.pollen-modal-level-unbekannt { background: rgba(158, 158, 158, 0.2); color: #9e9e9e; }
+.pollen-modal-types {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+.pollen-modal-tag {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 16px;
+  padding: 6px 14px;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+.pollen-modal-desc {
+  font-size: 14px;
+  color: var(--text-muted);
+  margin-bottom: 16px;
+}
+.pollen-modal-hint {
+  font-size: 12px;
+  color: var(--text-muted);
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 8px;
+  padding: 12px;
+  line-height: 1.5;
+  text-align: left;
 }
 
 /* ═══════════════════════════════════════════

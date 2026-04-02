@@ -46,7 +46,7 @@ export function BrakeFastApp({
   onGoToEdition,
 }: Props) {
   const [selectedArticle, setSelectedArticle] = useState<{ article: Article; categoryId: string } | null>(null);
-  const [calendarRevealed, setCalendarRevealed] = useState(false);
+  const [calendarRevealed, setCalendarRevealed] = useState(true);
   const { markAsRead, isRead, clearAll, readCount } = useReadTracker();
   const [toastMsg, setToastMsg] = useState('');
   const [toastVisible, setToastVisible] = useState(false);

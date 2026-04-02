@@ -98,7 +98,7 @@ function getArchiveIndexUrls(): string[] {
 
 function getDefaultDataUrls(): string[] {
   return import.meta.env.DEV
-    ? ['/latest/data.json', '/local-data.json', '/sample-data.json']
+    ? ['/local-data.json', '/latest/data.json', '/sample-data.json']
     : ['/latest/data.json'];
 }
 

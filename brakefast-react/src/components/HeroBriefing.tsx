@@ -138,17 +138,8 @@ export function HeroBriefing({ data, calendarRevealed, onArticleClick, isRead, m
     });
   };
 
-  const openWeatherModal = () => {
-    if (!weather) return;
-    const pollenLine = pollen && pollen.level !== 'unbekannt'
-      ? `\n\nPollen: ${pollen.level}${pollen.types.length > 0 ? ` (${pollen.types.join(', ')})` : ''}\n${pollen.description || ''}`
-      : pollen?.description ? `\n\nPollen: ${pollen.description}` : '';
-    const windLine = weather.wind ? `\nWind: ${weather.wind}` : '';
-    setModalData({
-      title: `Wetter — ${weather.location || 'Voitsberg'}`,
-      text: `${translateWeather(weather.description)}\n\nTemperatur: ${weather.temp}°C\nGefühlt: ${weather.feelsLike}°C\nMin: ${weather.min}°C / Max: ${weather.max}°C${windLine}${pollenLine}`,
-    });
-  };
+  const [weatherModalOpen, setWeatherModalOpen] = useState(false);
+  const [pollenModalOpen, setPollenModalOpen] = useState(false);
 
   const openHistoryModal = (fact: HistoryFact) => {
     const fallbackText = fact.description
@@ -259,7 +250,7 @@ export function HeroBriefing({ data, calendarRevealed, onArticleClick, isRead, m
         {/* 1. Wetter — quer */}
         <div
           className="status-card status-card-weather status-card-weather-horizontal status-card-clickable"
-          onClick={openWeatherModal}
+          onClick={() => setWeatherModalOpen(true)}
           role="button"
           tabIndex={0}
         >
@@ -298,7 +289,12 @@ export function HeroBriefing({ data, calendarRevealed, onArticleClick, isRead, m
                 </>
               )}
               {pollen && (
-                <div className="weather-metric-card weather-metric-card-pollen">
+                <div
+                  className="weather-metric-card weather-metric-card-pollen status-card-clickable"
+                  onClick={(e) => { e.stopPropagation(); setPollenModalOpen(true); }}
+                  role="button"
+                  tabIndex={0}
+                >
                   <span className="weather-detail-label">Pollen</span>
                   <span className={`pollen-level pollen-level-${pollen.level.toLowerCase()}`}>
                     {pollen.level}
@@ -350,34 +346,7 @@ export function HeroBriefing({ data, calendarRevealed, onArticleClick, isRead, m
           </div>
         </div>
 
-        {/* 3. Termine — immer anzeigen, ggf. mit leerem Zustand */}
-        <div
-          className={`status-card status-card-calendar${!calendarRevealed ? ' status-card-blurred' : ''}`}
-        >
-          <div className="status-card-header-inline">
-            <span className="status-card-icon">📅</span>
-            <span className="status-card-label">Termine</span>
-          </div>
-          {calendarCount > 0 ? (
-            <>
-              <div className="status-card-value-small calendar-blur-target">
-                {calendarCount} heute
-              </div>
-              <div className="status-card-list calendar-blur-target">
-                {calendar.map((ev, i) => (
-                  <div key={i} className="status-card-list-item">
-                    <span className="status-card-list-time">{ev.time}</span>
-                    <span>{ev.title}</span>
-                  </div>
-                ))}
-              </div>
-            </>
-          ) : (
-            <div className="status-card-value-small">Keine Termine heute</div>
-          )}
-        </div>
-
-        {/* 4. Dieser Tag in der Geschichte — clickable with popup */}
+        {/* 3. Dieser Tag in der Geschichte — fixed size, always 3 items */}
         {historyFacts.length > 0 && (
           <div className="status-card status-card-history">
             <div className="status-card-header-inline">
@@ -411,6 +380,32 @@ export function HeroBriefing({ data, calendarRevealed, onArticleClick, isRead, m
           </div>
         )}
 
+        {/* 4. Termine — fills remaining space */}
+        <div
+          className={`status-card status-card-calendar${!calendarRevealed ? ' status-card-blurred' : ''}`}
+        >
+          <div className="status-card-header-inline">
+            <span className="status-card-icon">📅</span>
+            <span className="status-card-label">Termine</span>
+          </div>
+          {calendarCount > 0 ? (
+            <>
+              <div className="status-card-value-small calendar-blur-target">
+                {calendarCount} heute
+              </div>
+              <div className="status-card-list calendar-blur-target">
+                {calendar.map((ev, i) => (
+                  <div key={i} className="status-card-list-item">
+                    <span className="status-card-list-time">{ev.time}</span>
+                    <span>{ev.title}</span>
+                  </div>
+                ))}
+              </div>
+            </>
+          ) : (
+            <div className="status-card-value-small">Keine Termine heute</div>
+          )}
+        </div>
       </div>
 
       {showBriefing && (
@@ -431,6 +426,74 @@ export function HeroBriefing({ data, calendarRevealed, onArticleClick, isRead, m
           image={modalData.image}
           onClose={() => setModalData(null)}
         />
+      )}
+
+      {weatherModalOpen && weather && (
+        <div className="modal-overlay" onClick={() => setWeatherModalOpen(false)}>
+          <div className="modal-content weather-modal" onClick={e => e.stopPropagation()}>
+            <button className="modal-close" onClick={() => setWeatherModalOpen(false)} aria-label="Schließen">×</button>
+            <div className="weather-modal-header">
+              <span className="weather-modal-icon">{getWeatherEmoji(weather.icon)}</span>
+              <div className="weather-modal-temp">{weather.temp}°C</div>
+            </div>
+            <div className="weather-modal-location">{weather.location || 'Voitsberg'}</div>
+            <div className="weather-modal-desc">{translateWeather(weather.description)}</div>
+            <div className="weather-modal-grid">
+              <div className="weather-modal-card">
+                <span className="weather-modal-card-label">Gefühlt</span>
+                <span className="weather-modal-card-value">{weather.feelsLike}°C</span>
+              </div>
+              <div className="weather-modal-card">
+                <span className="weather-modal-card-label">Minimum</span>
+                <span className="weather-modal-card-value">{weather.min}°C</span>
+              </div>
+              <div className="weather-modal-card">
+                <span className="weather-modal-card-label">Maximum</span>
+                <span className="weather-modal-card-value">{weather.max}°C</span>
+              </div>
+              {weather.wind && (
+                <div className="weather-modal-card">
+                  <span className="weather-modal-card-label">Wind</span>
+                  <span className="weather-modal-card-value">{weather.wind}</span>
+                </div>
+              )}
+              {weather.humidity !== undefined && (
+                <div className="weather-modal-card">
+                  <span className="weather-modal-card-label">Feuchtigkeit</span>
+                  <span className="weather-modal-card-value">{weather.humidity}%</span>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {pollenModalOpen && pollen && (
+        <div className="modal-overlay" onClick={() => setPollenModalOpen(false)}>
+          <div className="modal-content pollen-modal" onClick={e => e.stopPropagation()}>
+            <button className="modal-close" onClick={() => setPollenModalOpen(false)} aria-label="Schließen">×</button>
+            <div className="pollen-modal-header">
+              <span className="pollen-modal-icon">🌿</span>
+              <span className="pollen-modal-title">Pollenflug</span>
+            </div>
+            <div className={`pollen-modal-level pollen-modal-level-${pollen.level.toLowerCase()}`}>
+              {pollen.level.toUpperCase()}
+            </div>
+            {pollen.types.length > 0 && (
+              <div className="pollen-modal-types">
+                {pollen.types.map((t, i) => (
+                  <span key={i} className="pollen-modal-tag">{t}</span>
+                ))}
+              </div>
+            )}
+            {pollen.description && (
+              <div className="pollen-modal-desc">{pollen.description}</div>
+            )}
+            <div className="pollen-modal-hint">
+              💡 Bei Pollenallergie: Lüften nach Regen, Haare waschen vor dem Schlafen, Pollenfilter im Auto prüfen.
+            </div>
+          </div>
+        </div>
       )}
     </section>
   );

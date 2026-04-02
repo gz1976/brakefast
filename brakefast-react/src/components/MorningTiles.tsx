@@ -17,11 +17,11 @@ export function MorningTiles({ data }: Props) {
   const mediaTip = data.morning_tiles?.media_tip;
   const wordOfDay = data.widgets?.word_of_day;
   const quote = data.widgets?.quote;
-  const bauernregel = data.widgets?.bauernregel;
+  const events = data.morning_tiles?.events || [];
   const [modalData, setModalData] = useState<ModalData | null>(null);
 
   // Only render if we have at least one real tile
-  const hasTiles = wordOfDay || mediaTip || quote || bauernregel;
+  const hasTiles = wordOfDay || mediaTip || quote || events.length > 0;
   if (!hasTiles) return null;
 
   return (
@@ -88,16 +88,22 @@ export function MorningTiles({ data }: Props) {
         </div>
       )}
 
-      {/* 4. Bauernregel */}
-      {bauernregel && bauernregel.text && (
-        <div className="morning-tile morning-tile-bauernregel">
+      {/* 4. Events Bezirk Voitsberg */}
+      {events.length > 0 && (
+        <div className="morning-tile morning-tile-events">
           <div className="morning-tile-header">
-            <span className="morning-tile-icon">🌾</span>
-            <span className="morning-tile-label">Bauernregel</span>
+            <span className="morning-tile-icon">🎉</span>
+            <span className="morning-tile-label">Events</span>
           </div>
           <div className="morning-tile-body">
-            <div className="morning-tile-bauernregel-text">„{bauernregel.text}"</div>
-            {bauernregel.meaning && <div className="morning-tile-bauernregel-meaning">{bauernregel.meaning}</div>}
+            <ul className="morning-tile-events-list">
+              {events.slice(0, 4).map((ev, i) => (
+                <li key={i} className="morning-tile-event-item">
+                  <span className="morning-tile-event-title">{ev.title}</span>
+                  <span className="morning-tile-event-meta">{ev.date} · {ev.location}</span>
+                </li>
+              ))}
+            </ul>
           </div>
         </div>
       )}
