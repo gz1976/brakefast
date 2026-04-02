@@ -57,6 +57,41 @@ export function isValidArticleImage(url: string | undefined): boolean {
   return true;
 }
 
+/** Minimum pixel width for lead/hero images */
+const MIN_LEAD_IMAGE_WIDTH = 600;
+/** Minimum pixel width for secondary thumbnails */
+const MIN_THUMB_IMAGE_WIDTH = 120;
+
+/**
+ * Extract pixel width from image URL if encoded (e.g. Wikipedia thumbs: /300px-..., resize params: ?w=200)
+ * Returns null if width cannot be determined from URL alone.
+ */
+function extractWidthFromUrl(url: string): number | null {
+  // Wikipedia thumbnail pattern: /123px-Filename
+  const wikiMatch = url.match(/\/(\d+)px-/);
+  if (wikiMatch) return parseInt(wikiMatch[1], 10);
+
+  // Common resize params: ?w=300, ?width=300, &w=300
+  const paramMatch = url.match(/[?&](?:w|width)=(\d+)/);
+  if (paramMatch) return parseInt(paramMatch[1], 10);
+
+  return null;
+}
+
+/** Check if image URL meets minimum width for a lead/hero image (>=600px) */
+export function isValidLeadImage(url: string | undefined): boolean {
+  if (!isValidArticleImage(url)) return false;
+  const w = extractWidthFromUrl(url!);
+  return w === null || w >= MIN_LEAD_IMAGE_WIDTH;
+}
+
+/** Check if image URL meets minimum width for a thumbnail (>=120px) */
+export function isValidThumbImage(url: string | undefined): boolean {
+  if (!isValidArticleImage(url)) return false;
+  const w = extractWidthFromUrl(url!);
+  return w === null || w >= MIN_THUMB_IMAGE_WIDTH;
+}
+
 // Category-based gradient backgrounds for articles without good images
 const CATEGORY_GRADIENTS: Record<string, string> = {
   ai: 'linear-gradient(135deg, #1a1030 0%, #2d1b69 50%, #4a1d96 100%)',

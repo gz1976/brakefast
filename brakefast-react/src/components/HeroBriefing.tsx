@@ -1,9 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import type { NewspaperData, HistoryFact, Article, WorldHeadline } from '../types';
 import { BriefingModal } from './BriefingModal';
 import { DetailModal } from './DetailModal';
 import { formatHeadline, getArticleTeaser, to24h, translateWeather } from '../utils/textUtils';
-import { getCategoryGradient, getCategoryIcon, isValidArticleImage } from '../utils/imageUtils';
+import { getCategoryGradient, getCategoryIcon, isValidLeadImage } from '../utils/imageUtils';
 import { pickTopStory } from '../utils/scoring';
 
 /** Map text icon names from pipeline to emoji */
@@ -52,7 +52,7 @@ function getCalendarWeek(date: Date): number {
 function TopStoryVisual({ article }: { article: Article }) {
   const [failed, setFailed] = useState(false);
   const categoryId = article.category || 'tech';
-  const valid = isValidArticleImage(article.image) && !failed;
+  const valid = isValidLeadImage(article.image) && !failed;
 
   if (valid) {
     return (
@@ -140,6 +140,21 @@ export function HeroBriefing({ data, calendarRevealed, onArticleClick, isRead, m
 
   const [weatherModalOpen, setWeatherModalOpen] = useState(false);
   const [pollenModalOpen, setPollenModalOpen] = useState(false);
+
+  // Escape key handler for weather/pollen modals
+  const closeWeatherPollen = useCallback((e: KeyboardEvent) => {
+    if (e.key === 'Escape') {
+      if (pollenModalOpen) setPollenModalOpen(false);
+      else if (weatherModalOpen) setWeatherModalOpen(false);
+    }
+  }, [pollenModalOpen, weatherModalOpen]);
+
+  useEffect(() => {
+    if (weatherModalOpen || pollenModalOpen) {
+      document.addEventListener('keydown', closeWeatherPollen);
+      return () => document.removeEventListener('keydown', closeWeatherPollen);
+    }
+  }, [weatherModalOpen, pollenModalOpen, closeWeatherPollen]);
 
   const openHistoryModal = (fact: HistoryFact) => {
     const fallbackText = fact.description
@@ -291,7 +306,7 @@ export function HeroBriefing({ data, calendarRevealed, onArticleClick, isRead, m
               {pollen && (
                 <div
                   className="weather-metric-card weather-metric-card-pollen status-card-clickable"
-                  onClick={(e) => { e.stopPropagation(); setPollenModalOpen(true); }}
+                  onClick={(e) => { e.stopPropagation(); setWeatherModalOpen(false); setPollenModalOpen(true); }}
                   role="button"
                   tabIndex={0}
                 >

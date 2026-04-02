@@ -92,7 +92,7 @@
           "title": "OpenAI sammelt 122 Milliarden Dollar in neuer Finanzierungsrunde",
           "link": "https://openai.com/index/accelerating-the-next-phase-ai",
           "source": "OpenAI Blog",
-          "image": "",
+          "image": "https://techcrunch.com/wp-content/uploads/2026/02/GettyImages-2236544149.jpg",
           "description": "OpenAI schließt mit 122 Milliarden Dollar die größte Finanzierungsrunde der Technologiegeschichte ab und investiert in Compute und globale Expansion.",
           "summary": "OpenAI hat eine historische Finanzierungsrunde über 122 Milliarden Dollar abgeschlossen — die mit Abstand größte in der Geschichte der Technologiebranche. Das Kapital soll in den Aufbau von Next-Generation-Compute-Infrastruktur, die globale Expansion von ChatGPT und Enterprise-AI sowie die Weiterentwicklung von Codex fliessen.\n\nDie Summe unterstreicht, wie ernst Investoren das KI-Rennen nehmen. Zum Vergleich: Die gesamte Marktkapitalisierung vieler DAX-Unternehmen liegt unter diesem Betrag. OpenAI reagiert damit auf die steigende Nachfrage nach GPT-5.4 und dessen Derivaten (Mini, Nano), die in immer mehr Unternehmensanwendungen Einzug halten.\n\nFür die Praxis bedeutet das: OpenAI wird noch aggressiver in den Ausbau der Infrastruktur investieren, was sich in besserer Verfügbarkeit und potenziell sinkenden API-Preisen niederschlagen könnte. Gleichzeitig wächst der Druck auf Google, Anthropic und Meta, mitzuhalten. Die Frage, ob diese Investitionen sich jemals rentieren, bleibt offen — aber die Wette auf AGI wird mit jedem Monat teurer und ambitionierter.",
           "relevance_score": 0.95,
@@ -439,6 +439,15 @@
           "reading_time_minutes": 3,
           "category": "world",
           "date": "2026-04-01"
+        },
+        {
+          "title": "Papst Leo XIV. leitet erstmals Osterfeierlichkeiten im Vatikan",
+          "description": "Nach dem Tod von Papst Franziskus wird erstmals Leo XIV. die Osterfeierlichkeiten im Vatikan leiten. Es werden Hunderttausende Pilger auf dem Petersplatz erwartet.",
+          "source": "Euronews",
+          "link": "https://de.euronews.com/video/2026/04/02/nachrichten-des-tages-2-april-2026-mittagsausgabe",
+          "image": "https://static.euronews.com/articles/stories/09/37/62/22/1200x675_cmsv2_b73a7a20-d1a8-5e4c-a65e-0e36a0e5e8ab-9376222.jpg",
+          "category": "world",
+          "reading_time_minutes": 3
         }
       ]
     },
@@ -595,34 +604,32 @@
     },
     "events": [
       {
-        "title": "Ostermarkt Voitsberg",
-        "date": "Mi, 8. April",
-        "location": "Hauptplatz Voitsberg",
-        "type": "Markt"
+        "title": "Osterfeuer am Pibersteiner See",
+        "date": "Sa, 4. April · 18:00",
+        "location": "Pibersteiner See, Köflach",
+        "type": "Brauchtum",
+        "url": "https://www.koeflach.at/freizeit-tourismus/veranstaltungen.html"
       },
       {
-        "title": "Ostereiersuche Köflach",
-        "date": "Mi, 9. April · 15-17 Uhr",
-        "location": "Köflach Zentrum",
-        "type": "Kinder"
+        "title": "Osterfeuer Bärnbach",
+        "date": "Sa, 4. April · 19:00",
+        "location": "Schlossbad Bärnbach",
+        "type": "Brauchtum",
+        "url": "https://lipizzanerheimat-marktplatz.at/veranstaltungen/"
       },
       {
-        "title": "95 Jahre Stadtkapelle Bärnbach",
-        "date": "Sa, 18. April",
-        "location": "Volkshaus Bärnbach",
-        "type": "Konzert"
+        "title": "Theater: Die Kuscheltier-Entführungen",
+        "date": "So, 5. April · 19:30",
+        "location": "Volksschule Kainach",
+        "type": "Theater",
+        "url": "https://www.meinbezirk.at/event/voitsberg/list"
       },
       {
-        "title": "Kinder-Mountainbike-Rennen",
-        "date": "So, 19. April",
-        "location": "Bezirk Voitsberg",
-        "type": "Sport"
-      },
-      {
-        "title": "Theaterpremiere Lipizzanerheimat",
-        "date": "Sa, 11. April · 19:30",
-        "location": "Pizzburg, Söding",
-        "type": "Theater"
+        "title": "Fleischweihen im Bezirk Voitsberg",
+        "date": "Sa, 4. April · 08:00–16:00",
+        "location": "Kirchen im Bezirk",
+        "type": "Brauchtum",
+        "url": "https://www.meinbezirk.at/voitsberg/c-lokales/331-oesterliche-einsaetze-des-seelsorgeraum-teams_a8559523"
       }
     ]
   },

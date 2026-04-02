@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { Article } from '../types';
-import { isValidArticleImage, getCategoryGradient, getCategoryIcon } from '../utils/imageUtils';
+import { isValidLeadImage, isValidThumbImage, getCategoryGradient, getCategoryIcon } from '../utils/imageUtils';
 import { getArticleTeaser, smartTruncate } from '../utils/textUtils';
 
 interface Props {
@@ -17,7 +17,7 @@ interface Props {
 
 function LeadImage({ src, catId, alt }: { src: string | undefined; catId: string; alt?: string }) {
   const [failed, setFailed] = useState(false);
-  const valid = isValidArticleImage(src) && !failed;
+  const valid = isValidLeadImage(src) && !failed;
 
   if (valid) {
     return <img className="lead-story-img" src={src} alt={alt || ''} loading="lazy" onError={() => setFailed(true)} />;
@@ -32,7 +32,7 @@ function LeadImage({ src, catId, alt }: { src: string | undefined; catId: string
 
 function SecondaryThumb({ src, catId, alt }: { src: string | undefined; catId: string; alt?: string }) {
   const [failed, setFailed] = useState(false);
-  const valid = isValidArticleImage(src) && !failed;
+  const valid = isValidThumbImage(src) && !failed;
 
   if (valid) {
     return <img className="secondary-story-thumb" src={src} alt={alt || ''} loading="lazy" onError={() => setFailed(true)} />;

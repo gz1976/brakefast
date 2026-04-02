@@ -1367,7 +1367,7 @@ a { color: inherit; text-decoration: none; }
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  padding: 20px;
+  padding: 14px 16px;
   cursor: pointer;
   transition: all 0.3s ease;
   flex: 1;
@@ -1375,7 +1375,7 @@ a { color: inherit; text-decoration: none; }
 
 .secondary-story-inner {
   display: flex;
-  gap: 16px;
+  gap: 12px;
 }
 
 .secondary-story-text {
@@ -1384,8 +1384,8 @@ a { color: inherit; text-decoration: none; }
 }
 
 .secondary-story-thumb {
-  width: 80px;
-  height: 80px;
+  width: 64px;
+  height: 64px;
   border-radius: var(--radius-sm);
   object-fit: cover;
   flex-shrink: 0;
@@ -1393,8 +1393,8 @@ a { color: inherit; text-decoration: none; }
 }
 
 .secondary-story-thumb-placeholder {
-  width: 80px;
-  height: 80px;
+  width: 64px;
+  height: 64px;
   border-radius: var(--radius-sm);
   flex-shrink: 0;
   display: flex;
@@ -1406,17 +1406,21 @@ a { color: inherit; text-decoration: none; }
 }
 
 .secondary-story-title {
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 600;
-  line-height: 1.35;
+  line-height: 1.3;
   color: var(--text-primary);
-  margin-bottom: 8px;
+  margin-bottom: 4px;
 }
 
 .secondary-story-excerpt {
-  font-size: 13px;
-  line-height: 1.5;
+  font-size: 12px;
+  line-height: 1.4;
   color: var(--text-secondary);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 /* Category Badges */
@@ -1787,6 +1791,45 @@ a { color: inherit; text-decoration: none; }
   color: var(--text-muted);
   padding-left: 10px;
 }
+.morning-tile-empty {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-style: italic;
+}
+.morning-tile-event-link {
+  text-decoration: none;
+  color: var(--text-primary);
+  cursor: pointer;
+}
+.morning-tile-event-link:hover {
+  color: var(--accent-pink);
+}
+.morning-tile-event-unverified {
+  opacity: 0.6;
+}
+.morning-tile-event-disclaimer {
+  font-size: 9px;
+  color: var(--text-muted);
+  font-style: italic;
+  margin-top: 4px;
+  padding-left: 10px;
+  list-style: none;
+}
+
+/* ─── Media Tips List (multiple items) ─── */
+.morning-tile-media-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.morning-tile-media-list .morning-tile-media-content {
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+.morning-tile-media-list .morning-tile-media-content:last-child {
+  padding-bottom: 0;
+  border-bottom: none;
+}
 
 /* ─── Weather Modal ─── */
 .weather-modal {
@@ -2029,7 +2072,7 @@ a { color: inherit; text-decoration: none; }
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   padding: 20px;
-  align-items: stretch;
+  align-items: start;
 }
 
 /* Tech Hub detail cards (KI Modelle / Dev Digest) */
@@ -2219,6 +2262,12 @@ a { color: inherit; text-decoration: none; }
   max-height: 360px;
   object-fit: cover;
   border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+}
+
+.modal-image-logo {
+  object-fit: contain;
+  background: rgba(240, 240, 245, 0.92);
+  padding: 24px;
 }
 
 .modal-body { padding: 28px 32px 32px; }
@@ -2971,10 +3020,8 @@ a { color: inherit; text-decoration: none; }
   gap: 3px;
 }
 .word-of-day-term {
-  font-family: 'Playfair Display', serif;
   font-size: 15px;
   font-weight: 700;
-  font-style: italic;
   color: var(--accent-purple);
 }
 .word-of-day-explanation {
@@ -2984,6 +3031,12 @@ a { color: inherit; text-decoration: none; }
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.word-of-day-origin {
+  font-size: 11px;
+  line-height: 1.35;
+  color: var(--text-muted);
   overflow: hidden;
 }
 

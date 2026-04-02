@@ -305,6 +305,7 @@ export interface MorningTilesData {
   streaming?: StreamingTip[];
   events?: LocalEvent[];
   media_tip?: MediaTip;
+  media_tips?: MediaTip[];
 }
 
 export interface ArchiveEdition {

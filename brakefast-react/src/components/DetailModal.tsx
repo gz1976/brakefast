@@ -25,7 +25,7 @@ export function DetailModal({ title, text, html, source, url, image, onClose }: 
 
         {image && !imgFailed && (
           <img
-            className="modal-image"
+            className={`modal-image${/\.svg[./]|logo|icon|flag/i.test(image) ? ' modal-image-logo' : ''}`}
             src={image}
             alt={title}
             onError={() => setImgFailed(true)}
