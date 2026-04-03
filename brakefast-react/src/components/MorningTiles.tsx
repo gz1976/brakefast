@@ -108,15 +108,19 @@ export function MorningTiles({ data }: Props) {
           {verifiedEvents.length > 0 ? (
             <ul className="morning-tile-events-list">
               {verifiedEvents.slice(0, 3).map((ev, i) => (
-                <li key={i} className="morning-tile-event-item">
-                  <a
-                    className="morning-tile-event-title morning-tile-event-link"
-                    href={ev.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    {ev.title}
-                  </a>
+                <li
+                  key={i}
+                  className="morning-tile-event-item morning-tile-event-clickable"
+                  onClick={() => setModalData({
+                    title: ev.title,
+                    text: `📅 ${ev.date}\n📍 ${ev.location}${ev.type ? `\n🏷️ ${ev.type}` : ''}`,
+                    source: ev.url ? new URL(ev.url).hostname.replace('www.', '') : undefined,
+                    url: ev.url,
+                  })}
+                  role="button"
+                  tabIndex={0}
+                >
+                  <span className="morning-tile-event-title">{ev.title}</span>
                   <span className="morning-tile-event-meta">{ev.date} · {ev.location}</span>
                 </li>
               ))}
