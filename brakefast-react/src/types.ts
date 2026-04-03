@@ -161,6 +161,7 @@ export interface PollenData {
   types: string[];
   description: string;
   updated?: string;
+  detail?: Array<{ name: string; level: number }>;
 }
 
 // ─── Word of Day ───

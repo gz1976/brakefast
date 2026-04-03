@@ -483,7 +483,17 @@ export function HeroBriefing({ data, calendarRevealed, onArticleClick, isRead, m
         </div>
       )}
 
-      {pollenModalOpen && pollen && (
+      {pollenModalOpen && pollen && (() => {
+        // Build bar chart data from pollen_detail or fallback from types + level
+        const levelToValue: Record<string, number> = { keine: 0, niedrig: 1, gering: 1, mittel: 2, maessig: 2, mäßig: 2, hoch: 3, stark: 4, sehr_hoch: 5 };
+        const defaultValue = levelToValue[pollen.level.toLowerCase()] || 1;
+        const pollenBars = pollen.detail
+          ? pollen.detail.map((d: { name: string; level: number }) => ({ name: d.name, value: d.level }))
+          : pollen.types.map(t => ({ name: t, value: defaultValue }));
+        const barColor = (v: number) => v <= 1 ? '#51cf66' : v <= 2 ? '#fcc419' : v <= 3 ? '#ff922b' : '#ff6b6b';
+        const barLabel = (v: number) => v === 0 ? 'keine' : v === 1 ? 'niedrig' : v === 2 ? 'mittel' : v === 3 ? 'hoch' : v === 4 ? 'stark' : 'sehr hoch';
+
+        return (
         <div className="modal-overlay" onClick={() => setPollenModalOpen(false)}>
           <div className="modal-content pollen-modal" onClick={e => e.stopPropagation()}>
             <button className="modal-close" onClick={() => setPollenModalOpen(false)} aria-label="Schließen">×</button>
@@ -494,13 +504,20 @@ export function HeroBriefing({ data, calendarRevealed, onArticleClick, isRead, m
             <div className={`pollen-modal-level pollen-modal-level-${pollen.level.toLowerCase()}`}>
               {pollen.level.toUpperCase()}
             </div>
-            {pollen.types.length > 0 && (
-              <div className="pollen-modal-types">
-                {pollen.types.map((t, i) => (
-                  <span key={i} className="pollen-modal-tag">{t}</span>
-                ))}
-              </div>
-            )}
+            <div className="pollen-modal-chart">
+              {pollenBars.map((bar: { name: string; value: number }, i: number) => (
+                <div key={i} className="pollen-bar-row">
+                  <span className="pollen-bar-label">{bar.name}</span>
+                  <div className="pollen-bar-track">
+                    <div
+                      className="pollen-bar-fill"
+                      style={{ width: `${(bar.value / 5) * 100}%`, background: barColor(bar.value) }}
+                    />
+                  </div>
+                  <span className="pollen-bar-value">{barLabel(bar.value)}</span>
+                </div>
+              ))}
+            </div>
             {pollen.description && (
               <div className="pollen-modal-desc">{pollen.description}</div>
             )}
@@ -509,7 +526,8 @@ export function HeroBriefing({ data, calendarRevealed, onArticleClick, isRead, m
             </div>
           </div>
         </div>
-      )}
+        );
+      })()}
     </section>
   );
 }

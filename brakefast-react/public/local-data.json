@@ -49,7 +49,29 @@
         "Hasel",
         "Erle"
       ],
-      "description": "Geringe Belastung durch Frühblüher"
+      "description": "Geringe Belastung durch Frühblüher",
+      "detail": [
+        {
+          "name": "Hasel",
+          "level": 1
+        },
+        {
+          "name": "Erle",
+          "level": 1
+        },
+        {
+          "name": "Birke",
+          "level": 2
+        },
+        {
+          "name": "Esche",
+          "level": 0
+        },
+        {
+          "name": "Gräser",
+          "level": 0
+        }
+      ]
     },
     "vps": {
       "disk": "21% von 96 GB",
