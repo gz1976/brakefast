@@ -75,6 +75,14 @@ function extractWidthFromUrl(url: string): number | null {
   const paramMatch = url.match(/[?&](?:w|width)=(\d+)/);
   if (paramMatch) return parseInt(paramMatch[1], 10);
 
+  // imgproxy/DerStandard pattern: rs:fill:WIDTH:HEIGHT or rs:fit:WIDTH:HEIGHT
+  const rsMatch = url.match(/rs:(?:fill|fit):(\d+):/);
+  if (rsMatch) return parseInt(rsMatch[1], 10);
+
+  // Generic /NUMBERx or xNUMBER dimension patterns in path
+  const dimMatch = url.match(/\/(\d{2,4})x\d{0,4}\//);
+  if (dimMatch) return parseInt(dimMatch[1], 10);
+
   return null;
 }
 
