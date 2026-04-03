@@ -60,26 +60,24 @@ export function MorningTiles({ data }: Props) {
           <div className="morning-tile-body">
             <div className="morning-tile-media-list">
               {mediaTips.slice(0, 3).map((tip, i) => (
-                <span
-                  key={i}
-                  className={`morning-tile-link morning-tile-link-enhanced morning-tile-media-content${tip.url ? ' morning-tile-clickable' : ''}`}
-                  onClick={() => tip.url
-                    ? window.open(tip.url, '_blank', 'noopener,noreferrer')
-                    : undefined
-                  }
-                  role={tip.url ? 'button' : undefined}
-                  tabIndex={tip.url ? 0 : undefined}
-                >
-                  {tip.type && tip.type.toLowerCase() !== 'podcast' && (
-                    <div className="morning-tile-media-type">{tip.type}</div>
-                  )}
+                <div key={i} className="morning-tile-media-content">
                   <div className="morning-tile-media-title">{tip.title}</div>
                   <div className="morning-tile-media-meta">
                     {tip.source}
                     {tip.duration && ` · ${tip.duration}`}
+                    {tip.url && (
+                      <a
+                        className="morning-tile-media-link"
+                        href={tip.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={e => e.stopPropagation()}
+                      >
+                        ▶
+                      </a>
+                    )}
                   </div>
-                  {tip.url && <span className="morning-tile-arrow">→</span>}
-                </span>
+                </div>
               ))}
             </div>
           </div>

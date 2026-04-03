@@ -173,25 +173,25 @@
     ],
     "media_tips": [
       {
-        "title": "The US-China AI War: Who's Really Winning?",
+        "title": "Gemma 4 vs. Llama 4: Open-Source KI im Vergleich",
         "type": "Podcast",
         "source": "All-In Podcast",
+        "duration": "1h 20m",
+        "url": "https://www.youtube.com/@alaborateinc"
+      },
+      {
+        "title": "Apple Intelligence 2.0: Was kommt zur WWDC?",
+        "type": "Podcast",
+        "source": "Bits und so",
         "duration": "1h 45m",
-        "url": "https://www.youtube.com/@allin"
+        "url": "https://www.bitsundso.de/"
       },
       {
-        "title": "Logbuch Netzpolitik #492",
+        "title": "Cursor 3 und die Zukunft der Code-Agenten",
         "type": "Podcast",
-        "source": "Logbuch Netzpolitik",
-        "duration": "2h 10m",
-        "url": "https://logbuch-netzpolitik.de/"
-      },
-      {
-        "title": "CVE-2026-DeepDive: Next.js Exploit Analysis",
-        "type": "Podcast",
-        "source": "Darknet Diaries",
+        "source": "Changelog",
         "duration": "55m",
-        "url": "https://darknetdiaries.com/"
+        "url": "https://changelog.com/podcast"
       }
     ]
   },
