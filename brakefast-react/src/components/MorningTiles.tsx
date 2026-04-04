@@ -22,8 +22,6 @@ export function MorningTiles({ data }: Props) {
   const events = data.morning_tiles?.events || [];
   const [modalData, setModalData] = useState<ModalData | null>(null);
 
-  // Filter events: only show those with a url (verified source)
-  const verifiedEvents = events.filter(ev => ev.url);
 
   // Only render if we have at least one real tile
   const hasTiles = wordOfDay || mediaTips.length > 0 || quote || events.length > 0;
@@ -59,23 +57,23 @@ export function MorningTiles({ data }: Props) {
           </div>
           <div className="morning-tile-body">
             <div className="morning-tile-media-list">
-              {mediaTips.slice(0, 3).map((tip, i) => (
-                <div key={i} className="morning-tile-media-content">
+              {mediaTips.slice(0, 2).map((tip, i) => (
+                <div
+                  key={i}
+                  className="morning-tile-media-content morning-tile-event-clickable"
+                  onClick={() => setModalData({
+                    title: tip.title,
+                    text: `🎙️ ${tip.source}${tip.duration ? ` · ${tip.duration}` : ''}${tip.summary ? `\n\n${tip.summary}` : ''}`,
+                    source: tip.url ? (() => { try { return new URL(tip.url!).hostname.replace('www.', ''); } catch { return tip.source; } })() : tip.source,
+                    url: tip.url,
+                  })}
+                  role="button"
+                  tabIndex={0}
+                >
                   <div className="morning-tile-media-title">{tip.title}</div>
                   <div className="morning-tile-media-meta">
                     {tip.source}
                     {tip.duration && ` · ${tip.duration}`}
-                    {tip.url && (
-                      <a
-                        className="morning-tile-media-link"
-                        href={tip.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        onClick={e => e.stopPropagation()}
-                      >
-                        ▶
-                      </a>
-                    )}
                   </div>
                 </div>
               ))}
@@ -105,16 +103,16 @@ export function MorningTiles({ data }: Props) {
           <span className="morning-tile-label">Events</span>
         </div>
         <div className="morning-tile-body">
-          {verifiedEvents.length > 0 ? (
+          {events.length > 0 ? (
             <ul className="morning-tile-events-list">
-              {verifiedEvents.slice(0, 3).map((ev, i) => (
+              {events.slice(0, 2).map((ev, i) => (
                 <li
                   key={i}
                   className="morning-tile-event-item morning-tile-event-clickable"
                   onClick={() => setModalData({
                     title: ev.title,
-                    text: `📅 ${ev.date}\n📍 ${ev.location}${ev.type ? `\n🏷️ ${ev.type}` : ''}`,
-                    source: ev.url ? new URL(ev.url).hostname.replace('www.', '') : undefined,
+                    text: `📅 ${ev.date}\n📍 ${ev.location}${ev.type ? `\n🏷️ ${ev.type}` : ''}${ev.summary ? `\n\n${ev.summary}` : ''}`,
+                    source: ev.url ? (() => { try { return new URL(ev.url!).hostname.replace('www.', ''); } catch { return ev.source; } })() : ev.source,
                     url: ev.url,
                   })}
                   role="button"

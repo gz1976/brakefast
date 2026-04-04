@@ -281,6 +281,7 @@ export interface MediaTip {
   source: string;     // "Lex Fridman Podcast"
   url?: string;
   duration?: string;  // "2h 15m" or "8 min Lesezeit"
+  summary?: string;   // Beschreibung der Folge/des Inhalts
 }
 
 // ─── Streaming Tip ───
@@ -298,6 +299,8 @@ export interface LocalEvent {
   location: string;
   type?: string;
   url?: string;
+  summary?: string;
+  source?: string;
 }
 
 export interface MorningTilesData {

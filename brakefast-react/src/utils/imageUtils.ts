@@ -76,8 +76,14 @@ function extractWidthFromUrl(url: string): number | null {
   if (paramMatch) return parseInt(paramMatch[1], 10);
 
   // imgproxy/DerStandard pattern: rs:fill:WIDTH:HEIGHT or rs:fit:WIDTH:HEIGHT
+  // Note: DerStandard CDN only serves rs:fill:150:0 — treat these as valid
+  // despite the 150px label (actual image quality is acceptable)
   const rsMatch = url.match(/rs:(?:fill|fit):(\d+):/);
-  if (rsMatch) return parseInt(rsMatch[1], 10);
+  if (rsMatch) {
+    const rsWidth = parseInt(rsMatch[1], 10);
+    if (url.includes('i.ds.at') || url.includes('derstandard')) return null; // skip width check for DS
+    return rsWidth;
+  }
 
   // Generic /NUMBERx or xNUMBER dimension patterns in path
   const dimMatch = url.match(/\/(\d{2,4})x\d{0,4}\//);

@@ -1,12 +1,12 @@
 interface Props {
   date: string;
-  totalArticles: number;
+  totalArticles?: number;
   editionNumber?: number;
   readingTimeTotal?: number;
   onLogoClick?: () => void;
 }
 
-export function Masthead({ date, totalArticles, editionNumber, readingTimeTotal, onLogoClick }: Props) {
+export function Masthead({ date, editionNumber, onLogoClick }: Props) {
   const dateObj = new Date(date);
   const formattedDate = dateObj.toLocaleDateString('de-AT', {
     weekday: 'long',
@@ -37,10 +37,6 @@ export function Masthead({ date, totalArticles, editionNumber, readingTimeTotal,
             <span className="masthead-chip">Ausgabe #{editionNumber}</span>
           )}
           <span className="masthead-chip">{formattedDate}</span>
-          <span className="masthead-chip">{totalArticles} Artikel</span>
-          {readingTimeTotal != null && (
-            <span className="masthead-chip">~{readingTimeTotal} Min. Lesezeit</span>
-          )}
           <button
             className="masthead-chip masthead-reload"
             onClick={() => window.location.reload()}

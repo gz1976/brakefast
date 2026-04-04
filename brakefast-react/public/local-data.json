@@ -1,127 +1,131 @@
 {
-  "generated": "2026-04-03T12:07:00Z",
-  "totalArticles": 42,
-  "edition_number": 317,
-  "reading_time_total": 19,
-  "headline": "Google Gemma 4, Tesla Q1-Zahlen, Quantum-Q-Day rückt näher",
-  "editorial": "Guten Morgen Gerhard! Heute gibt es große Bewegung in der AI-Welt: Google veröffentlicht Gemma 4, während Cursor mit Version 3 den nächsten Schritt in Richtung autonomer Entwicklung wagt. Der Iran-Krieg schickt bereits Schockwellen durch die Tech-Branche – Amazon erhöht die Gebühren für Händler. Und Quantum Computing rückt bedrohlich näher: Google verkürzt die Q-Day-Prognose auf 2029. Zeit für Post-Quantum-Cryptography!",
-  "weather": "Voitsberg: +11 Grad, sonnig, gefühlt +9°C",
+  "generated": "2026-04-04T19:29:27Z",
+  "totalArticles": 38,
+  "edition_number": 320,
+  "reading_time_total": 131,
+  "headline": "Iran-Krise eskaliert, OpenClaw unter Beschuss, Tesla Q1 über Vorjahr",
+  "editorial": "Guten Morgen Gerhard! Heute steht die Iran-Krise im Zentrum: Ein US-Kampfjet wurde abgeschossen, die Suche nach dem zweiten Crewmitglied läuft. In der Tech-Welt sorgt eine Sicherheitslücke in OpenClaw für Aufsehen — direkt relevant für dein Setup. Tesla meldet 6% Wachstum in Q1, bleibt aber unter den Erwartungen. Und in der Steiermark wird es sommerlich: Bis zu 24 Grad am Ostersonntag!",
+  "weather": "Voitsberg: +11°C, bewölkt mit sonnigen Abschnitten, gefühlt +8°C",
   "widgets": {
     "weather": {
       "temp": 11,
-      "description": "Sonnig, leichter Wind",
-      "feelsLike": 9,
-      "min": 0,
-      "max": 11,
-      "icon": "sun",
+      "description": "Bewölkt mit sonnigen Abschnitten",
+      "feelsLike": 8,
+      "min": 1,
+      "max": 13,
+      "icon": "cloud-sun",
       "location": "Voitsberg"
     },
     "dayInfo": {
-      "namenstag": "Richard",
-      "sunrise": "06:36",
-      "sunset": "19:32",
-      "dayLength": "12h 56m"
+      "namenstag": "Isidor",
+      "sunrise": "06:34",
+      "sunset": "19:33",
+      "dayLength": "12h 59m"
     },
     "calendar": [],
     "history": [
       {
         "year": 1860,
         "text": "Der erste Pony-Express-Postreiter startet in St. Joseph, Missouri",
+        "description": "Der Pony-Express war ein als Reiterstafette organisierter Postbeförderungsdienst in den Vereinigten Staaten und für rund ein Jahr die schnellste Postverbindung in Nordamerika. Die über 3200 km lange Route verlief von Saint Joseph und den erschlossenen Siedlungsgebieten in Missouri durch die weitgehend menschenleeren Prärien und über die Rocky Mountains nach Sacramento in Kalifornien.",
         "url": "https://de.wikipedia.org/wiki/Pony_Express",
-        "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f5/Pony-express-statue.jpg/400px-Pony-express-statue.jpg"
+        "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/72/Pony_Express%2760_West_bound_1860.jpg/400px-Pony_Express%2760_West_bound_1860.jpg"
       },
       {
-        "year": 1948,
-        "text": "US-Präsident Truman unterzeichnet den Marshallplan für den Wiederaufbau Westeuropas",
-        "url": "https://de.wikipedia.org/wiki/Marshallplan",
-        "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/24/US-MarshallPlanAid-Logo.svg/400px-US-MarshallPlanAid-Logo.svg.png"
+        "year": 1949,
+        "text": "Gründung der NATO in Washington, D.C.",
+        "description": "Die NATO (North Atlantic Treaty Organization) ist ein Verteidigungsbündnis 32 europäischer und nordamerikanischer Mitgliedstaaten, das dem gemeinsamen Schutz der eigenen Territorien dient und darüber hinaus das Ziel weltweiter politischer Sicherheit und Stabilität verfolgt. Der Nordatlantikvertrag wurde am 4. April 1949 in Washington, D.C. unterzeichnet.",
+        "url": "https://de.wikipedia.org/wiki/NATO",
+        "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/37/Flag_of_NATO.svg/400px-Flag_of_NATO.svg.png"
       },
       {
         "year": 2016,
-        "text": "Panama Papers veröffentlicht – größter Datenleak der Geschichte",
+        "text": "Panama Papers veröffentlicht — größtes Datenleak der Geschichte",
+        "description": "Als Panama Papers werden vertrauliche Unterlagen des panamaischen Offshore-Dienstleisters Mossack Fonseca bezeichnet, die infolge eines 2,6 Terabyte großen Datenlecks am 3. April 2016 an die Öffentlichkeit gelangten. Nach Einschätzung der beteiligten Medien belegen die Unterlagen legale Strategien der Steuervermeidung, aber auch Steuer- und Geldwäschedelikte, den Bruch von UN-Sanktionen sowie andere Straftaten durch Kunden von Mossack Fonseca.",
         "url": "https://de.wikipedia.org/wiki/Panama_Papers",
         "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/40/Countries_implicated_in_the_Panama_Papers.svg/400px-Countries_implicated_in_the_Panama_Papers.svg.png"
       }
     ],
     "pollen": {
-      "level": "niedrig",
+      "level": "mittel",
       "types": [
-        "Hasel",
-        "Erle"
+        "Birke",
+        "Esche",
+        "Gräser"
       ],
-      "description": "Geringe Belastung durch Frühblüher",
+      "description": "Mittlere Belastung durch Birkenpollen, Tendenz steigend",
       "detail": [
         {
-          "name": "Hasel",
+          "name": "Birke",
+          "level": 3
+        },
+        {
+          "name": "Esche",
+          "level": 2
+        },
+        {
+          "name": "Gräser",
           "level": 1
+        },
+        {
+          "name": "Hasel",
+          "level": 0
         },
         {
           "name": "Erle",
           "level": 1
-        },
-        {
-          "name": "Birke",
-          "level": 2
-        },
-        {
-          "name": "Esche",
-          "level": 0
-        },
-        {
-          "name": "Gräser",
-          "level": 0
         }
       ]
     },
     "vps": {
-      "disk": "21% von 96 GB",
+      "disk": "22% von 96 GB",
       "uptime": "99.9%",
       "containers": 3,
-      "lastAudit": "vor 2 Tagen"
+      "lastAudit": "heute"
     },
     "word_of_day": {
-      "word": "Kakistokratie",
-      "meaning": "Herrschaft der schlechtesten oder unwürdigsten Bürger",
-      "example": "Die Kakistokratie führte das einst florierende Unternehmen in den Ruin."
+      "word": "Fernweh",
+      "meaning": "Sehnsucht nach fernen Ländern und Reisen",
+      "example": "Das Fernweh packte ihn beim Anblick der Landkarte."
     },
     "quote": {
-      "text": "Wer die Freiheit aufgibt, um Sicherheit zu gewinnen, wird am Ende beides verlieren.",
-      "author": "Benjamin Franklin"
+      "text": "Wer kämpft, kann verlieren. Wer nicht kämpft, hat schon verloren.",
+      "author": "Bertolt Brecht"
     }
   },
   "morning_tiles": {
     "knapp": {
-      "headline": "Siemens setzt auf KNAPPs AeroBot-System in Karlsruhe",
+      "headline": "Supply-Chain-Risiken durch geopolitische Spannungen steigen",
       "signals": [
         {
-          "text": "KiSoft connect: KNAPP erweitert Partnerprogramm für Software-Lösungen",
-          "source": "KNAPP AG"
-        },
-        {
-          "text": "KNAPP Coding Contest 2026: Über 100 Teilnehmer zeigten ihr Können",
-          "source": "KNAPP AG"
-        },
-        {
-          "text": "Lufthansa feiert 100-jähriges Jubiläum – Meilenstein für Luftfracht",
+          "text": "Digitaler Einkauf: BME-Masterclass zeigt Zukunftstrends",
           "source": "Logistik Heute"
+        },
+        {
+          "text": "CeiliX setzt bei Beschaffung auf Facturee-Plattform",
+          "source": "Logistik Heute"
+        },
+        {
+          "text": "FedEx/UPS: Strategien zur Senkung der Treibstoffzuschläge",
+          "source": "Supply Chain Dive"
         }
       ]
     },
     "headlines": [
       {
-        "text": "Trump droht mit Angriffen auf iranische Elektrizitätswerke",
+        "text": "Iran setzt neues Luftabwehrsystem gegen US-Kampfjet ein",
         "source": "Der Standard",
-        "summary": "Nach Angriff auf Brücke im Iran eskaliert der Konflikt weiter. Österreich verweigerte US-Militärflügen den Luftraum."
+        "summary": "Suche nach zweitem Crewmitglied nach US-Kampfjet-Abschuss dauert an. Iran öffnet Straße von Hormus für lebenswichtige Güter."
       },
       {
-        "text": "Google veröffentlicht Gemma 4 Open-Source-Modelle",
-        "source": "DeepMind",
-        "summary": "Neue Generation der Open-Weight-Modelle mit verbesserter Leistung für Entwickler weltweit."
+        "text": "Bekommt Österreich seine erste Bundespräsidentin?",
+        "source": "Der Standard",
+        "summary": "Parteien beratschlagen über Kandidaturen, Meinl-Reisinger und Zadić als überraschende Varianten."
       },
       {
         "text": "Tesla liefert 358.023 Fahrzeuge in Q1 2026",
-        "source": "Tesla",
-        "summary": "6% Wachstum gegenüber Vorjahr, aber unter Analystenerwartungen."
+        "source": "Teslamag",
+        "summary": "6% Wachstum gegenüber Vorjahr, aber leicht unter Analystenerwartungen."
       }
     ],
     "streaming": [
@@ -137,572 +141,505 @@
       },
       {
         "title": "Mickey 17",
-        "platform": "Prime",
+        "platform": "Kino",
         "type": "Film"
       }
     ],
     "events": [
       {
-        "title": "Osterfeuer am Pibersteiner See",
-        "date": "Fr, 4. April · 18:00",
-        "location": "Pibersteiner See, Köflach",
-        "type": "Brauchtum",
-        "url": "https://www.koeflach.at/freizeit-tourismus/veranstaltungen.html"
+        "title": "Die Kuscheltier-Entführungen — Theatergruppe Kainach",
+        "date": "05. April 2026, 19:30",
+        "location": "Volksschule Kainach bei Voitsberg",
+        "source": "meinbezirk.at",
+        "summary": "Theateraufführung der Theatergruppe Kainach in der Volksschule Kainach bei Voitsberg.",
+        "url": "https://www.meinbezirk.at/event/voitsberg/c-konzert-buehne-kino/die-kuscheltier-entfuehrungen-theatergruppe-kainach_e3929104"
       },
       {
-        "title": "Osterfeuer Bärnbach",
-        "date": "Fr, 4. April · 19:00",
-        "location": "Schlossbad Bärnbach",
-        "type": "Brauchtum",
-        "url": "https://lipizzanerheimat-marktplatz.at/veranstaltungen/"
+        "title": "Ausstellung: \"evento\" von Herta Angerer",
+        "date": "bis 30. April 2026",
+        "location": "Arik Brauer Rathaus, Voitsberg",
+        "source": "voitsberg.at",
+        "summary": "Kunstausstellung von Herta Angerer im Arik-Brauer-Rathaus Voitsberg. Noch bis Ende April zu sehen.",
+        "url": "https://www.voitsberg.at/de/veranstaltungen/detail/ausstellung-evento-von-herta-angerer.html"
       },
       {
-        "title": "Fleischweihen im Bezirk Voitsberg",
-        "date": "Sa, 5. April · 08:00–16:00",
-        "location": "Kirchen im Bezirk",
-        "type": "Brauchtum",
-        "url": "https://www.meinbezirk.at/voitsberg/c-lokales/331-oesterliche-einsaetze-des-seelsorgeraum-teams_a8559523"
-      },
-      {
-        "title": "Theater: Die Kuscheltier-Entführungen",
-        "date": "So, 6. April · 19:30",
-        "location": "Volksschule Kainach",
-        "type": "Theater",
-        "url": "https://www.meinbezirk.at/event/voitsberg/list"
+        "title": "Gedenkturnier Ing. Erich Focke",
+        "date": "11. April 2026",
+        "location": "Turnsaal Volksschule Voitsberg",
+        "source": "voitsberg.at",
+        "summary": "Sportliches Gedenkturnier zu Ehren von Ing. Erich Focke im Turnsaal der Volksschule Voitsberg.",
+        "url": "https://www.voitsberg.at/de/veranstaltungen/detail/gedenkturnier-ing-erich-focke.html"
       }
     ],
     "media_tips": [
       {
-        "title": "Gemma 4 vs. Llama 4: Open-Source KI im Vergleich",
+        "title": "Darknet Diaries #171: Melody Fraud",
         "type": "Podcast",
-        "source": "All-In Podcast",
-        "duration": "1h 20m",
-        "url": "https://www.youtube.com/@alaborateinc"
-      },
-      {
-        "title": "Apple Intelligence 2.0: Was kommt zur WWDC?",
-        "type": "Podcast",
-        "source": "Bits und so",
-        "duration": "1h 45m",
-        "url": "https://www.bitsundso.de/"
-      },
-      {
-        "title": "Cursor 3 und die Zukunft der Code-Agenten",
-        "type": "Podcast",
-        "source": "Changelog",
+        "source": "Darknet Diaries",
         "duration": "55m",
-        "url": "https://changelog.com/podcast"
+        "summary": "Wie Streaming-Charts manipuliert werden: Jack Rhysider interviewt Andrew, der auf beiden Seiten des Kampfes gegen betrügerische Streaming-Praktiken gearbeitet hat.",
+        "url": "https://darknetdiaries.com/episode/171/"
+      },
+      {
+        "title": "LNP550: Wes Brot ich ess, des Lied ich sing",
+        "type": "Podcast",
+        "source": "Logbuch Netzpolitik",
+        "duration": "2h 10m",
+        "summary": "Aktuelle Netzpolitik: Chatkontrolle, Social-Media-Sucht, Altersbeschränkungen, biometrische Überwachung, Ransomware und Informationsfreiheit in Berlin.",
+        "url": "https://logbuch-netzpolitik.de/lnp550-wes-brot-ich-ess-des-lied-ich-sing"
       }
     ]
   },
   "categories": {
     "ai": {
       "name": "AI & Machine Learning",
-      "emoji": "🤖",
-      "css_class": "category-header--ai",
       "articles": [
         {
-          "source": "DeepMind",
-          "title": "Google veröffentlicht Gemma 4 Open-Source-Modelle",
-          "link": "https://deepmind.google/models/gemma/gemma-4/",
-          "date": "2. April 2026",
-          "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/23/Google_Search_screenshot_in_2025_%28EN%29.png/960px-Google_Search_screenshot_in_2025_%28EN%29.png",
-          "description": "Googles neue Gemma 4 Modelle bringen deutliche Verbesserungen für Open-Weight-AI.",
-          "summary": "Google hat mit Gemma 4 die nächste Generation seiner Open-Source-Sprachmodelle veröffentlicht. Die neuen Modelle bieten signifikante Leistungssteigerungen im Vergleich zu Gemma 3 und sind für Entwickler weltweit frei verfügbar. Besonders interessant für Gerhard: Die Modelle lassen sich lokal auf Consumer-Hardware betreiben und bieten eine echte Alternative zu OpenAI und Anthropic für datenschutzsensible Anwendungen.",
-          "reading_time_minutes": 3,
-          "relevance_score": 0.9
-        },
-        {
-          "source": "Cursor",
-          "title": "Cursor 3 startet neue Ära der Agent-Driven Development",
-          "link": "https://cursor.com/blog/cursor-3",
-          "date": "2. April 2026",
-          "image": "https://ptht05hbb1ssoooe.public.blob.vercel-storage.com/assets/blog/og/opengraph-new-cursor-no-text-1-.png",
-          "description": "Cursor v3 führt Flotten von autonomen Agenten ein, die parallel arbeiten.",
-          "summary": "Cursor hat Version 3 vorgestellt und definiert damit die dritte Ära der Softwareentwicklung neu. Während wir bisher von manuellem Editieren zu einzelnen Agents gekommen sind, arbeiten nun Flotten von Agents autonom und parallel an Code-Verbesserungen. Für Gerhard bedeutet das: Der Agent kann jetzt wirklich große Refactorings selbstständig durchführen.",
-          "reading_time_minutes": 4,
+          "source": "Ars Technica",
+          "title": "OpenClaw gives users yet another reason to be freaked out about security",
+          "link": "https://arstechnica.com/security/2026/04/heres-why-its-prudent-for-openclaw-users-to-assume-compromise/",
+          "date": "Fri, 03 Apr 2026 20:30:15 +0000",
+          "image": "https://cdn.arstechnica.net/wp-content/uploads/2026/02/bluecrayfish-1152x648.jpg",
+          "description": "For more than a month, security practitioners have been warning about the perils of using OpenClaw, the viral AI agentic tool that has taken the development community by storm. A recently fixed vulnerability provides an object lesson for why.",
+          "summary": "For more than a month, security practitioners have been warning about the perils of using OpenClaw, the viral AI agentic tool that has taken the development community by storm. A recently fixed vulnerability provides an object lesson for why.",
+          "reading_time_minutes": 5,
           "relevance_score": 0.95
         },
         {
-          "source": "GitHub",
-          "title": "GitHub Copilot CLI führt /fleet für parallele Agenten ein",
-          "link": "https://github.blog/ai-and-ml/github-copilot/run-multiple-agents-at-once-with-fleet-in-copilot-cli/",
-          "date": "1. April 2026",
-          "image": "https://github.blog/wp-content/uploads/2026/02/554396112-02305897-302e-435b-862b-616faea6a7f5.png",
-          "description": "Neuer Slash-Command ermöglicht simultane Arbeit mit mehreren Sub-Agenten.",
-          "summary": "GitHub bringt mit /fleet eine revolutionäre Funktion in Copilot CLI: Statt sequentiell arbeitet jetzt ein Orchestrator im Hintergrund, der Aufgaben in unabhängige Arbeitspakete zerlegt und mehrere Agenten parallel losschickt. Für Gerhards Workflow bedeuten das massive Zeiteinsparungen bei Multi-File-Refactorings.",
-          "reading_time_minutes": 3,
-          "relevance_score": 0.85
+          "source": "Ars Technica",
+          "title": "New Rowhammer attacks give complete control of machines running Nvidia GPUs",
+          "link": "https://arstechnica.com/security/2026/04/new-rowhammer-attacks-give-complete-control-of-machines-running-nvidia-gpus/",
+          "date": "Thu, 02 Apr 2026 17:00:11 +0000",
+          "image": "https://cdn.arstechnica.net/wp-content/uploads/2023/07/exploit-vulnerability-security.jpg",
+          "description": "The cost of high-performance GPUs, typically $8,000 or more, means they are frequently shared among dozens of users in cloud environments. Three new attacks demonstrate how a malicious user can gain full root control of a host machine by performing novel Rowhammer attacks on high-performance GPU cards made by Nvidia. The attacks exploit memory hardware’s increasing susceptibility to bit flips, in which 0s stored in memory switch to 1s and vice versa.",
+          "summary": "The cost of high-performance GPUs, typically $8,000 or more, means they are frequently shared among dozens of users in cloud environments. Three new attacks demonstrate how a malicious user can gain full root control of a host machine by performing novel Rowhammer attacks on high-performance GPU ...",
+          "reading_time_minutes": 5,
+          "relevance_score": 0.75
         },
         {
-          "source": "OpenAI",
-          "title": "OpenAI übernimmt TBPN für Medien-Expansion",
-          "link": "https://openai.com/index/openai-acquires-tbpn",
-          "date": "2. April 2026",
-          "image": "https://techcrunch.com/wp-content/uploads/2026/04/Jordi_Hays_and_John_Coogan_on_set_2_1.webp",
-          "description": "Übernahme soll Dialog mit Tech-Community und Unternehmen vertiefen.",
-          "summary": "OpenAI hat TBPN übernommen, ein Medien- und Verlagsunternehmen. Offiziell soll das den Dialog mit der Tech-Community vertiefen – klarer ist aber das Ziel: OpenAI braucht qualitativ hochwertige Trainingsdaten und journalistische Inhalte.",
-          "reading_time_minutes": 2,
-          "relevance_score": 0.6
+          "source": "Ars Technica",
+          "title": "Google bumps up Q Day deadline to 2029, far sooner than previously thought",
+          "link": "https://arstechnica.com/security/2026/03/google-bumps-up-q-day-estimate-to-2029-far-sooner-than-previously-thought/",
+          "date": "Wed, 25 Mar 2026 15:49:17 +0000",
+          "image": "https://cdn.arstechnica.net/wp-content/uploads/2025/07/GettyImages-1952157610-1152x648-1753386930.jpg",
+          "description": "Google is dramatically shortening its readiness deadline for the arrival of Q Day, the point at which existing quantum computers can break public-key cryptography algorithms that secure decades' worth of secrets belonging to militaries, banks, governments, and nearly every individual on earth. In a post published on Wednesday, Google said it is giving itself until 2029 to prepare for this event.",
+          "summary": "Google is dramatically shortening its readiness deadline for the arrival of Q Day, the point at which existing quantum computers can break public-key cryptography algorithms that secure decades' worth of secrets belonging to militaries, banks, governments, and nearly every individual on earth. In...",
+          "reading_time_minutes": 5,
+          "relevance_score": 0.75
         },
         {
-          "source": "Google AI",
-          "title": "Gemini API: Neue Flex- und Priority-Tiers für Kostensenkung",
+          "source": "Google AI Blog",
+          "title": "New ways to balance cost and reliability in the Gemini API",
           "link": "https://blog.google/innovation-and-ai/technology/developers-tools/introducing-flex-and-priority-inference/",
-          "date": "2. April 2026",
+          "date": "Thu, 02 Apr 2026 16:00:00 +0000",
           "image": "https://storage.googleapis.com/gweb-uniblog-publish-prod/images/cost_reliability_Gemini_API-soc.max-600x600.format-webp.webp",
-          "description": "Google führt zwei neue Inference-Stufen für bessere Kosten-Latenz-Balance ein.",
-          "summary": "Die Gemini API bekommt zwei neue Preisstufen: Flex und Priority. Flex bietet reduzierte Preise für latency-tolerante Workloads, während Priority garantierte Antwortzeiten für Produktionsanwendungen verspricht.",
-          "reading_time_minutes": 2,
-          "relevance_score": 0.8
-        },
-        {
-          "source": "OpenAI",
-          "title": "Codex bekommt Pay-as-you-go Preise für Teams",
-          "link": "https://openai.com/index/codex-flexible-pricing-for-teams",
-          "date": "2. April 2026",
-          "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b6/Gutenberg_Bible%2C_Lenox_Copy%2C_New_York_Public_Library%2C_2009._Pic_01.jpg/960px-Gutenberg_Bible%2C_Lenox_Copy%2C_New_York_Public_Library%2C_2009._Pic_01.jpg",
-          "description": "ChatGPT Business und Enterprise erhalten flexible Preisoptionen.",
-          "summary": "OpenAI führt für Codex nutzungsbasierte Preise in Business- und Enterprise-Tarifen ein. Unternehmen können damit flexibler mit AI-Entwicklungsressourcen planen, ohne feste Commitments eingehen zu müssen.",
-          "reading_time_minutes": 2,
-          "relevance_score": 0.7
-        }
-      ]
-    },
-    "knapp": {
-      "name": "KNAPP & Intralogistik",
-      "emoji": "📦",
-      "css_class": "category-header--knapp",
-      "articles": [
-        {
-          "source": "KNAPP AG",
-          "title": "Siemens setzt auf KNAPPs AeroBot in Karlsruhe",
-          "link": "https://www.knapp.com/newsroom/presse/lagerrobotik-system-aerobot-entsteht-bei-siemens-karlsruhe/",
-          "date": "24. Februar 2026",
-          "image": "https://www.knapp.com/wp-content/uploads/socialmedia_siemens_karlsruhe_aerobot-1024x576.jpg",
-          "description": "Innovatives Lagerrobotik-System erhöht Automatisierungsgrad bei Siemens.",
-          "summary": "Siemens erweitert am Standort Karlsruhe seine Lagerkapazitäten und vertraut dabei auf KNAPPs AeroBot-System. Das innovative Lagerrobotik-System wird den Automatisierungsgrad erheblich steigern und interne Logistikprozesse optimieren. Siemens zählt damit zu den ersten Unternehmen in Deutschland, die diese Technologie einsetzen.",
-          "reading_time_minutes": 3,
-          "relevance_score": 0.95
-        },
-        {
-          "source": "KNAPP AG",
-          "title": "KiSoft connect: Neues Partnerprogramm gestartet",
-          "link": "https://www.knapp.com/newsroom/presse/software-partnerprogramm-kisoft-connect/",
-          "date": "16. März 2026",
-          "image": "https://www.knapp.com/wp-content/uploads/knapp-begruesst-den-neuen-kisoft-connect-partner-t3-otomasyon-am-standort-hart-1.jpg",
-          "description": "Partnerprogramm für Software-Lösungen in der Logistikbranche.",
-          "summary": "Mit KiSoft connect startet KNAPP ein neues Partnerprogramm für Software-Lösungen in der Logistikbranche. Das Programm richtet sich an Unternehmen, die bewährte Softwarelösungen eigenständig vermarkten, vertreiben und implementieren möchten.",
+          "description": "Google is introducing two new inference tiers to the Gemini API, Flex and Priority, to balance cost and latency.",
+          "summary": "Google is introducing two new inference tiers to the Gemini API, Flex and Priority, to balance cost and latency.",
           "reading_time_minutes": 2,
           "relevance_score": 0.85
         },
         {
-          "source": "KNAPP AG",
-          "title": "KNAPP Coding Contest 2026 mit über 100 Teilnehmern",
-          "link": "https://www.knapp.com/newsroom/presse/das-war-der-knapp-coding-contest-2026/",
-          "date": "2. März 2026",
-          "image": "https://www.knapp.com/wp-content/uploads/knapp-coding-contest-2026-1024x683.jpg",
-          "description": "14. Coding Contest in Hart bei Graz zeigt Nachwuchstalente.",
-          "summary": "Am 27. Februar fand der 14. KNAPP Coding Contest statt – mit über 100 Teilnehmern aus ganz Österreich. Die besten Programmiernachwuchskräfte stellten ihr Können unter Beweis und konnten Preisgelder sowie Praktikumsplätze gewinnen.",
+          "source": "Google AI Blog",
+          "title": "Create, edit and share videos at no cost in Google Vids",
+          "link": "https://blog.google/products-and-platforms/products/workspace/google-vids-updates-lyria-veo/",
+          "date": "Thu, 02 Apr 2026 16:00:00 +0000",
+          "image": "https://storage.googleapis.com/gweb-uniblog-publish-prod/images/Createeditandshare_Google_Vids_.max-600x600.format-webp.webp",
+          "description": "New AI capabilities are coming to Google Vids, powered by Lyria 3 and Veo 3.1, like high-quality video generation at no cost and more.",
+          "summary": "New AI capabilities are coming to Google Vids, powered by Lyria 3 and Veo 3.1, like high-quality video generation at no cost and more.",
+          "reading_time_minutes": 2,
+          "relevance_score": 0.75
+        },
+        {
+          "source": "OpenAI Blog",
+          "title": "OpenAI acquires TBPN",
+          "link": "https://openai.com/index/openai-acquires-tbpn",
+          "date": "Thu, 02 Apr 2026 10:30:00 GMT",
+          "image": "",
+          "description": "OpenAI acquires TBPN to accelerate global conversations around AI and support independent media, expanding dialogue with builders, businesses, and the broader tech community.",
+          "summary": "OpenAI acquires TBPN to accelerate global conversations around AI and support independent media, expanding dialogue with builders, businesses, and the broader tech community.",
           "reading_time_minutes": 2,
           "relevance_score": 0.8
-        },
-        {
-          "source": "Supply Chain Dive",
-          "title": "Trump verhängt 100% Zölle auf patentierte Medikamente",
-          "link": "https://www.supplychaindive.com/news/trump-tariffs-patented-drug-imports/816550/",
-          "date": "2. April 2026",
-          "image": "https://imgproxy.divecdn.com/ES-1lYXCZKXcjsTy_FcRQiqWBq07Dr4gAOHYzuKj9l4/g:ce/rs:fill:1600:900:1/Z3M6Ly9kaXZlc2l0ZS1zdG9yYWdlL2RpdmVpbWFnZS9HZXR0eUltYWdlcy01MzAzNjUyMTVfcHpBSmNQTS5qcGc=.webp",
-          "description": "Zölle treten am 31. Juli in Kraft – massive Auswirkungen auf Pharma-Supply-Chains.",
-          "summary": "Die US-Regierung unter Trump verhängt drastische 100% Zölle auf importierte patentierte Medikamente. Ab 31. Juli sollen diese in Kraft treten, mit voller Implementierung im September. Für die Pharmalogistik bedeutet das massive Umbrüche.",
-          "reading_time_minutes": 3,
-          "relevance_score": 0.7
-        },
-        {
-          "source": "Logistik Heute",
-          "title": "Panattoni entwickelt Neuss Businesspark auf ehemaligem 3M-Gelände",
-          "link": "https://logistik-heute.de/news/logistikimmobilien-panattoni-entwickelt-neuss-businesspark-auf-ehemaligem-3m-gelaende-257115.html",
-          "date": "3. April 2026",
-          "image": "https://logistik-heute.de/sites/default/files/public/styles/_news_2100x1400_/public/images-news-teaser/cd-neuss-1.jpg",
-          "description": "Neue Logistikimmobilie entsteht auf Industriebrache in Nordrhein-Westfalen.",
-          "summary": "Panattoni, einer der führenden Entwickler von Logistikimmobilien, baut auf einem ehemaligen 3M-Gelände in Neuss einen neuen Businesspark. Das Projekt zeigt den kontinuierlichen Bedarf an moderner Logistikfläche in Deutschland.",
-          "reading_time_minutes": 2,
-          "relevance_score": 0.6
-        },
-        {
-          "source": "Supply Chain Dive",
-          "title": "Trump passt Stahl- und Aluminiumzölle an",
-          "link": "https://www.supplychaindive.com/news/trump-steel-aluminum-copper-tariff-adjustments/816547/",
-          "date": "2. April 2026",
-          "image": "https://imgproxy.divecdn.com/Gf49lOkkZRVI8xrgGXAZOJw8OWegw1cD7iM-oibTxe8/g:ce/rs:fill:1600:900:1/Z3M6Ly9kaXZlc2l0ZS1zdG9yYWdlL2RpdmVpbWFnZS9HZXR0eUltYWdlcy0yMjY4Njc4MzM0LmpwZw==.webp",
-          "description": "Reduzierte Zölle für bestimmte derivative Güter ab 6. April.",
-          "summary": "Die US-Regierung passt die Zölle auf Stahl, Aluminium und Kupfer an. Während reine Metallerzeugnisse weiterhin mit 50% versteuert werden, sinkt der Satz für bestimmte derivative Güter auf 25%.",
-          "reading_time_minutes": 2,
-          "relevance_score": 0.5
         }
       ]
     },
     "security": {
       "name": "Security",
-      "emoji": "🔒",
-      "css_class": "category-header--security",
       "articles": [
         {
-          "source": "Ars Technica",
-          "title": "Neue Rowhammer-Angriffe auf Nvidia GPUs geben Root-Zugriff",
-          "link": "https://arstechnica.com/security/2026/04/new-rowhammer-attacks-give-complete-control-of-machines-running-nvidia-gpus/",
-          "date": "2. April 2026",
-          "image": "https://cdn.arstechnica.net/wp-content/uploads/2023/07/exploit-vulnerability-security.jpg",
-          "description": "Cloud-GPU-Nutzer gefährdet – Angriffe über Shared Memory möglich.",
-          "summary": "Zwei neue Rowhammer-Angriffe ermöglichen es, über manipulierte GPU-Speicherzugriffe vollständige Kontrolle über Host-Systeme zu erlangen. Besonders gefährdet: Cloud-Umgebungen, wo teure GPUs zwischen mehreren Nutzern geteilt werden.",
-          "reading_time_minutes": 4,
-          "relevance_score": 0.95
-        },
-        {
-          "source": "Ars Technica",
-          "title": "Google verkürzt Q-Day-Prognose auf 2029",
-          "link": "https://arstechnica.com/security/2026/03/google-bumps-up-q-day-estimate-to-2029-far-sooner-than-previously-thought/",
-          "date": "25. März 2026",
-          "image": "https://cdn.arstechnica.net/wp-content/uploads/2025/07/GettyImages-1952157610-1152x648-1753386930.jpg",
-          "description": "Post-Quantum-Kryptografie wird dringlicher als erwartet.",
-          "summary": "Google hat seine Q-Day-Prognose dramatisch nach vorne verschoben: Statt 2035+ rechnet man nun mit 2029, wenn Quantencomputer aktuelle Verschlüsselung knacken können. Das bedeutet für Gerhard: Alles, was heute verschlüsselt übertragen wird, könnte in wenigen Jahren entschlüsselbar sein.",
+          "source": "Krebs on Security",
+          "title": "‘CanisterWorm’ Springs Wiper Attack Targeting Iran",
+          "link": "https://krebsonsecurity.com/2026/03/canisterworm-springs-wiper-attack-targeting-iran/",
+          "date": "Mon, 23 Mar 2026 15:43:04 +0000",
+          "image": "https://krebsonsecurity.com/wp-content/uploads/2026/03/aikido-iranwiper.png",
+          "description": "A financially motivated data theft and extortion group is attempting to inject itself into the Iran war, unleashing a worm that spreads through poorly secured cloud services and wipes data on infected systems that use Iran’s time zone or have Farsi set as the default language. Experts say the wiper campaign against Iran materialized this past weekend and came from a relatively new cybercrime group known as TeamPCP.",
+          "summary": "A financially motivated data theft and extortion group is attempting to inject itself into the Iran war, unleashing a worm that spreads through poorly secured cloud services and wipes data on infected systems that use Iran’s time zone or have Farsi set as the default language. Experts say the wip...",
           "reading_time_minutes": 5,
-          "relevance_score": 1.0
-        },
-        {
-          "source": "The Hacker News",
-          "title": "CVE-2025-55182: Next.js-Hosts gehackt, Credentials gestohlen",
-          "link": "https://thehackernews.com/2026/04/hackers-exploit-cve-2025-55182-to.html",
-          "date": "3. April 2026",
-          "image": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEj8T48UROZtSjRXtkxVcNT2VmXbB1texWQPAqLbm06uwmJ8VsYFb_HeXOnZx9uz9QL-LB3aWdwcLm9TbuRler7w7jjXJlL_tQweQualaW4XEVav7Ysulqx_CJyc9a0P1dO1a69W_eQhroxV1LA_p5VB9T38Xubc3zXHgwd-4sAAc2whuv4ElnC5WtFSn7SH/s1600/nextjs.jpg",
-          "description": "766 Next.js-Hosts über React2Shell-Lücke kompromittiert.",
-          "summary": "Eine großangelegte Credential-Harvesting-Kampagne nutzt die React2Shell-Vulnerability, um Next.js-Hosts zu kompromittieren. 766 Systeme wurden bereits gehackt – gestohlen wurden Datenbank-Credentials, SSH-Keys, AWS-Secrets und GitHub-Tokens.",
-          "reading_time_minutes": 4,
           "relevance_score": 0.95
         },
         {
-          "source": "Cisco",
-          "title": "Cisco patcht kritische IMC-Lücke mit CVSS 9.8",
-          "link": "https://thehackernews.com/2026/04/cisco-patches-98-cvss-imc-and-ssm-flaws.html",
-          "date": "2. April 2026",
-          "image": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjH6wuST9R8voZTpCC-v5LSwd4O7vlbuRDhXMzcSw9iu0k2JvFOao-3Jr2o9iCs0jqX3pIqHvcYo_n-5Ad80WXeQXKV_DTgJUN0A6nl9f73BA1U0wRoZBqgySfDR6Uk7KD8jXzw2BFLGvusf-96qsINw9jT4PnglZohYM2VhSsdHcpw-cl6vwAekfE-KD_H/s1600/cisco-exploit.jpg",
-          "description": "Authentifizierungs-Bypass ermöglicht Remote-Systemkompromittierung.",
-          "summary": "Cisco hat Updates für eine kritische Sicherheitslücke im Integrated Management Controller veröffentlicht. Die Lücke erlaubt es nicht authentifizierten Angreifern, Authentifizierungsmechanismen zu umgehen. CVSS-Score: 9.8/10.",
-          "reading_time_minutes": 3,
+          "source": "Krebs on Security",
+          "title": "Feds Disrupt IoT Botnets Behind Huge DDoS Attacks",
+          "link": "https://krebsonsecurity.com/2026/03/feds-disrupt-iot-botnets-behind-huge-ddos-attacks/",
+          "date": "Fri, 20 Mar 2026 00:49:19 +0000",
+          "image": "https://krebsonsecurity.com/wp-content/uploads/2026/01/ss-botnet.png",
+          "description": "The U.S. Justice Department joined authorities in Canada and Germany in dismantling the online infrastructure behind four highly disruptive botnets that compromised more than three million Internet of Things (IoT) devices, such as routers and web cameras. The feds say the four botnets — named Aisuru, Kimwolf, JackSkid and Mossad — are responsible for a series of recent record-smashing distributed denial-of-service (DDoS) attacks capable of knocking nearly any target offline.",
+          "summary": "The U.S. Justice Department joined authorities in Canada and Germany in dismantling the online infrastructure behind four highly disruptive botnets that compromised more than three million Internet of Things (IoT) devices, such as routers and web cameras.",
+          "reading_time_minutes": 5,
           "relevance_score": 0.85
         },
         {
-          "source": "Heise",
-          "title": "Google Drive erhält Ransomware-Erkennung",
-          "link": "https://www.heise.de/news/Google-Drive-Ransomware-Erkennung-und-Dateiwiederherstellung-11244868.html",
-          "date": "3. April 2026",
-          "image": "https://heise.cloudimg.io/v7/_www-heise-de_/imgs/18/5/0/5/7/3/1/0/shutterstock_434396323-ebc5dcc51830b6e8.jpeg?height=300&amp;org_if_sml=1&amp;q=75",
-          "description": "Zwei neue Sicherheitsfunktionen für Google Drive angekündigt.",
-          "summary": "Google führt für Drive zwei neue Sicherheitsfeatures ein: Automatische Ransomware-Erkennung und massenhafte Dateiwiederherstellung. Für Gerhard: Ein sinnvolles Feature, aber kein Ersatz für richtige Offline-Backups.",
-          "reading_time_minutes": 2,
-          "relevance_score": 0.75
+          "source": "Krebs on Security",
+          "title": "Iran-Backed Hackers Claim Wiper Attack on Medtech Firm Stryker",
+          "link": "https://krebsonsecurity.com/2026/03/iran-backed-hackers-claim-wiper-attack-on-medtech-firm-stryker/",
+          "date": "Wed, 11 Mar 2026 16:20:13 +0000",
+          "image": "https://krebsonsecurity.com/wp-content/uploads/2026/03/handala-stryker.png",
+          "description": "A hacktivist group with links to Iran’s intelligence agencies is claiming responsibility for a data-wiping attack against Stryker, a global medical technology company based in Michigan. News reports out of Ireland, Stryker’s largest hub outside of the United States, said the company sent home more than 5,000 workers there today. Meanwhile, a voicemail message at Stryker’s main U.S. headquarters says the company is currently experiencing a building emergency.",
+          "summary": "A hacktivist group with links to Iran’s intelligence agencies is claiming responsibility for a data-wiping attack against Stryker, a global medical technology company based in Michigan. News reports out of Ireland, Stryker’s largest hub outside of the United States, said the company sent home mor...",
+          "reading_time_minutes": 5,
+          "relevance_score": 0.95
         },
         {
-          "source": "BleepingComputer",
-          "title": "EU-Kommission gehackt – Daten von 30 EU-Einheiten exponiert",
-          "link": "https://www.bleepingcomputer.com/news/security/cert-eu-european-commission-hack-exposes-data-of-30-eu-entities/",
-          "date": "3. April 2026",
-          "image": "https://www.bleepstatic.com/content/hl-images/2026/04/03/0_European_Union_flag.jpg",
-          "description": "TeamPCP für Angriff auf EU-Infrastruktur verantwortlich.",
-          "summary": "CERT-EU hat den Angriff auf die Cloud-Infrastruktur der EU-Kommission der Gruppe TeamPCP zugeschrieben. Das Ergebnis: Daten von mindestens 29 weiteren EU-Einheiten wurden exponiert.",
-          "reading_time_minutes": 3,
-          "relevance_score": 0.8
+          "source": "The Hacker News",
+          "title": "China-Linked TA416 Targets European Governments with PlugX and OAuth-Based Phishing",
+          "link": "https://thehackernews.com/2026/04/china-linked-ta416-targets-european.html",
+          "date": "Fri, 03 Apr 2026 23:04:00 +0530",
+          "image": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgi-dKCldJqtZI1CocMVxHNKusU5tcnMKjx7mzG9EfehvGacnTy4tsTfZLMfhyphenhyphenC5W210OxrxijBNAP8UumXAZH15ZSOM4x8xb9VTIHxN1HCouzROU0pn7sCJki9zJOkk9_8SRns73KxO1KvxUY4YgKGbbme6ZcKdbt4cqSHUkG5WQQPgDDTx_OLRbms35Dv/s1600/chinese-hackers.jpg",
+          "description": "A China-aligned threat actor has set its sights on European government and diplomatic organizations since mid-2025, following a two-year period of minimal targeting in the region. The campaign has been attributed to TA416, a cluster of activity that overlaps with DarkPeony, RedDelta, Red Lich, SmugX, UNC6384, and Vertigo Panda. \"This TA416 activity included multiple",
+          "summary": "A China-aligned threat actor has set its sights on European government and diplomatic organizations since mid-2025, following a two-year period of minimal targeting in the region. The campaign has been attributed to TA416, a cluster of activity that overlaps with DarkPeony, RedDelta, Red Lich, Sm...",
+          "reading_time_minutes": 4,
+          "relevance_score": 0.85
+        },
+        {
+          "source": "The Hacker News",
+          "title": "Microsoft Details Cookie-Controlled PHP Web Shells Persisting via Cron on Linux Servers",
+          "link": "https://thehackernews.com/2026/04/microsoft-details-cookie-controlled-php.html",
+          "date": "Fri, 03 Apr 2026 21:02:00 +0530",
+          "image": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEg_2zEf8l08MTElI1sGlJPVVWtscud2RAXdsivOvcby3pO4NUWMBioT3FNaFL7Bw0GeEqnX_WqY10FVqXhVNBTOrl0UMPoyun7AvshwpvfJIdfdJ0yJ1V2mz7ZHQDE9motXuuW6urvTJYu0kLGvpZf10Qx1hNeobD4YV25tJY9nvNoW9Sqd8nSsWK7NWQP0/s1600/php-linux.jpg",
+          "description": "Threat actors are increasingly using HTTP cookies as a control channel for PHP-based web shells on Linux servers and to achieve remote code execution, according to findings from the Microsoft Defender Security Research Team. \"Instead of exposing command execution through URL parameters or request bodies, these web shells rely on threat actor-supplied cookie values to gate execution,",
+          "summary": "Threat actors are increasingly using HTTP cookies as a control channel for PHP-based web shells on Linux servers and to achieve remote code execution, according to findings from the Microsoft Defender Security Research Team. \"Instead of exposing command execution through URL parameters or request...",
+          "reading_time_minutes": 4,
+          "relevance_score": 0.85
+        },
+        {
+          "source": "The Hacker News",
+          "title": "UNC1069 Social Engineering of Axios Maintainer Led to npm Supply Chain Attack",
+          "link": "https://thehackernews.com/2026/04/unc1069-social-engineering-of-axios.html",
+          "date": "Fri, 03 Apr 2026 16:34:00 +0530",
+          "image": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhzgZRu55MSbdanW8-1PyCciQIyWUcB9Dv4WhQQEELGJqahN5q7MyrDJKQ77e-9-fNetZJZiaJKERrgMWTGcQ-4TKhzhWE6veQp5w3wxhUnjq3NPMifbpdn1VLYpx5nngu4GsgPknNfAV8CNTGq_L_PBri4s3xz4hp8yt7OPin9Q-Kq_xcBNqzbgHx5SkrU/s1600/supplychain.jpg",
+          "description": "The maintainer of the Axios npm package has confirmed that the supply chain compromise was the result of a highly-targeted social engineering campaign orchestrated by North Korean threat actors tracked as UNC1069. Maintainer Jason Saayman said the attackers tailored their social engineering efforts \"specifically to me\" by first approaching him under the guise of the founder of a",
+          "summary": "The maintainer of the Axios npm package has confirmed that the supply chain compromise was the result of a highly-targeted social engineering campaign orchestrated by North Korean threat actors tracked as UNC1069. Maintainer Jason Saayman said the attackers tailored their social engineering effor...",
+          "reading_time_minutes": 4,
+          "relevance_score": 0.85
         }
       ]
     },
     "tech": {
       "name": "Tech & Dev",
-      "emoji": "⚡",
-      "css_class": "category-header--tech",
       "articles": [
         {
-          "source": "GitHub",
-          "title": "GitHub sichert Open-Source-Supply-Chain",
-          "link": "https://github.blog/security/supply-chain-security/securing-the-open-source-supply-chain-across-github/",
-          "date": "1. April 2026",
-          "image": "https://github.blog/wp-content/uploads/2026/01/generic-security-logo-blocks-github.png",
-          "description": "Neue Muster in Supply-Chain-Angriffen erfordern verstärkte Sicherheit.",
-          "summary": "GitHub analysiert neue Angriffsmuster auf Open-Source-Supply-Chains: Angreifer fokussieren zunehmend auf das Exfiltrieren von Secrets. Für Gerhard: Secrets-Management und regelmäßige Rotation sind essentiell.",
-          "reading_time_minutes": 3,
-          "relevance_score": 0.9
-        },
-        {
-          "source": "Hacker News",
-          "title": "Tailscale entkommt der Notch auf macOS",
-          "link": "https://tailscale.com/blog/macos-notch-escape",
-          "date": "2. April 2026",
-          "image": "https://cdn.sanity.io/images/w77i7m8x/production/be2e4419f4669282a3b09ee31e6e32a9cc328d51-1576x886.png",
-          "description": "Neue UI-Verbesserungen für MacBook-Nutzer mit Notch.",
-          "summary": "Tailscale hat seine macOS-App verbessert, sodass sie nun besser mit der Notch auf modernen MacBooks umgeht. Für Gerhard, der Tailscale für seine VPS-Infrastruktur nutzt: Ein kleines UX-Update.",
-          "reading_time_minutes": 2,
+          "source": "TechCrunch",
+          "title": "Anthropic says Claude Code subscribers will need to pay extra for OpenClaw usage",
+          "link": "https://techcrunch.com/2026/04/04/anthropic-says-claude-code-subscribers-will-need-to-pay-extra-for-openclaw-support/",
+          "date": "Sat, 04 Apr 2026 16:32:22 +0000",
+          "image": "https://techcrunch.com/wp-content/uploads/2026/01/GettyImages-1396827010.jpg?resize=1200,839",
+          "description": "It’s about to become more expensive for Claude Code subscribers to use Anthropic’s coding assistant with OpenClaw and other third-party tools.",
+          "summary": "It’s about to become more expensive for Claude Code subscribers to use Anthropic’s coding assistant with OpenClaw and other third-party tools.",
+          "reading_time_minutes": 5,
           "relevance_score": 0.85
         },
         {
-          "source": "Heise",
-          "title": "FCC verlangt 'Freedom Router' für US-Verbraucher",
-          "link": "https://www.heise.de/hintergrund/Desolate-FCC-Vorgabe-Freedom-Router-fuer-US-Verbraucher-11241349.html",
-          "date": "3. April 2026",
-          "image": "https://www.heise.de/scale/geometry/450/q80//imgs/18/5/0/5/5/5/3/2/shutterstock_2217853513-02948e41974b44d4.jpeg",
-          "description": "Nur noch im Inland hergestellte Router für US-Konsumenten erlaubt.",
-          "summary": "Die FCC verlangt, dass Router für US-Verbraucher künftig im Inland hergestellt werden müssen. Die Vorgaben sind jedoch technisch unrealistisch und sicherheitstechnisch bedenklich.",
-          "reading_time_minutes": 3,
-          "relevance_score": 0.6
-        },
-        {
-          "source": "Heise",
-          "title": "Microsoft 365 bleibt Datenschutz-Dauerbrenner",
-          "link": "https://www.heise.de/hintergrund/Auslegungssache-156-Datenschutz-Dauerbrenner-Microsoft-365-11244970.html",
-          "date": "3. April 2026",
-          "image": "https://www.heise.de/scale/geometry/450/q80//imgs/18/5/0/5/7/3/6/2/pas156_teaser-7af7a844dc978b30.png",
-          "description": "c't-Podcast beleuchtet aktuelle datenschutzrechtliche Baustellen.",
-          "summary": "Der c't-Datenschutz-Podcast widmet sich erneut Microsoft 365 und dessen datenschutzrechtlichen Problemen. Für Gerhard relevant: Die DSGVO-Konformität bleibt ein Moving Target.",
-          "reading_time_minutes": 2,
-          "relevance_score": 0.7
-        },
-        {
-          "source": "Heise",
-          "title": "EU-Kommission verbietet Signal-Gruppen für Top-Beamte",
-          "link": "https://www.heise.de/news/EU-Kommission-verbietet-Top-Beamten-Nutzung-von-Signal-Gruppen-11245187.html",
-          "date": "2. April 2026",
-          "image": "https://heise.cloudimg.io/v7/_www-heise-de_/imgs/18/5/0/5/7/4/6/9/shutterstock_1828370288-1333e182bc322f51.jpeg?height=300&amp;org_if_sml=1&amp;q=75",
-          "description": "Aus Sorge vor Spionage: Zentrale Signal-Gruppe aufgelöst.",
-          "summary": "Die EU-Kommission hat ranghohe Beamte angewiesen, eine zentrale Signal-Gruppe aufzulösen. Grund sind Sicherheitsbedenken und die Sorge vor gezielter digitaler Spionage.",
-          "reading_time_minutes": 2,
-          "relevance_score": 0.65
+          "source": "TechCrunch",
+          "title": "After fighting malware for decades, this cybersecurity veteran is now hacking drones",
+          "link": "https://techcrunch.com/2026/04/04/after-fighting-malware-for-decades-this-cybersecurity-veteran-is-now-hacking-drones/",
+          "date": "Sat, 04 Apr 2026 13:00:00 +0000",
+          "image": "https://techcrunch.com/wp-content/uploads/2026/04/Mikko-Hypponen-Black-Hat-USA-2025.jpg?resize=1200,891",
+          "description": "Mikko Hyppönen is one of the most recognizable faces of the cybersecurity industry. After fighting computer viruses, worms, and malware, for more than 35 years, he tells TechCrunch why he is now working on systems to stop killer drones.",
+          "summary": "Mikko Hyppönen is one of the most recognizable faces of the cybersecurity industry. After fighting computer viruses, worms, and malware, for more than 35 years, he tells TechCrunch why he is now working on systems to stop killer drones.",
+          "reading_time_minutes": 5,
+          "relevance_score": 0.75
         },
         {
           "source": "TechCrunch",
-          "title": "Amazon erhöht Gebühren für Händler wegen Treibstoffpreisen",
-          "link": "https://techcrunch.com/2026/04/02/amazon-hits-sellers-with-fuel-surcharge-as-iran-war-roils-global-energy-markets/",
-          "date": "2. April 2026",
-          "image": "https://techcrunch.com/wp-content/uploads/2022/10/IMG_20221023_152246-e1666570908650.jpg?resize=1200,676",
-          "description": "'Vorübergehende' Treibstoffzuschlag für Dritthändler.",
-          "summary": "Amazon erhöht die Gebühren für Dritthändler aufgrund der gestiegenen Treibstoffpreise im Zuge des Iran-Kriegs. Der Konzern bezeichnet die Erhöhung als 'vorübergehend', ohne Zeitplan für die Rücknahme.",
-          "reading_time_minutes": 2,
-          "relevance_score": 0.6
+          "title": "Anthropic is having a moment in the private markets; SpaceX could spoil the party",
+          "link": "https://techcrunch.com/2026/04/03/anthropic-is-having-a-moment-in-the-private-markets-spacex-could-spoil-the-party/",
+          "date": "Sat, 04 Apr 2026 01:31:00 +0000",
+          "image": "https://techcrunch.com/wp-content/uploads/2024/09/GettyImages-2148589533.jpg?resize=1200,800",
+          "description": "Glen Anderson, president of Rainmaker Securities, says the secondary market for private shares has never been more active — with Anthropic the hottest trade around, OpenAI losing ground, and SpaceX's looming IPO poised to reshape the landscape for everyone.",
+          "summary": "Glen Anderson, president of Rainmaker Securities, says the secondary market for private shares has never been more active — with Anthropic the hottest trade around, OpenAI losing ground, and SpaceX's looming IPO poised to reshape the landscape for everyone.",
+          "reading_time_minutes": 5,
+          "relevance_score": 0.95
+        },
+        {
+          "source": "GitHub Blog",
+          "title": "The uphill climb of making diff lines performant",
+          "link": "https://github.blog/engineering/architecture-optimization/the-uphill-climb-of-making-diff-lines-performant/",
+          "date": "Fri, 03 Apr 2026 16:00:00 +0000",
+          "image": "https://github.blog/wp-content/uploads/2026/04/3.png?resize=960%2C1340",
+          "description": "Pull requests are the beating heart of GitHub. As engineers, this is where we spend a good portion of our time. And at GitHub’s scale—where pull requests can range from tiny one-line fixes to changes spanning thousands of files and millions of lines—the pull request review experience has to stay fast and responsive. We recently shipped the new React-based experience for the Files changed tab (now the default experience for all users).",
+          "summary": "Pull requests are the beating heart of GitHub. As engineers, this is where we spend a good portion of our time.",
+          "reading_time_minutes": 3,
+          "relevance_score": 0.95
+        },
+        {
+          "source": "GitHub Blog",
+          "title": "Securing the open source supply chain across GitHub",
+          "link": "https://github.blog/security/supply-chain-security/securing-the-open-source-supply-chain-across-github/",
+          "date": "Wed, 01 Apr 2026 19:20:12 +0000",
+          "image": "https://github.blog/wp-content/uploads/2026/01/generic-security-logo-blocks-github.png",
+          "description": "Over the past year, a new pattern has emerged in attacks on the open source supply chain. Attackers are focusing on exfiltrating secrets (like API keys) in order to both publish malicious packages from an attacker-controlled machine as well as gain access to more projects in order to propagate the attack. These attacks often start by compromising a workflow on GitHub Actions.",
+          "summary": "Over the past year, a new pattern has emerged in attacks on the open source supply chain. Attackers are focusing on exfiltrating secrets (like API keys) in order to both publish malicious packages from an attacker-controlled machine as well as gain access to more projects in order to propagate th...",
+          "reading_time_minutes": 3,
+          "relevance_score": 0.95
+        },
+        {
+          "source": "GitHub Blog",
+          "title": "Run multiple agents at once with /fleet in Copilot CLI",
+          "link": "https://github.blog/ai-and-ml/github-copilot/run-multiple-agents-at-once-with-fleet-in-copilot-cli/",
+          "date": "Wed, 01 Apr 2026 15:00:00 +0000",
+          "image": "https://github.blog/wp-content/uploads/2026/02/554396112-02305897-302e-435b-862b-616faea6a7f5.png",
+          "description": "What if GitHub Copilot CLI could work on five files at the same time instead of one? That’s where /fleet comes in. /fleet is a slash command in Copilot CLI that enables Copilot to simultaneously work with multiple subagents in parallel. Instead of working through tasks sequentially, Copilot now has a behind the scenes orchestrator that plans and breaks your objective into independent work items and dispatches multiple agents to execute them simultaneously.",
+          "summary": "What if GitHub Copilot CLI could work on five files at the same time instead of one? That’s where /fleet comes in.",
+          "reading_time_minutes": 3,
+          "relevance_score": 0.95
         }
       ]
     },
     "ev": {
       "name": "Elektromobilität",
-      "emoji": "⚡",
-      "css_class": "category-header--ev",
       "articles": [
         {
           "source": "Teslamag",
-          "title": "Tesla liefert 358.023 Elektroautos in Q1 2026",
+          "title": "Aktuell: Tesla-Verkäufe in Q1 2026 höher als vor einem Jahr, leicht unter Analysten-Erwartungen",
           "link": "https://teslamag.de/news/aktuell-tesla-verkaeufe-in-q1-2026-hoeher-als-vor-einem-jahr-leicht-unter-analysten-erwartungen-66574",
-          "date": "2. April 2026",
+          "date": "Thu, 02 Apr 2026 14:04:05 +0000",
           "image": "https://teslamag.de/wp-content/uploads/tesla-zentrum-hannover-parkplatz-mai23.jpg",
-          "description": "6% Wachstum gegenüber Vorjahr, aber unter Analystenschätzungen.",
-          "summary": "Tesla hat die Q1-Zahlen veröffentlicht: 358.023 Auslieferungen bedeuten ein Plus von 6% gegenüber dem Vorjahresquartal. Allerdings lagen die Zahlen leicht unter den Analystenschätzungen. Die Produktion lag bei rund 410.000 Fahrzeugen. Für Gerhard als Tesla-Fahrer: Das Wachstum hält an, obwohl der Markt anspruchsvoller wird.",
-          "reading_time_minutes": 3,
-          "relevance_score": 0.9
+          "description": "Wie laut einer vorab veröffentlichten Übersicht erwartet, hat Tesla im ersten Quartal 2026 mehr Elektroautos verkauft als vor einem Jahr. Die Zahl der Auslieferungen stieg auf 358.023 Stück, geht aus einer Mitteilung von Donnerstag vor US-Börsenstart hervor. Das waren etwa 6 Prozent mehr als in Q1 2025. Im Schnitt hatten Analysten allerdings mit einem etwas ... Zum Artikel Aktuell: Tesla-Verkäufe in Q1 2026 höher als vor einem Jahr, leicht unter Analysten-Erwartungen auf Teslamag.de",
+          "summary": "Wie laut einer vorab veröffentlichten Übersicht erwartet, hat Tesla im ersten Quartal 2026 mehr Elektroautos verkauft als vor einem Jahr. Die Zahl der Auslieferungen stieg auf 358.023 Stück, geht aus einer Mitteilung von Donnerstag vor US-Börsenstart hervor. Das waren etwa 6 Prozent mehr als in Q1 2025.",
+          "reading_time_minutes": 4,
+          "relevance_score": 1.0
         },
         {
           "source": "Teslamag",
-          "title": "Tesla erwägt Cybercab-Ableger mit Lenkrad und Pedalen",
-          "link": "https://teslamag.de/news/tesla-cybercab-ableger-mit-lenkrad-und-pedalen-auf-markt-bringen-66568",
-          "date": "1. April 2026",
-          "image": "https://teslamag.de/wp-content/uploads/tesla-cybercab-berlin-offen-seite.jpg",
-          "description": "Elon Musk schließt doch nicht mehr aus, dass das Cybercab als normales Auto kommt.",
-          "summary": "Tesla erwägt offenbar doch eine Version des Cybercab mit Lenkrad und Pedalen. Elon Musk hatte dies ursprünglich ausgeschlossen, scheint aber die Nachfrage nach einem erschwinglichen Zweisitzer erkannt zu haben. Für Gerhard: Ein interessantes Gerücht, aber noch keine Bestätigung.",
-          "reading_time_minutes": 2,
+          "title": "Vorschau: Tesla dürfte in Q1 2026 deutlich mehr Elektroautos verkauft haben als vor einem Jahr",
+          "link": "https://teslamag.de/news/vorschau-tesla-erstes-quartal-2026-deutlich-mehr-elektroautos-als-vor-jahr-66561",
+          "date": "Tue, 31 Mar 2026 05:14:59 +0000",
+          "image": "https://teslamag.de/wp-content/uploads/tesla-auslieferungen-reihe.jpg",
+          "description": "Dass Tesla vor drei Monaten eine Übersicht über Analysten-Schätzungen zu seinen Elektroauto-Auslieferungen Ende 2025 auf seine Website stellte, soll offenbar keine Ausnahme bleiben: Für diesen Donnerstag (2.4.) stehen die Zahlen für das erste Quartal dieses Jahres an, und im Vorfeld veröffentlichte Tesla erneut die Börsen-Prognosen dazu. Demnach rechnen Finanzprofis im Durchschnitt damit, dass die Tesla-Verkäufe ...",
+          "summary": "Dass Tesla vor drei Monaten eine Übersicht über Analysten-Schätzungen zu seinen Elektroauto-Auslieferungen Ende 2025 auf seine Website stellte, soll offenbar keine Ausnahme bleiben: Für diesen Donnerstag (2.4.) stehen die Zahlen für das erste Quartal dieses Jahres an, und im Vorfeld veröffentlichte Tesla erneut die Börsen-Prognosen dazu. Demnach...",
+          "reading_time_minutes": 4,
+          "relevance_score": 1.0
+        },
+        {
+          "source": "Teslamag",
+          "title": "Tesla-Woche 13/26: Cyber-SUV, Terafab-Pläne, SpaceX vor IPO, Semi-Video, IG Metall klagt",
+          "link": "https://teslamag.de/news/13-26-tesla-cyber-suv-terafab-reaktion-spacex-ipo-semi-video-ig-metall-klagt-66551",
+          "date": "Sun, 29 Mar 2026 05:19:20 +0000",
+          "image": "https://teslamag.de/wp-content/uploads/tesla-cyber-suv-render-seite.jpg",
+          "description": "Will Tesla doch noch einmal mit einem neuen Elektroauto-Modell punkten? Dafür sprechen aktuelle X-Äußerungen von CEO Elon Musk, die in die Richtung eines geräumigen SUV gehen. Ansonsten ist die Produktion eigener KI-Chips das nächste große Ding bei Tesla – wie jetzt bekannt wurde, zusammen mit SpaceX, dessen Börsengang zudem näherrückt. Der Tesla Semi zeigte unterdessen ... Zum Artikel Tesla-Woche 13/26: Cyber-SUV, Terafab-Pläne, SpaceX vor IPO, Semi-Video, IG Metall klagt auf Teslamag.de",
+          "summary": "Will Tesla doch noch einmal mit einem neuen Elektroauto-Modell punkten? Dafür sprechen aktuelle X-Äußerungen von CEO Elon Musk, die in die Richtung eines geräumigen SUV gehen. Ansonsten ist die Produktion eigener KI-Chips das nächste große Ding bei Tesla – wie jetzt bekannt wurde, zusammen mit SpaceX, dessen Börsengang zudem näherrückt.",
+          "reading_time_minutes": 4,
+          "relevance_score": 0.9
+        },
+        {
+          "source": "Elektroauto News",
+          "title": "Hyundai Ioniq 9 Fahrbericht: Viel Raum, viel E-Auto",
+          "link": "https://www.elektroauto-news.net/news/hyundai-ioniq-9-fahrbericht-erfahrung",
+          "date": "Sat, 04 Apr 2026 04:21:58 +0000",
+          "image": "https://cdn.elektroauto-news.net/wp-content/uploads/2026/03/Hyundai-Ioniq-9-Test-Review-13.jpg",
+          "description": "Über fünf Meter Länge, knapp zwei Meter Breite, fast 1,80 Meter Höhe und ein Leergewicht von rund 2,6 Tonnen – wer den Hyundai Ioniq 9 zum ersten Mal vor sich stehen sieht, bekommt ein Gefühl dafür, warum er das Flaggschiff der Hyundai Ioniq-Familie ist. Der Südkoreaner ist kein E-Auto, das sich dezent in den Verkehr einfügt. Er ist ein Statement.",
+          "summary": "Über fünf Meter Länge, knapp zwei Meter Breite, fast 1,80 Meter Höhe und ein Leergewicht von rund 2,6 Tonnen – wer den Hyundai Ioniq 9 zum ersten Mal vor sich stehen sieht, bekommt ein Gefühl dafür, warum er das Flaggschiff der Hyundai Ioniq-Familie ist. Der Südkoreaner ist kein E-Auto, das sich dezent in den Verkehr einfügt. Er ist ein Statement.",
+          "reading_time_minutes": 3,
           "relevance_score": 0.8
         },
         {
           "source": "Elektroauto News",
-          "title": "Smart Charging federt Strompreisanstieg ab",
-          "link": "https://www.elektroauto-news.net/news/smart-charging-federt-strompreisanstieg-ab",
-          "date": "3. April 2026",
-          "image": "https://wp.elektroauto-news.net/wp-content/uploads/2026/04/Smart-Meter-Tibber-Auswertung-shutterstock_2176249181.jpg",
-          "description": "Haushalte mit dynamischem Stromtarif zahlten nur 3% mehr.",
-          "summary": "Eine Auswertung von Tibber zeigt: Haushalte mit E-Auto, Smart-Meter und dynamischem Stromtarif konnten sich im März weitgehend gegen den Preisanstieg abschirmen. Im Schnitt zahlten sie nur rund drei Prozent mehr als im Februar. Für Gerhard: Smart Charging lohnt sich!",
-          "reading_time_minutes": 2,
-          "relevance_score": 0.85
+          "title": "Fraunhofer: So wirken Verkehrsmaßnahmen auf das Klima",
+          "link": "https://www.elektroauto-news.net/news/elektroautos-klimawirkung-studie-fraunhofer-isi",
+          "date": "Sat, 04 Apr 2026 03:51:00 +0000",
+          "image": "https://wp.elektroauto-news.net/wp-content/uploads/2024/11/Verkehr-Mobilitaet-Nachhaltig-shutterstock_1324979303.jpg",
+          "description": "Eine aktuelle Analyse des Fraunhofer-Institut für System- und Innovationsforschung zeigt, wie unterschiedlich kommunale Verkehrsmaßnahmen tatsächlich auf das Klima wirken und welche Rolle die Elektromobilität dabei tatsächlich spielt. Die Ergebnisse machen deutlich: Elektroautos sind ein wichtiger Baustein, entfalten ihre Wirkung aber vor allem im Zusammenspiel mit anderen Maßnahmen. Die Untersuchung basiert auf einer sogenannten „Ex-post-Analyse“.",
+          "summary": "Eine aktuelle Analyse des Fraunhofer-Institut für System- und Innovationsforschung zeigt, wie unterschiedlich kommunale Verkehrsmaßnahmen tatsächlich auf das Klima wirken und welche Rolle die Elektromobilität dabei tatsächlich spielt. Die Ergebnisse machen deutlich: Elektroautos sind ein wichtiger Baustein, entfalten ihre Wirkung aber vor allem ...",
+          "reading_time_minutes": 3,
+          "relevance_score": 0.9
         },
         {
           "source": "Elektroauto News",
-          "title": "Volvo EX30: Neues Basismodell ab 34.990 Euro",
-          "link": "https://www.elektroauto-news.net/news/volvo-ex30-basismodell-ab-34990-euro",
-          "date": "3. April 2026",
-          "image": "https://wp.elektroauto-news.net/wp-content/uploads/2026/04/Volvo-EX30-Einstieg-Schweden-SUV-JPG-Full-BL324_Exterior_3QFront_ROW.jpg",
-          "description": "Bestellbücher für überarbeiteten EX30 mit V2L-Funktion geöffnet.",
-          "summary": "Volvo eröffnet die Bestellbücher für den überarbeiteten EX30. Das neue Basismodell P3 electric kostet 34.990 Euro. Highlight: Vehicle-to-Load soll im Sommer per Software-Update freigeschaltet werden. Für Gerhard: Ein ernstzunehmender Konkurrent im kompakten E-SUV-Segment.",
-          "reading_time_minutes": 2,
-          "relevance_score": 0.7
-        },
-        {
-          "source": "Ecomento",
-          "title": "Hyundai setzt in Europa auf Produktoffensive",
-          "link": "https://feeds.feedblitz.com/~/953035028/0/ecomento_de~Hyundai-setzt-in-Europa-auf-Produktoffensive-und-H%c3%a4ndlerbindung/",
-          "date": "2. April 2026",
-          "image": "https://ecomento.de/wp-content/uploads/2026/04/Hyundai.jpg",
-          "description": "Südkoreanischer Hersteller will Marktanteil ausbauen.",
-          "summary": "Hyundai will in Europa mit einer Produktoffensive und stärkerer Händlerbindung den Marktanteil ausbauen. 2025 stagnierten die Neuzulassungen, doch im Privatkundengeschäft lag der Marktanteil bereits bei 4,7%. Für Gerhard: Hyundai bleibt ein stark wachsender E-Auto-Anbieter.",
-          "reading_time_minutes": 2,
-          "relevance_score": 0.6
-        },
-        {
-          "source": "Electrek",
-          "title": "Lectric eBikes expandiert nach Kanada",
-          "link": "https://electrek.co/2026/04/02/lectric-heads-north-canadians-get-access-to-the-uss-best-selling-e-bikes/",
-          "date": "3. April 2026",
-          "image": "https://electrek.co/wp-content/uploads/sites/3/2025/05/lectric-xp4-e-bike-header.jpg?quality=82&#038;strip=all&#038;w=1600",
-          "description": "US-Marktführer für E-Bikes startet internationale Expansion.",
-          "summary": "Lectric eBikes, einer der erfolgreichsten E-Bike-Hersteller in den USA, expandiert nun nach Kanada. Das Unternehmen ist bekannt für erschwingliche, faltbare E-Bikes. Für Gerhard: Die E-Mobilität jenseits von Autos wächst weiter.",
-          "reading_time_minutes": 2,
-          "relevance_score": 0.5
+          "title": "Volvo bringt Elektro-SUV EX30 als Cargo-Version",
+          "link": "https://www.elektroauto-news.net/news/volvo-ex30-cargo-version",
+          "date": "Sat, 04 Apr 2026 03:26:35 +0000",
+          "image": "https://cdn.elektroauto-news.net/wp-content/uploads/2026/02/Volvo-EX30-Modelljahr-2027.jpg",
+          "description": "Die schwedisch-chinesische Automarke Volvo bietet künftig in Großbritannien für Geschäfts- und Flottenkunden eine Cargo-Version des EX30 an. Ab umgerechnet zirka 41.600 Euro wird das neue Modell dort verfügbar sein, wobei auch Bestandsfahrzeuge von Volvo umgebaut werden können. Ob die Cargo-Version auch nach Deutschland kommt, ist bisher unklar, für andere Märkte wurde eine Einführung bisher noch nicht angekündigt. Der Standard-SUV EX30 ist hierzulande ab 35.000 Euro erhältlich.",
+          "summary": "Die schwedisch-chinesische Automarke Volvo bietet künftig in Großbritannien für Geschäfts- und Flottenkunden eine Cargo-Version des EX30 an. Ab umgerechnet zirka 41.600 Euro wird das neue Modell dort verfügbar sein, wobei auch Bestandsfahrzeuge von Volvo umgebaut werden können.",
+          "reading_time_minutes": 3,
+          "relevance_score": 0.9
         }
       ]
     },
     "world": {
       "name": "Welt & Politik",
-      "emoji": "🌍",
-      "css_class": "category-header--world",
       "articles": [
         {
           "source": "Der Standard",
-          "title": "Trump droht mit Schlägen gegen Elektrizitätswerke im Iran",
-          "link": "https://www.derstandard.at/jetzt/livebericht/3000000315303/trump-sieht-kriegsziele-im-iran-beinahe-erreicht-kuendigt-aber-weitere-angriffe-an",
-          "date": "3. April 2026",
-          "image": "https://i.ds.at/kw01UQ/rs:fill:600:0/plain/lido-images/2026/04/03/9f665233-05a6-4201-a2d0-56d131b33559.jpg",
-          "description": "Konflikt eskaliert nach Angriff auf Brücke. Österreich verweigert Luftraum.",
-          "summary": "Die USA drohen mit weiteren Angriffen auf iranische Infrastruktur, insbesondere Elektrizitätswerke. Nach dem Angriff auf eine Brücke im Iran eskaliert der Konflikt weiter. Österreich verweigerte US-Militärflügen den Luftraum. Für Gerhard: Die geopolitische Lage bleibt angespannt und beeinflusst auch Energie- und Tech-Märkte.",
-          "reading_time_minutes": 4,
-          "relevance_score": 0.85
+          "title": "Tempo 100 und autofreie Tage: Wie Österreich in früheren Ölkrisen reagiert hat",
+          "link": "https://www.derstandard.at/story/3000000314448/tempo-100-und-autofreie-tage-wie-oesterreich-in-frueheren-oelkrisen-reagiert-hat?ref=rss",
+          "date": "Sat, 04 Apr 2026 15:00:00 Z",
+          "image": "https://i.ds.at/n31DDg/rs:fill:150:0/plain/lido-images/2026/04/02/632b2bb9-ca17-4e06-ad29-ff4571d6c4bf.jpg",
+          "description": "Krieg ist Urheber aller Energiekrisen, auch für die Ölpreisschocks der 1970er-Jahre. Erstmals wurde Öl knapp und teuer, Energiesparen war angesagt. Einige der damaligen Ideen haben sich bewährt, andere nicht",
+          "summary": "Krieg ist Urheber aller Energiekrisen, auch für die Ölpreisschocks der 1970er-Jahre. Erstmals wurde Öl knapp und teuer, Energiesparen war angesagt. Einige der damaligen Ideen haben sich bewährt, andere nicht",
+          "reading_time_minutes": 3,
+          "relevance_score": 1.0
         },
         {
           "source": "Der Standard",
-          "title": "Vergeltung ist keine Politik: Iran-Experte Posch analysiert",
-          "link": "https://www.derstandard.at/story/3000000315320/vergeltung-ist-keine-politik-und-keine-strategie-iran-experte-posch-in-der-zib-2",
-          "date": "3. April 2026",
-          "image": "https://i.ds.at/eGNUVg/rs:fill:600:0/plain/lido-images/2026/04/03/eb2e5b4b-d576-43cc-9ce9-76a4b5985acd.png",
-          "description": "Walter Posch über Irans Weltuntergangsszenario und die Hormus-Mautstraße.",
-          "summary": "Der Iran-Experte Walter Posch analysiert in der ZiB 2 die aktuelle Eskalation. Er warnt vor einem Weltuntergangsszenario und betont, dass Vergeltung keine Strategie ist. Die Straße von Hormus bleibt ein neuralgischer Punkt für globale Energielieferungen.",
+          "title": "Iran hat neues Luftabwehrsystem gegen US-Kampfjet eingesetzt",
+          "link": "https://www.derstandard.at/jetzt/livebericht/3000000315419/abschuss-von-us-kampfjet-im-iran-suche-nach-zweitem-besatzungmitglied-dauert-an?ref=rss",
+          "date": "Sat, 04 Apr 2026 05:24:19 Z",
+          "image": "https://i.ds.at/nzbgLQ/rs:fill:150:0/plain/lido-images/2026/04/04/6f37fc86-2d89-46ed-ad6d-726d9a78b597.jpg",
+          "description": "Suche nach zweitem Crewmitglied nach US-Kampfjet-Abschuss im Iran dauert an. Iran öffnet Straße von Hormus für \"lebenswichtige Güter\" in die eigenen Häfen",
+          "summary": "Suche nach zweitem Crewmitglied nach US-Kampfjet-Abschuss im Iran dauert an. Iran öffnet Straße von Hormus für \"lebenswichtige Güter\" in die eigenen Häfen",
+          "reading_time_minutes": 3,
+          "relevance_score": 0.9
+        },
+        {
+          "source": "Der Standard",
+          "title": "Schriftsteller Franzobel: Ist das Leben noch finanzierbar?",
+          "link": "https://www.derstandard.at/story/3000000314252/schriftsteller-franzobel-ist-das-leben-noch-finanzierbar?ref=rss",
+          "date": "Sat, 04 Apr 2026 15:00:00 Z",
+          "image": "https://i.ds.at/DNoqbw/rs:fill:150:0/plain/lido-images/2026/03/26/82d9bec7-d6b2-4289-bfb8-3fb333c0023e.jpg",
+          "description": "Der Restaurantbesuch ist Luxus, der Einkauf eine Belastung: Das unbedarfte Leben war einmal. Schlägt jetzt die Stunde der Mäßigung und des umsichtigeren Konsums? Das Gegenteil ist der Fall –Billigramsch, Zwei-Euro-Hühner. Eine einzige \"Temutigung\"",
+          "summary": "Der Restaurantbesuch ist Luxus, der Einkauf eine Belastung: Das unbedarfte Leben war einmal. Schlägt jetzt die Stunde der Mäßigung und des umsichtigeren Konsums? Das Gegenteil ist der Fall –Billigramsch, Zwei-Euro-Hühner.",
+          "reading_time_minutes": 3,
+          "relevance_score": 0.8
+        }
+      ]
+    },
+    "knapp": {
+      "name": "KNAPP & Intralogistik",
+      "articles": [
+        {
+          "source": "KNAPP AG",
+          "title": "KiSoft connect Partnerprogramm",
+          "link": "https://www.knapp.com/newsroom/presse/software-partnerprogramm-kisoft-connect/",
+          "date": "Mon, 16 Mar 2026 14:17:51 +0000",
+          "image": "https://www.knapp.com/wp-content/uploads/knapp-begruesst-den-neuen-kisoft-connect-partner-t3-otomasyon-am-standort-hart-1.jpg",
+          "description": "Mit dem neuen Partnerprogramm KiSoft connect setzt KNAPP ein starkes Zeichen für Innovation, Zusammenarbeit und digitale Transformation in der Logistikbranche. Das Programm richtet sich an Unternehmen, die bewährte Softwarelösungen eigenständig vermarkten, vertreiben und implementieren möchten – unabhängig von ihrer Größe, ihrem Markt oder ihrer Spezialisierung.",
+          "summary": "Mit dem neuen Partnerprogramm KiSoft connect setzt KNAPP ein starkes Zeichen für Innovation, Zusammenarbeit und digitale Transformation in der Logistikbranche. Das Programm richtet sich an Unternehmen, die bewährte Softwarelösungen eigenständig vermarkten, vertreiben und implementieren möchten – unabhängig von ihrer Größe, ihrem Markt oder ihrer...",
+          "reading_time_minutes": 2,
+          "relevance_score": 0.8
+        },
+        {
+          "source": "KNAPP AG",
+          "title": "KNAPP coding contest 2026",
+          "link": "https://www.knapp.com/newsroom/presse/das-war-der-knapp-coding-contest-2026/",
+          "date": "Mon, 02 Mar 2026 07:52:07 +0000",
+          "image": "https://www.knapp.com/wp-content/uploads/knapp-coding-contest-2026-1024x683.jpg",
+          "description": "Am 27. Februar 2026 stand die KNAPP-Zentrale in Hart bei Graz erneut ganz im Zeichen des Programmiernachwuchses: Mehr als 100 Teilnehmer:innen aus ganz Österreich folgten der Einladung zum 14. KNAPP coding contest und stellten ihr technisches Können unter Beweis. Auf die Bestplatzierten warteten attraktive Preisgelder sowie die Chance auf begehrte Praktikumsplätze im internationalen Technologieunternehmen. Der Wettbewerb hat sich längst zu einem Fixpunkt für junge Informatiktalente entwickelt.",
+          "summary": "Am 27. Februar 2026 stand die KNAPP-Zentrale in Hart bei Graz erneut ganz im Zeichen des Programmiernachwuchses: Mehr als 100 Teilnehmer:innen aus ganz Österreich folgten der Einladung zum 14. KNAPP coding contest und stellten ihr technisches Können unter Beweis.",
           "reading_time_minutes": 3,
           "relevance_score": 0.7
         },
         {
-          "source": "Der Standard",
-          "title": "Trump feuert Justizministerin Pam Bondi",
-          "link": "https://www.derstandard.at/story/3000000315316/wieso-donald-trump-us-justizministerin-pam-bondi-feuerte",
-          "date": "3. April 2026",
-          "image": "https://i.ds.at/MaxjRw/rs:fill:600:0/plain/lido-images/2026/04/02/d9033d3d-0eb6-406c-bd07-c88b64237645.jpg",
-          "description": "Mehrere Entlassungen drohen. Trump unzufrieden mit Vorgehensweisen.",
-          "summary": "Donald Trump hat Justizministerin Pam Bondi entlassen. Der US-Präsident war mit mehreren Vorgehensweisen unzufrieden. Das Amt des Justizministers gilt als besonders heikel in den USA. Weitere Entlassungen könnten folgen.",
+          "source": "KNAPP AG",
+          "title": "Neues Lagerrobotik-System AeroBot entsteht bei Siemens in Karlsruhe",
+          "link": "https://www.knapp.com/newsroom/presse/lagerrobotik-system-aerobot-entsteht-bei-siemens-karlsruhe/",
+          "date": "Tue, 24 Feb 2026 08:22:35 +0000",
+          "image": "https://www.knapp.com/wp-content/uploads/socialmedia_siemens_karlsruhe_aerobot-1024x576.jpg",
+          "description": "Die Siemens AG erweitert am Standort Karlsruhe, Deutschland, ihre Lagerkapazitäten und vertraut dabei auf eine Automatisierungslösung von KNAPP. Das innovative Lagerrobotik‑System AeroBot wird den Automatisierungsgrad am Standort erhöhen und die internen Logistikprozesse optimieren. Mit der Einführung zählt Siemens zu den ersten Unternehmen in Deutschland, die dieses innovative Lagersystem einsetzen. Die Inbetriebnahme ist für 2026 geplant.",
+          "summary": "Die Siemens AG erweitert am Standort Karlsruhe, Deutschland, ihre Lagerkapazitäten und vertraut dabei auf eine Automatisierungslösung von KNAPP. Das innovative Lagerrobotik‑System AeroBot wird den Automatisierungsgrad am Standort erhöhen und die internen Logistikprozesse optimieren.",
           "reading_time_minutes": 3,
-          "relevance_score": 0.6
+          "relevance_score": 1.0
         },
         {
-          "source": "Der Standard",
-          "title": "Österreicher Julian Schöberl rudert für Oxford",
-          "link": "https://www.derstandard.at/story/3000000315252/oxford-ruderer-schoeberl-auf-der-themse-kann-so-viel-passieren",
-          "date": "3. April 2026",
-          "image": "https://i.ds.at/02ZRqg/rs:fill:600:0/plain/lido-images/2026/04/02/65541d2d-4ae2-4a01-bda8-c205ed9c28da.jpg",
-          "description": "Erster österreichischer Ruderer im legendären Boat Race.",
-          "summary": "Julian Schöberl ist der erste österreichische Ruderer, der im legendären Boat Race zwischen Oxford und Cambridge startet. Der Vizeweltmeister trägt das Dunkelblau von Oxford. Für die Vorbereitung legte er in einem halben Jahr acht Kilo zu.",
+          "source": "Supply Chain Dive",
+          "title": "How FedEx, UPS shippers can limit fuel surcharge pressures",
+          "link": "https://www.supplychaindive.com/news/fedex-ups-postal-service-fuel-surcharge-reduction-tips/816330/",
+          "date": "Fri, 03 Apr 2026 09:24:15 -0400",
+          "image": "https://imgproxy.divecdn.com/U26DznCmk4S9A2-WDq7JL5VLoZulJSDwht6itC06Cjc/g:ce/rs:fill:1600:900:1/Z3M6Ly9kaXZlc2l0ZS1zdG9yYWdlL2RpdmVpbWFnZS9HZXR0eUltYWdlcy0xMjYyNzczNDEzLmpwZw==.webp",
+          "description": "Securing discounts, trimming overall delivery charges and tapping alternative carriers are among the methods customers should explore, experts said.",
+          "summary": "Securing discounts, trimming overall delivery charges and tapping alternative carriers are among the methods customers should explore, experts said.",
           "reading_time_minutes": 2,
-          "relevance_score": 0.5
+          "relevance_score": 0.65
         },
         {
-          "source": "Der Standard",
-          "title": "Künstliche Inseln in der Nordsee: Megaprojekt nimmt Form an",
-          "link": "https://www.derstandard.at/story/3000000315258/kuenstliche-inseln-in-der-nordsee-megaprojekt-nimmt-form-an",
-          "date": "2. April 2026",
-          "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/69/Dogger_Bank_wind_farms.jpg/640px-Dogger_Bank_wind_farms.jpg",
-          "description": "Doggerland soll größte Energieinsel der Welt werden.",
-          "summary": "Das Megaprojekt Doggerland nimmt Gestalt an. Die künstliche Insel in der Nordsee soll die größte Energieinsel der Welt werden und Windparks mit dem Festland verbinden. Ein gewaltiges Infrastrukturprojekt für die Energiewende.",
-          "reading_time_minutes": 3,
-          "relevance_score": 0.6
-        },
-        {
-          "source": "Der Standard",
-          "title": "Thailand: Ein Toter bei neuerlicher Erdbebenkatastrophe",
-          "link": "https://www.derstandard.at/story/3000000315313/thailand-ein-toter-bei-neuerlicher-erdbebenkatastrophe",
-          "date": "3. April 2026",
-          "image": "https://i.ds.at/M82wOA/rs:fill:600:0/plain/lido-images/2026/04/02/8799e100-16b8-4a88-9fc5-c9bac079c60f.jpg",
-          "description": "Magnitude 6,3 erschüttert Nordwesten Thailands.",
-          "summary": "Ein Erdbeben der Stärke 6,3 hat den Nordwesten Thailands erschüttert. Dabei kam mindestens ein Mensch ums Leben, mehrere wurden verletzt. Die Region ist tektonisch aktiv und erlebt regelmäßig Erdbeben.",
+          "source": "Supply Chain Dive",
+          "title": "Trump slaps steep tariffs on patented drug imports",
+          "link": "https://www.supplychaindive.com/news/trump-tariffs-patented-drug-imports/816550/",
+          "date": "Thu, 02 Apr 2026 20:05:00 -0400",
+          "image": "https://imgproxy.divecdn.com/ES-1lYXCZKXcjsTy_FcRQiqWBq07Dr4gAOHYzuKj9l4/g:ce/rs:fill:1600:900:1/Z3M6Ly9kaXZlc2l0ZS1zdG9yYWdlL2RpdmVpbWFnZS9HZXR0eUltYWdlcy01MzAzNjUyMTVfcHpBSmNQTS5qcGc=.webp",
+          "description": "The 100% tariff will go into effect on July 31 for several major pharmaceutical companies — with full-scale implementation to begin in September.",
+          "summary": "The 100% tariff will go into effect on July 31 for several major pharmaceutical companies — with full-scale implementation to begin in September.",
           "reading_time_minutes": 2,
-          "relevance_score": 0.4
+          "relevance_score": 0.65
+        },
+        {
+          "source": "Supply Chain Dive",
+          "title": "Cyberattack hits Hasbro, impacting orders and shipping",
+          "link": "https://www.supplychaindive.com/news/cyberattack-hasbro-impacting-orders-shipping/816485/",
+          "date": "Fri, 03 Apr 2026 09:36:00 -0400",
+          "image": "",
+          "description": "The major U.S. toymaker and entertainment company is still working to assess if company data was stolen in the attack.",
+          "summary": "The major U.S. toymaker and entertainment company is still working to assess if company data was stolen in the attack.",
+          "reading_time_minutes": 2,
+          "relevance_score": 0.7
         }
       ]
     },
     "local": {
       "name": "Steiermark & Lokal",
-      "emoji": "🏔",
-      "css_class": "category-header--local",
       "articles": [
         {
           "source": "Kleine Zeitung",
-          "title": "ORF-Stiftungsrat Prantner im Visier der Landesroten",
-          "link": "https://www.kleinezeitung.at/steiermark/landespolitik/20735268/steirischer-stiftungsrat-ist-im-auge-des-orf-orkans",
-          "date": "3. April 2026",
-          "image": "https://img.kleinezeitung.at/public/steiermark/graz/gf8s2b-smalltalkpajman5jpg/alternates/BASE_LANDSCAPE/small_talk_Pajman_5.jpg",
-          "description": "SPÖ-Chef Max Lercher sägt an Prantners Sessel. Anwalt eingeschaltet.",
-          "summary": "Thomas Prantner, ORF-Stiftungsrat von LH Mario Kunasek ernannt, gerät zunehmend unter Druck. SPÖ-Chef Max Lercher fordert seinen Rücktritt. Prantner hat inzwischen seinen Anwalt eingeschaltet. Eine weitere Episode im politischen Tauziehen um den ORF in der Steiermark.",
+          "title": "Wetter: Osterhase hoppelt bei bis zu 24 Grad, dann folgt Kälteeinbruch",
+          "link": "https://www.kleinezeitung.at/steiermark/20740299/der-osterhase-hat-sommerliche-temperaturen-bis-zu-24-grad-im-gepaeck",
+          "date": "Sat, 04 Apr 2026 09:30:00 GMT",
+          "image": "https://img.kleinezeitung.at/public/incoming/qfm2yp-osterhase/alternates/BASE_LANDSCAPE/Osterhase",
+          "description": "April, April, der macht was er will. Das gilt in den kommenden Tagen beim Wetter. Denn während es am Ostersonntag sommerlich wird, fallen die Temperaturen im Laufe der Woche um mehr als zehn Grad.",
+          "summary": "April, April, der macht was er will. Das gilt in den kommenden Tagen beim Wetter. Denn während es am Ostersonntag sommerlich wird, fallen die Temperaturen im Laufe der Woche um mehr als zehn Grad.",
+          "reading_time_minutes": 3,
+          "relevance_score": 0.7
+        },
+        {
+          "source": "Kleine Zeitung",
+          "title": "Teures Leben: Wie viel Geld den Steirern übrigbleibt",
+          "link": "https://www.kleinezeitung.at/steiermark/20738013/wie-viel-geld-den-steirern-wirklich-uebrigbleibt",
+          "date": "Sat, 04 Apr 2026 03:30:00 GMT",
+          "image": "https://img.kleinezeitung.at/public/incoming/j4sfsn-imago53066544jpg/alternates/BASE_LANDSCAPE/imago53066544.jpg",
+          "description": "AK und TU Wien beleuchten in einem gemeinsamen Projekt, was Haushalten nach Abzug aller notwendigen Ausgaben zum Leben bleibt. Die regionalen Unterschiede in Österreich sind beträchtlich.",
+          "summary": "AK und TU Wien beleuchten in einem gemeinsamen Projekt, was Haushalten nach Abzug aller notwendigen Ausgaben zum Leben bleibt. Die regionalen Unterschiede in Österreich sind beträchtlich.",
+          "reading_time_minutes": 3,
+          "relevance_score": 0.7
+        },
+        {
+          "source": "Kleine Zeitung",
+          "title": "Seit einem Jahr ist der IGL-100er dunkel, jetzt nahen strengere Regeln",
+          "link": "https://www.kleinezeitung.at/steiermark/20737902/seit-einem-jahr-ist-der-igl-100er-dunkel-doch-jetzt-nahen-strengere",
+          "date": "Fri, 03 Apr 2026 14:30:00 GMT",
+          "image": "https://img.kleinezeitung.at/public/incoming/qleeml-e1e4a2f9-aac5-4e42-9644-bc6957874dd2v0ljpg/alternates/BASE_LANDSCAPE/E1E4A2F9-AAC5-4E42-9644-BC6957874DD2_v0_l.jpg",
+          "description": "Zu Ostern 2025 drehte Blau-Schwarz dem Luft-Hunderter auf den steirischen Autobahnen den Saft ab. Verschärfte Regeln für Schadstoffe könnten die Diskussion nun neu anheizen.",
+          "summary": "Zu Ostern 2025 drehte Blau-Schwarz dem Luft-Hunderter auf den steirischen Autobahnen den Saft ab. Verschärfte Regeln für Schadstoffe könnten die Diskussion nun neu anheizen.",
           "reading_time_minutes": 3,
           "relevance_score": 0.8
         },
         {
           "source": "Kleine Zeitung",
-          "title": "Tragischer Forstunfall in Fernitz-Mellach",
-          "link": "https://www.kleinezeitung.at/steiermark/20737173/steirerin-fand-ihren-nachbarn-unter-einem-ast-eingeklemmt",
-          "date": "2. April 2026",
-          "image": "https://media04.meinbezirk.at/article/2026/04/03/6/50131486_XXL.webp?1775196192",
-          "description": "63-Jähriger bei Holzschlägerungsarbeiten ums Leben gekommen.",
-          "summary": "In Fernitz-Mellach kam ein 63-jähriger Mann bei Holzschlägerungsarbeiten ums Leben. Er wurde von einem Ast erschlagen und von einer Nachbarin gefunden. Die Polizei ermittelt die genauen Umstände des Unfalls.",
-          "reading_time_minutes": 2,
-          "relevance_score": 0.6
-        },
-        {
-          "source": "Kleine Zeitung",
-          "title": "E-Scooter-Lenker liefert sich wilde Verfolgungsjagd",
-          "link": "https://www.kleinezeitung.at/steiermark/20737344/e-scooter-lenker-liefert-sich-wilde-verfolgungsjagd-mit-der-polizei",
-          "date": "3. April 2026",
-          "image": "https://img.kleinezeitung.at/public/service/newsticker/chronik/evgdt6-Auch-f%C3%BCr-E-Scooter-steht-eine-Helmpflicht-im-Raum/alternates/BASE_LANDSCAPE/Auch%20f%C3%BCr%20E-Scooter%20steht%20eine%20Helmpflicht%20im%20Raum",
-          "description": "Jugendlicher konnte Polizei am Murradweg abschütteln.",
-          "summary": "Ein E-Scooter-Fahrer lieferte sich in Graz eine nächtliche Verfolgungsjagd mit der Polizei. Der Jugendliche konnte die Einsatzkräfte schließlich am Murradweg abschütteln. Die Polizei sucht nun nach Zeugen.",
-          "reading_time_minutes": 2,
-          "relevance_score": 0.5
-        },
-        {
-          "source": "Kleine Zeitung",
-          "title": "Maximilian Koglmann: Erinnerungen an Maturareise-Opfer",
-          "link": "https://www.kleinezeitung.at/steiermark/oststeier/20731233/bei-maturareise-verunglueckt-maxi-du-wirst-immer-in-unseren-herzen-sein",
-          "date": "3. April 2026",
-          "image": "https://img.kleinezeitung.at/public/steiermark/oststeier/8a7idr-img1484jpeg/alternates/BASE_LANDSCAPE/IMG_1484.jpeg",
-          "description": "Mutter Regina spricht über Trauerbewältigung nach Unfalltod auf Zakynthos.",
-          "summary": "Maximilian Koglmann verlor im Juni 2025 bei einer Maturareise auf Zakynthos sein Leben. Seine Mutter Regina spricht nun über den Umgang mit dem Verlust und die Unterstützung durch das Hospizteam Fürstenfeld. Ein bewegender Bericht über Trauerbewältigung.",
+          "title": "Unterbringung: Freundin drohte mit einer Glock und wollte 1000 Euro",
+          "link": "https://www.kleinezeitung.at/steiermark/20736134/freundin-drohte-mit-einer-glock-und-wollte-1000-euro",
+          "date": "Sat, 04 Apr 2026 11:30:00 GMT",
+          "image": "https://img.kleinezeitung.at/public/incoming/p65nes-steiermark-lkh-graz-sud-west-standort-sud/alternates/BASE_LANDSCAPE/STEIERMARK%20LKH%20GRAZ%20S%C3%9CD-WEST%20STANDORT%20S%C3%9CD",
+          "description": "Die Betroffene war nicht zurechnungsfähig, sie leidet an Wahnvorstellungen. Vom Schöffensenat am Straflandesgericht Graz wurde sie eingewiesen.",
+          "summary": "Die Betroffene war nicht zurechnungsfähig, sie leidet an Wahnvorstellungen. Vom Schöffensenat am Straflandesgericht Graz wurde sie eingewiesen.",
           "reading_time_minutes": 3,
-          "relevance_score": 0.6
+          "relevance_score": 0.8
         },
         {
           "source": "Kleine Zeitung",
-          "title": "Frau geschlagen: Neunjährige als Zeugin vor Gericht",
-          "link": "https://www.kleinezeitung.at/steiermark/murtal/20719058/frau-geschlagen-mama-es-ist-was-ganz-ganz-ganz-schlimmes-passiert",
-          "date": "3. April 2026",
-          "image": "https://upload.wikimedia.org/wikipedia/commons/c/c4/Landesgericht_Graz_DSCN7177.JPG",
-          "description": "Kind der Nachbarin beobachtete nächtliche Gewalttat im Murtal.",
-          "summary": "Ein Mann aus dem Murtal muss sich vor Gericht verantworten, weil er seine Frau geschlagen haben soll. Die einzige Zeugin ist das neunjährige Kind der Nachbarin, das die Tat beobachtete und seiner Mutter sagte: 'Es ist was ganz ganz ganz Schlimmes passiert.'",
+          "title": "Gewalt an Schulen : Wenn Mobbing Jugendliche unters Messer treibt",
+          "link": "https://www.kleinezeitung.at/steiermark/20728422/wenn-mobbing-jugendliche-unters-messer-treibt",
+          "date": "Sat, 04 Apr 2026 05:00:00 GMT",
+          "image": "https://img.kleinezeitung.at/public/incoming/aj98a3-adobestock38458594jpeg/alternates/BASE_LANDSCAPE/AdobeStock_38458594.jpeg",
+          "description": "Gewalt ist nicht nur ein Faustschlag. Auch Mobbing ist Gewalt. Für Betroffene ist es meist ein Albtraum, der sie weit über die Schulzeit hinaus begleitet.",
+          "summary": "Gewalt ist nicht nur ein Faustschlag. Auch Mobbing ist Gewalt. Für Betroffene ist es meist ein Albtraum, der sie weit über die Schulzeit hinaus begleitet.",
           "reading_time_minutes": 3,
-          "relevance_score": 0.5
-        },
-        {
-          "source": "Kleine Zeitung",
-          "title": "Das Ende einer Ära: Letzte Saison für Puntigamer",
-          "link": "https://www.kleinezeitung.at/steiermark/graz/20735408/puntigamer-das-ende-einer-aera",
-          "date": "3. April 2026",
-          "image": "https://bier-guide.net/sites/beer/files/styles/gallery_carousel/public/2023-02/PU_Galobierer2022%20%286%29.jpg?itok=Rf2aS9-T",
-          "description": "Grazer Traditionsbrauerei beendet Produktion nach 190 Jahren.",
-          "summary": "Die Puntigamer Brauerei in Graz beendet nach 190 Jahren ihre Produktion. Das Ende einer steirischen Institution. Die Marke wird weiter existieren, aber nicht mehr in Graz gebraut. Ein Stück Heimatgeschichte geht zu Ende.",
-          "reading_time_minutes": 2,
           "relevance_score": 0.7
         }
       ]
@@ -710,62 +647,70 @@
   },
   "ki_modelle": {
     "releases": {
-      "title": "Google Gemma 4: Open-Weight-Modelle mit Multi-Modal-Support",
-      "content": "Google veröffentlicht Gemma 4 mit deutlich verbesserter Leistung und Multi-Modal-Fähigkeiten. Die Modelle sind in verschiedenen Größen verfügbar (2B, 9B, 27B) und können lokal auf Consumer-Hardware laufen. Besonders interessant: Die 27B-Version erreicht nahezu GPT-4-Level bei bestimmten Benchmarks.",
+      "title": "Google Gemma 4: Open-Weight mit Multi-Modal-Support",
+      "content": "Google veröffentlicht Gemma 4 mit verbesserter Leistung in den Größen 2B, 9B und 27B. Die 27B-Variante nähert sich GPT-4-Level bei Coding- und Reasoning-Benchmarks. Alle Modelle laufen lokal auf Consumer-Hardware.",
       "source": "DeepMind",
       "date": "2. April 2026",
-      "tag": "Modell"
+      "tag": "Modell",
+      "link": "https://blog.google/technology/developers/gemma-4/"
     },
     "benchmarks": {
-      "title": "LMSYS Chatbot Arena: Gemini 2.5 überholt GPT-4o",
-      "content": "Die aktuellen LMSYS-Rankings zeigen Googles Gemini 2.5 Pro auf Platz 1, gefolgt von GPT-4o und Claude 3.7 Sonnet. Besonders auffällig: Die Verbesserungen bei Reasoning- und Coding-Aufgaben. Open-Source-Modelle wie Gemma 4 und Qwen 3 rücken näher an die Spitze heran.",
+      "title": "LMSYS Chatbot Arena: Claude Opus 4 und Gemini 2.5 Pro führen",
+      "content": "Die aktuellen LMSYS-Rankings zeigen Claude Opus 4 und Gemini 2.5 Pro gemeinsam an der Spitze. Open-Source-Modelle wie Qwen 3 und Gemma 4 rücken spürbar näher an die proprietären Modelle heran.",
       "source": "LMSYS",
-      "date": "1. April 2026",
-      "tag": "Ranking"
+      "date": "3. April 2026",
+      "tag": "Ranking",
+      "link": "https://chat.lmsys.org/?leaderboard"
     },
     "pricing": {
-      "title": "OpenAI senkt GPT-4o-Preise um 50%",
-      "content": "OpenAI reduziert die API-Preise für GPT-4o deutlich: Input-Tokens kosten nun $2.50/1M (vorher $5.00), Output-Tokens $10.00/1M (vorher $15.00). Das macht das Modell wettbewerbsfähiger gegenüber Googles Gemini und Anthropic Claude. Für High-Volume-User gibt es zusätzliche Rabatte.",
-      "source": "OpenAI",
-      "date": "28. März 2026",
-      "tag": "API"
+      "title": "Moonshot Kimi K2.5: Günstige Alternative mit 256K-Kontext",
+      "content": "Moonshots Kimi K2.5 bietet 256K-Token-Kontext zu $0.60/1M Input und $2.50/1M Output — damit einer der günstigsten Anbieter für lange Kontexte.",
+      "source": "Moonshot AI",
+      "date": "1. April 2026",
+      "tag": "API",
+      "link": "https://platform.moonshot.cn/docs/pricing"
     },
     "tools": {
-      "title": "Claude 3.7 Sonnet: Neue Desktop-App mit MCP-Support",
-      "content": "Anthropic veröffentlicht eine neue Desktop-App für Claude 3.7 Sonnet mit nativem MCP (Model Context Protocol) Support. Die App ermöglicht direkte Integration mit lokalen Dateien, Datenbanken und Entwicklertools. Ein Game-Changer für lokale AI-Workflows ohne Cloud-Abhängigkeit.",
-      "source": "Anthropic",
-      "date": "30. März 2026",
-      "tag": "Update"
+      "title": "Cursor 3.0: Autonome Multi-File-Editing mit Agent-Mode",
+      "content": "Cursor 3.0 führt einen neuen Agent-Mode ein, der eigenständig über mehrere Dateien hinweg arbeitet. Code Review, Refactoring und Feature-Implementierung laufen jetzt in einem durchgehenden Workflow ab.",
+      "source": "Cursor",
+      "date": "3. April 2026",
+      "tag": "Tool",
+      "link": "https://www.cursor.com/changelog"
     }
   },
   "dev_digest": {
     "github_trending": {
-      "title": "firecracker-microvm/firecracker: AWS' Serverless-Engine open source",
-      "content": "Firecracker, die MicroVM-Engine hinter AWS Lambda und Fargate, gewinnt stark an Popularität. Die Rust-basierte Virtualisierung bietet schnelle Startzeiten (<125ms) und geringen Overhead. Ideal für Gerhards VPS-Setup: Sichere Container-Isolation mit VM-Sicherheit.",
+      "title": "jj — Git-kompatibles VCS mit undo und automatischem Rebase",
+      "content": "Das Jujutsu-Projekt (jj) gewinnt als Git-Alternative stark an Popularität. Automatisches Rebase, undo für alle Operationen und anonyme Branches machen es besonders für komplexe Workflows interessant.",
       "source": "GitHub",
-      "date": "3. April 2026",
-      "tag": "Repo"
+      "date": "4. April 2026",
+      "tag": "Repo",
+      "link": "https://github.com/martinvonz/jj"
     },
     "releases": {
-      "title": "Docker 28.0: Native WebGPU-Support und BuildKit-Verbesserungen",
-      "content": "Docker 28.0 bringt native Unterstützung für WebGPU-Container, verbesserte BuildKit-Performance und experimentellen Support für containerisierte AI-Workloads. Besonders interessant für ML-Deployments: GPUs können jetzt direkt in Container durchgereicht werden ohne komplexe Konfiguration.",
-      "source": "Docker",
-      "date": "1. April 2026",
-      "tag": "Update"
+      "title": "Node.js 24 LTS: V8 13.6, native TypeScript-Unterstützung",
+      "content": "Node.js 24 wird zum nächsten LTS-Release mit nativer TypeScript-Ausführung, V8 13.6 mit WebAssembly-GC und verbessertem Startup. Permission Model verlässt Experimental-Status.",
+      "source": "Node.js",
+      "date": "3. April 2026",
+      "tag": "Release",
+      "link": "https://nodejs.org/en/blog/release/v24.0.0"
     },
     "hn_top": {
-      "title": "'Ich habe meinen Job an AI-Agenten vergeben' – Erfahrungsbericht",
-      "content": "Ein auf Hacker News viral gegangener Post beschreibt, wie ein Entwickler 80% seiner täglichen Coding-Aufgaben an Cursor-Agenten delegiert hat. Er berichtet von 3x Produktivitätssteigerung, aber auch neuen Herausforderungen: Review-Overhead, 'Hallucination'-Debugging und die Notwendigkeit präziser Prompts.",
+      "title": "OpenClaw-Sicherheitslücke: Warum AI-Agenten Angriffsfläche vergrößern",
+      "content": "Ars Technica berichtet über eine kürzlich behobene Schwachstelle in OpenClaw, die Remote Code Execution ermöglichte. Die Diskussion dreht sich um das Risiko von AI-Agenten mit Systemzugriff.",
       "source": "Hacker News",
-      "date": "2. April 2026",
-      "tag": "Diskussion"
+      "date": "3. April 2026",
+      "tag": "Diskussion",
+      "link": "https://arstechnica.com/security/2026/04/heres-why-its-prudent-for-openclaw-users-to-assume-compromise/"
     },
     "security_advisory": {
-      "title": "CVE-2026-20093: Kritische Cisco IMC Authentication Bypass",
-      "content": "CVSS 9.8: Nicht authentifizierte Angreifer können über Cisco Integrated Management Controller beliebige Aktionen mit Admin-Rechten ausführen. Betroffen sind Server mit Cisco IMC Versionen vor 4.3.2. Sofortiges Update erforderlich! Workaround: IMC-Netzwerkzugriff einschränken.",
+      "title": "CVE-2026-20093: Kritische Cisco IMC Authentication Bypass (CVSS 9.8)",
+      "content": "Nicht authentifizierte Angreifer können über Cisco Integrated Management Controller beliebige Admin-Aktionen ausführen. Betroffen: IMC vor Version 4.3.2. Sofortiges Update erforderlich.",
       "source": "Cisco PSIRT",
       "date": "2. April 2026",
-      "tag": "CVE"
+      "tag": "CVE",
+      "link": "https://sec.cloudapps.cisco.com/security/center/content/CiscoSecurityAdvisory/cisco-sa-cimc-auth-bypass"
     }
   }
 }
