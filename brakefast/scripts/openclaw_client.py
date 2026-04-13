@@ -4,10 +4,13 @@
 from __future__ import annotations
 
 import json
+import logging
 import urllib.error
 import urllib.request
 from dataclasses import dataclass
 from typing import Any
+
+log = logging.getLogger("brakefast.enrichment")
 
 from openclaw_runtime import ProviderConfig, get_text_provider_chain
 
@@ -43,7 +46,7 @@ class OpenClawChatClient:
         timeout: int = 40,
     ) -> ChatResponse | None:
         errors: list[str] = []
-        for provider in self.providers:
+        for i, provider in enumerate(self.providers):
             payload = {
                 "model": provider.model,
                 "messages": messages,
@@ -55,11 +58,17 @@ class OpenClawChatClient:
                 response = self._call_provider(provider, normalized_payload, timeout=timeout)
                 if response is not None:
                     self.last_error = ""
+                    log.info("Provider %s succeeded (attempt %d/%d)",
+                             provider.label, i + 1, len(self.providers))
                     return response
             except Exception as exc:  # defensive: continue to next provider
+                log.warning("Provider %s failed (attempt %d/%d): %s: %s",
+                            provider.label, i + 1, len(self.providers),
+                            type(exc).__name__, str(exc)[:200])
                 errors.append(f"{provider.label}: {exc}")
                 continue
         self.last_error = " | ".join(errors)
+        log.error("All %d providers failed: %s", len(self.providers), self.last_error[:500])
         return None
 
     def _call_provider(
