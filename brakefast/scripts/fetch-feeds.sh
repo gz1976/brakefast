@@ -29,6 +29,7 @@ import subprocess
 import xml.etree.ElementTree as ET
 from datetime import datetime, timezone
 import re
+import time
 import html as html_mod
 
 def fetch_feed(url, timeout=15):
@@ -561,6 +562,13 @@ def main():
     with open(sources_file, 'r') as f:
         config = json.load(f)
 
+    # Same-day reuse guard: skip if raw-articles.json was written < 2 hours ago
+    if os.path.exists(output_file):
+        age_hours = (time.time() - os.path.getmtime(output_file)) / 3600
+        if age_hours < 2:
+            print(f"raw-articles.json is {age_hours:.1f}h old (< 2h), reusing", file=sys.stderr)
+            sys.exit(0)
+
     all_articles = {}
     total = 0
 
@@ -680,8 +688,14 @@ def main():
         for dirpath, dirnames, filenames in os.walk(editions_dir):
             if "data.json" in filenames:
                 archive_files.append(os.path.join(dirpath, "data.json"))
-        # Sort by path (date-based dirs sort chronologically), take last 2
-        archive_files.sort(reverse=True)
+        # Sort by date extracted from path (YYYY/MM/DD), take last 2
+        def _extract_date_from_path(path_str):
+            m = re.search(r'(\d{4})/(\d{2})/(\d{2})', path_str)
+            if m:
+                return (int(m.group(1)), int(m.group(2)), int(m.group(3)))
+            return (0, 0, 0)
+
+        archive_files.sort(key=lambda p: _extract_date_from_path(str(p)), reverse=True)
         for af in archive_files[:2]:
             if af == latest_path:
                 continue
