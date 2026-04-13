@@ -1,5 +1,5 @@
 interface Props {
-  date: string;
+  date?: string;
   totalArticles?: number;
   editionNumber?: number;
   readingTimeTotal?: number;
@@ -7,13 +7,14 @@ interface Props {
 }
 
 export function Masthead({ date, editionNumber, onLogoClick }: Props) {
-  const dateObj = new Date(date);
-  const formattedDate = dateObj.toLocaleDateString('de-AT', {
-    weekday: 'long',
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-  });
+  const formattedDate = date
+    ? new Date(date).toLocaleDateString('de-AT', {
+        weekday: 'long',
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+      })
+    : 'Datum unbekannt';
 
   return (
     <header className="masthead">

@@ -235,7 +235,7 @@ const MorningTilesDataSchema = z.object({
 
 /** Zod schema for the root NewspaperData structure. Lenient defaults for all optional fields. */
 export const NewspaperDataSchema = z.object({
-  generated: z.string().catch(new Date().toISOString()),
+  generated: z.string().optional(),
   totalArticles: z.number().catch(0),
   headline: z.string().optional(),
   editorial: z.string().optional(),

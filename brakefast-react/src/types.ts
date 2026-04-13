@@ -337,7 +337,7 @@ export interface ArchiveIndex {
 
 // ─── Root ───
 export interface NewspaperData {
-  generated: string;
+  generated?: string;
   totalArticles: number;
   headline?: string;
   editorial?: string;

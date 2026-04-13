@@ -19,7 +19,7 @@ describe('NewspaperDataSchema', () => {
     const result = z.safeParse(NewspaperDataSchema, input);
     expect(result.success).toBe(true);
     if (result.success) {
-      expect(typeof result.data.generated).toBe('string');
+      expect(result.data.generated).toBeUndefined();
       expect(result.data.totalArticles).toBe(0);
     }
   });

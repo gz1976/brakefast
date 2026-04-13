@@ -97,14 +97,18 @@ export function HeroBriefing({ data, calendarRevealed, onArticleClick, isRead, m
   const calendar = data.widgets?.calendar || [];
   const calendarCount = calendar.length;
   const headlines = data.morning_tiles?.headlines || [];
-  const editionDate = new Date(data.generated);
-  const weekdayLabel = editionDate.toLocaleDateString('de-AT', { weekday: 'long' });
-  const fullDateLabel = editionDate.toLocaleDateString('de-AT', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-  });
-  const calendarWeek = getCalendarWeek(editionDate);
+  const editionDate = data.generated ? new Date(data.generated) : null;
+  const weekdayLabel = editionDate
+    ? editionDate.toLocaleDateString('de-AT', { weekday: 'long' })
+    : 'Heute';
+  const fullDateLabel = editionDate
+    ? editionDate.toLocaleDateString('de-AT', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+      })
+    : '';
+  const calendarWeek = editionDate ? getCalendarWeek(editionDate) : null;
   const weatherSummary = weather
     ? `${weather.location || 'Voitsberg'} · ${translateWeather(weather.description)}`
     : 'Wetter nicht verfügbar';

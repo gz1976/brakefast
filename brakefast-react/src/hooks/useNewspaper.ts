@@ -54,11 +54,6 @@ function normalizeData(raw: NewspaperData): NewspaperData {
     };
   }
 
-  // Fallback for missing generated timestamp
-  if (!data.generated) {
-    data.generated = new Date().toISOString();
-  }
-
   // Fallback for missing totalArticles
   if (!data.totalArticles) {
     data.totalArticles = Object.values(data.categories).reduce(

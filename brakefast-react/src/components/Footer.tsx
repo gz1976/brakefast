@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react';
 
 interface Props {
-  generated: string;
+  generated?: string;
   editionNumber?: number;
   clearAll?: () => void;
   readCount?: number;
@@ -25,16 +25,20 @@ export function Footer({ generated, editionNumber, clearAll, readCount, onToast 
     onToast?.('Lesehistorie geloescht');
   };
 
-  const dateObj = new Date(generated);
-  const dateStr = dateObj.toLocaleDateString('de-AT', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-  });
-  const timeStr = dateObj.toLocaleTimeString('de-AT', {
-    hour: '2-digit',
-    minute: '2-digit',
-  });
+  const dateObj = generated ? new Date(generated) : null;
+  const dateStr = dateObj
+    ? dateObj.toLocaleDateString('de-AT', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+      })
+    : null;
+  const timeStr = dateObj
+    ? dateObj.toLocaleTimeString('de-AT', {
+        hour: '2-digit',
+        minute: '2-digit',
+      })
+    : null;
 
   return (
     <footer className="footer">
@@ -42,7 +46,7 @@ export function Footer({ generated, editionNumber, clearAll, readCount, onToast 
         Brake<span>Fast</span>
       </div>
       <p className="footer-text">
-        Kuratiert von Otto · Generiert am {dateStr} um {timeStr} Uhr · Powered by OpenClaw
+        Kuratiert von Otto{dateStr && timeStr ? ` · Generiert am ${dateStr} um ${timeStr} Uhr` : ''} · Powered by OpenClaw
       </p>
       {editionNumber && (
         <p className="footer-text">
