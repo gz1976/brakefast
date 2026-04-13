@@ -5,8 +5,10 @@ from __future__ import annotations
 
 import hashlib
 import json
+import logging
 import re
 import sys
+from logging.handlers import RotatingFileHandler
 from pathlib import Path
 from typing import Any
 
@@ -21,6 +23,12 @@ DEFAULT_INPUT = OUTPUT_DIR / "raw-articles.json"
 DEFAULT_OUTPUT = OUTPUT_DIR / "enriched-articles.json"
 DEFAULT_CACHE = OUTPUT_DIR / "article-briefing-cache.json"
 CACHE_VERSION = 7
+
+enrichment_logger = logging.getLogger("brakefast.enrichment")
+enrichment_logger.setLevel(logging.DEBUG)
+_handler = RotatingFileHandler(OUTPUT_DIR / "enrichment.log", maxBytes=5_000_000, backupCount=3)
+_handler.setFormatter(logging.Formatter("%(asctime)s %(levelname)s %(message)s"))
+enrichment_logger.addHandler(_handler)
 
 CATEGORY_RELEVANCE = {
     "ai": "Relevanz: zeigt neue AI-Faehigkeiten, Tools oder Modelle, die fuer Automatisierung und Produktivitaet wichtig sein koennen.",
@@ -143,11 +151,24 @@ class BriefingBuilder:
             timeout=40,
         )
         if response is None:
+            enrichment_logger.warning("LLM returned None for '%s'. Last error: %s",
+                                      article.get("title", "?")[:60], self.client.last_error)
             return None
+
+        enrichment_logger.debug("LLM response for '%s' via %s: %.2000s",
+                                article.get("title", "?")[:60], response.provider_name, response.content)
 
         try:
             parsed = self._parse_llm_json(response.content)
-        except (KeyError, IndexError, TypeError, json.JSONDecodeError):
+        except (KeyError, IndexError, TypeError, json.JSONDecodeError) as exc:
+            enrichment_logger.error("LLM parse failed for '%s': %s. Raw: %.2000s",
+                                    article.get("title", "?")[:60], exc, response.content)
+            return None
+
+        if not parsed.get("summary") or len((parsed.get("summary") or "").split()) < 15:
+            enrichment_logger.warning("LLM summary missing or too short for '%s' (%d words)",
+                                      article.get("title", "?")[:60],
+                                      len((parsed.get("summary") or "").split()))
             return None
 
         summary = self._cleanup_text(parsed.get("summary", ""))
@@ -518,6 +539,7 @@ class ArticleBriefingEngine:
             "image_quality_score": round(best_image_score, 2),
             "content_quality": content_quality,
             "processing_status": "complete" if used_llm else ("heuristic" if (full_text or fallback_text) else "unprocessed"),
+            "enrichment_method": "llm" if used_llm else "heuristic",
             "needs_review": (summary_quality_score < 0.5 or not content_extracted) and not is_paywalled,
             "image_candidates": image_candidates,
             "best_image": best_image,
