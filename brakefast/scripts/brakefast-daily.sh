@@ -113,19 +113,24 @@ else
   exit 1
 fi
 
-# Step 5: Publish JSON for React app + snapshot edition
-log "Step 5: Publishing JSON for React app..."
+# Determine data tier and select input JSON
 INPUT_JSON="${BRAKEFAST_DIR}/output/curated-articles.json"
+DATA_TIER="curated"
 if [ ! -f "$INPUT_JSON" ]; then
   INPUT_JSON="${ENRICHED_FILE}"
+  DATA_TIER="enriched"
 fi
 if [ ! -f "$INPUT_JSON" ]; then
   INPUT_JSON="${BRAKEFAST_DIR}/output/raw-articles.json"
+  DATA_TIER="raw"
 fi
+
 if [ -f "$INPUT_JSON" ]; then
+  log "Step 5: Using ${DATA_TIER} data tier"
   FINAL_JSON="${BRAKEFAST_DIR}/output/final-data.json"
   cp "$INPUT_JSON" "$FINAL_JSON"
-  # Merge calendar events into final JSON before publish/snapshot.
+
+  # Merge calendar events into final JSON before validation.
   if [ -f "$CALENDAR_JSON" ] && [ -s "$CALENDAR_JSON" ]; then
     python3 -c "
 import json, sys
@@ -146,9 +151,23 @@ except Exception as e:
 " 2>&1 | tee -a "$LOG_FILE"
   fi
 
+  # Step 4.5: Validate before publishing
+  log "Step 4.5: Validating final edition data..."
+  VALIDATE_SCRIPT="${SCRIPT_DIR}/validate_edition.py"
+  if [ -f "$VALIDATE_SCRIPT" ]; then
+    if python3 "$VALIDATE_SCRIPT" "$FINAL_JSON" "$DATA_TIER" 2>&1 | tee -a "$LOG_FILE"; then
+      log "Step 4.5: Validation passed"
+    else
+      log "ERROR: Validation failed — edition NOT published"
+      exit 1
+    fi
+  else
+    log "WARN: validate_edition.py not found, skipping validation"
+  fi
+
   if [ "$PUBLISH_ENABLED" -eq 1 ]; then
     if bash "${SCRIPT_DIR}/publish-edition.sh" "$FINAL_JSON" 2>&1 | tee -a "$LOG_FILE"; then
-      log "Step 5: final-data.json published and edition archived"
+      log "Step 5: final-data.json published and edition archived (tier: ${DATA_TIER})"
     else
       log "ERROR: Publish step failed"
       exit 1
