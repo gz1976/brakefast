@@ -28,6 +28,27 @@ log() {
   echo "[$(date '+%Y-%m-%d %H:%M:%S')] $*" | tee -a "$LOG_FILE"
 }
 
+PIPELINE_LOG="${BRAKEFAST_DIR}/output/pipeline-run.json"
+echo "[]" > "$PIPELINE_LOG"
+
+log_step_summary() {
+  local step="$1"
+  shift
+  local entry="{\"step\": \"$step\", \"timestamp\": \"$(date -Iseconds)\", $*}"
+  python3 -c "
+import json, sys
+entry = json.loads(sys.argv[1])
+try:
+    with open(sys.argv[2]) as f:
+        arr = json.load(f)
+except (FileNotFoundError, json.JSONDecodeError):
+    arr = []
+arr.append(entry)
+with open(sys.argv[2], 'w') as f:
+    json.dump(arr, f, ensure_ascii=False, indent=2)
+" "$entry" "$PIPELINE_LOG" 2>/dev/null || true
+}
+
 log "=== BrakeFast Daily Pipeline Start ==="
 
 # Step 0: Fetch Google Calendar events
@@ -52,6 +73,15 @@ fi
 log "Step 1: Fetching RSS feeds..."
 if bash "${SCRIPT_DIR}/fetch-feeds.sh" 2>&1 | tee -a "$LOG_FILE"; then
   log "Step 1: Done"
+  ARTICLE_COUNT=$(python3 -c "
+import json
+try:
+    d = json.load(open('${BRAKEFAST_DIR}/output/raw-articles.json'))
+    cats = d.get('categories', {})
+    print(sum(len(c.get('articles', []) if isinstance(c, dict) else c) for c in cats.values()))
+except: print(0)
+" 2>/dev/null)
+  log_step_summary "fetch-feeds" "\"articles\": ${ARTICLE_COUNT:-0}"
 else
   log "ERROR: Feed fetch failed"
   exit 1
@@ -66,8 +96,10 @@ ENGINE_SCRIPT="${SCRIPT_DIR}/article_briefing_engine.py"
 if [ -f "$ENGINE_SCRIPT" ] && [ -f "$RAW_FILE" ]; then
   if python3 "$ENGINE_SCRIPT" "$RAW_FILE" "$ENRICHED_FILE" 2>&1 | tee -a "$LOG_FILE"; then
     log "Step 1.5: Enrichment complete"
+    log_step_summary "enrichment" "\"status\": \"complete\""
   else
     log "WARN: Article enrichment failed (continuing with raw feed data)"
+    log_step_summary "enrichment" "\"status\": \"failed\""
   fi
 else
   log "Step 1.5: Skipped (script or raw input not found)"
@@ -157,6 +189,7 @@ except Exception as e:
   if [ -f "$VALIDATE_SCRIPT" ]; then
     if python3 "$VALIDATE_SCRIPT" "$FINAL_JSON" "$DATA_TIER" 2>&1 | tee -a "$LOG_FILE"; then
       log "Step 4.5: Validation passed"
+      log_step_summary "validation" "\"passed\": true, \"data_tier\": \"${DATA_TIER}\""
     else
       log "ERROR: Validation failed — edition NOT published"
       exit 1
@@ -168,6 +201,7 @@ except Exception as e:
   if [ "$PUBLISH_ENABLED" -eq 1 ]; then
     if bash "${SCRIPT_DIR}/publish-edition.sh" "$FINAL_JSON" 2>&1 | tee -a "$LOG_FILE"; then
       log "Step 5: final-data.json published and edition archived (tier: ${DATA_TIER})"
+      log_step_summary "publish" "\"data_tier\": \"${DATA_TIER}\""
     else
       log "ERROR: Publish step failed"
       exit 1
