@@ -23,6 +23,7 @@ fi
 # Python script for robust RSS/Atom parsing
 python3 - "$SOURCES_FILE" "$OUTPUT_FILE" << 'PYTHON_SCRIPT'
 import sys
+import os
 import json
 import subprocess
 import xml.etree.ElementTree as ET
@@ -454,6 +455,17 @@ def parse_feed(xml_text, feed_name, max_items, is_aggregator=False):
             for entry in root.findall('.//{http://www.w3.org/2005/Atom}entry'):
                 items.append(('atom', entry))
 
+    # RDF 1.0 (used by ORF)
+    if not items:
+        rdf_ns = {'rdf': 'http://www.w3.org/1999/02/22-rdf-syntax-ns#',
+                   'rss1': 'http://purl.org/rss/1.0/'}
+        for item in root.findall('.//rss1:item', rdf_ns):
+            items.append(('rdf', item))
+        # Also try without namespace prefix
+        if not items:
+            for item in root.findall('.//{http://purl.org/rss/1.0/}item'):
+                items.append(('rdf', item))
+
     for feed_type, item in items[:max_items]:
         article = {"source": feed_name}
 
@@ -495,6 +507,19 @@ def parse_feed(xml_text, feed_name, max_items, is_aggregator=False):
                 (content_el.text if content_el is not None and content_el.text else None) or
                 (summary_el.text if summary_el is not None and summary_el.text else '')
             )
+            article['date'] = (date_el.text or '').strip() if date_el is not None else ''
+
+        elif feed_type == 'rdf':
+            rss1 = 'http://purl.org/rss/1.0/'
+            dc_ns = 'http://purl.org/dc/elements/1.1/'
+            title_el = item.find(f'{{{rss1}}}title')
+            link_el = item.find(f'{{{rss1}}}link')
+            desc_el = item.find(f'{{{rss1}}}description')
+            date_el = item.find(f'{{{dc_ns}}}date')
+
+            article['title'] = clean_html(title_el.text) if title_el is not None and title_el.text else ''
+            article['link'] = (link_el.text or '').strip() if link_el is not None else ''
+            article['description'] = clean_html(desc_el.text if desc_el is not None and desc_el.text else '')
             article['date'] = (date_el.text or '').strip() if date_el is not None else ''
 
         # Extract image from RSS/Atom item
@@ -576,6 +601,92 @@ def main():
             "articles": cat_articles
         }
         total += len(cat_articles)
+
+    # --- Cross-edition deduplication: remove articles from last 3 editions ---
+    seen_urls = set()
+    editions_checked = 0
+    brakefast_public = os.environ.get("BRAKEFAST_PUBLIC_DIR", "/data/brakefast-public")
+
+    def normalize_url_for_dedup(url):
+        """Normalize URL: lowercase host, strip tracking params, trailing slash."""
+        if not url:
+            return ""
+        try:
+            from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
+            parsed = urlparse(url.strip())
+            host = (parsed.hostname or "").lower()
+            path = parsed.path.rstrip("/")
+            # Strip tracking params
+            tracking = {'utm_source','utm_medium','utm_campaign','utm_term','utm_content',
+                        'ref','source','fbclid','gclid','mc_cid','mc_eid'}
+            params = parse_qs(parsed.query)
+            clean_params = {k: v for k, v in params.items() if k.lower() not in tracking}
+            query = urlencode(clean_params, doseq=True) if clean_params else ""
+            return urlunparse(("", host, path, "", query, "")).lower()
+        except Exception:
+            return url.strip().rstrip("/").lower()
+
+    def load_edition_urls(path):
+        """Extract all article URLs from a BrakeFast edition JSON."""
+        urls = set()
+        try:
+            with open(path) as ef:
+                edition = json.load(ef)
+            for cat_data in edition.get("categories", {}).values():
+                articles_list = cat_data.get("articles", []) if isinstance(cat_data, dict) else (cat_data if isinstance(cat_data, list) else [])
+                for a in articles_list:
+                    if isinstance(a, dict):
+                        url = a.get("link", "") or a.get("source_url", "")
+                        if url:
+                            urls.add(normalize_url_for_dedup(url))
+        except (json.JSONDecodeError, FileNotFoundError, OSError):
+            pass
+        return urls
+
+    # Load current/latest edition
+    latest_path = os.path.join(brakefast_public, "data.json")
+    urls = load_edition_urls(latest_path)
+    if urls:
+        seen_urls |= urls
+        editions_checked += 1
+        print(f"\nDedup: loaded {len(urls)} URLs from latest edition", file=sys.stderr)
+
+    # Load up to 2 more archived editions (most recent first)
+    editions_dir = os.path.join(brakefast_public, "editions")
+    if os.path.isdir(editions_dir):
+        archive_files = []
+        for dirpath, dirnames, filenames in os.walk(editions_dir):
+            if "data.json" in filenames:
+                archive_files.append(os.path.join(dirpath, "data.json"))
+        # Sort by path (date-based dirs sort chronologically), take last 2
+        archive_files.sort(reverse=True)
+        for af in archive_files[:2]:
+            if af == latest_path:
+                continue
+            urls = load_edition_urls(af)
+            if urls:
+                seen_urls |= urls
+                editions_checked += 1
+                print(f"Dedup: loaded {len(urls)} URLs from {af}", file=sys.stderr)
+
+    # Filter out seen articles
+    if seen_urls:
+        removed_total = 0
+        for cat_id, cat_data in all_articles.items():
+            before = len(cat_data["articles"])
+            cat_data["articles"] = [
+                a for a in cat_data["articles"]
+                if normalize_url_for_dedup(a.get("link", "")) not in seen_urls
+            ]
+            after = len(cat_data["articles"])
+            removed = before - after
+            if removed > 0:
+                removed_total += removed
+                print(f"Dedup: {cat_id}: removed {removed} repeat articles ({after} remaining)", file=sys.stderr)
+            if after < 6:
+                print(f"WARN: {cat_id} has only {after} new articles — check sources!", file=sys.stderr)
+        total = sum(len(c["articles"]) for c in all_articles.values())
+        print(f"Dedup: removed {removed_total} repeat articles across {editions_checked} editions, {total} remaining", file=sys.stderr)
 
     output = {
         "generated": datetime.now(timezone.utc).isoformat(),

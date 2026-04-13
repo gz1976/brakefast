@@ -147,8 +147,10 @@ Wenn Gerhard sagt "Zeitung bitte" oder "BrakeFast generieren":
 - Bei Security-News: Immer Handlungsempfehlung fuer Gerhard ergaenzen
 - Bei AI-News: Praxisrelevanz bewerten (was kann Gerhard damit machen?)
 - Bei EV-News: Tesla-Relevanz hervorheben, Ladeinfrastruktur Oesterreich beachten
-- Duplikate erkennen und entfernen (gleiche Story, verschiedene Quellen)
-- **EXAKT 6 Artikel pro Kategorie** (verteilt auf 6 Kategorien = ~36 Artikel gesamt)
+- **WICHTIG: Die raw-articles.json enthaelt BEREITS deduplizierte Artikel. Artikel aus den letzten 3 Editionen wurden automatisch entfernt. Alle Artikel in der Liste sind NEU.**
+- Falls eine Kategorie weniger als 6 Artikel hat, waehle alle verfuegbaren aus. NIEMALS alte Artikel wiederverwenden oder aus dem Gedaechtnis ergaenzen!
+- Duplikate erkennen und entfernen (gleiche Story, verschiedene Quellen innerhalb der aktuellen Liste)
+- **EXAKT 6 Artikel pro Kategorie** (oder weniger falls nicht genug neue vorhanden)
 - Kategorien: ai (6), security (6), tech (6), ev (6), world (6), knapp (4), local (6)
 - `ki_modelle` und `dev_digest` Sektionen IMMER befuellen (je 4 Items, JEDES mit `link`!)
 - `headlines`: 3 Schlagzeilen, JEDE mit `link` zur Originalquelle — NIEMALS ohne URL!
