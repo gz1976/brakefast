@@ -77,6 +77,24 @@ def smart_truncate(text, max_length=500):
         return region[:last_space].rstrip() + ' \u2026'
     return region.rstrip() + ' \u2026'
 
+def check_freshness(date_str, max_age_hours=72):
+    """Return True if article is fresh, False if stale."""
+    if not date_str:
+        return True  # unparseable = assume fresh
+    max_age_hours = int(os.environ.get("BRAKEFAST_MAX_ARTICLE_AGE_HOURS", str(max_age_hours)))
+    try:
+        from email.utils import parsedate_to_datetime
+        pub_date = parsedate_to_datetime(date_str)
+        age = datetime.now(timezone.utc) - pub_date
+        return age.total_seconds() < max_age_hours * 3600
+    except Exception:
+        try:
+            pub_date = datetime.fromisoformat(date_str.replace('Z', '+00:00'))
+            age = datetime.now(timezone.utc) - pub_date
+            return age.total_seconds() < max_age_hours * 3600
+        except Exception:
+            return True  # unparseable = assume fresh
+
 def validate_image_url(url):
     """Filter out tracking pixels, data URIs, SVGs, and tiny images."""
     if not url or not isinstance(url, str):
@@ -531,6 +549,7 @@ def parse_feed(xml_text, feed_name, max_items, is_aggregator=False):
             # Truncate description at sentence boundary to keep JSON manageable
             if len(article.get('description', '')) > 500:
                 article['description'] = smart_truncate(article['description'], 500)
+            article['stale'] = not check_freshness(article.get('date', ''))
             articles.append(article)
 
     return articles
@@ -566,6 +585,9 @@ def main():
                 enrich_aggregator_articles(articles, feed)
                 cat_articles.extend(articles)
                 print(f"  -> {len(articles)} articles", file=sys.stderr)
+                stale_count = sum(1 for a in articles if a.get('stale'))
+                if len(articles) > 0 and stale_count > len(articles) * 0.5:
+                    print(f"  WARN: {name}: {stale_count}/{len(articles)} articles are stale (>72h old)", file=sys.stderr)
             else:
                 print(f"  -> FAILED", file=sys.stderr)
 
