@@ -20,6 +20,11 @@ for arg in "$@"; do
   esac
 done
 
+# Self-heal Python deps (trafilatura disappears on container recreate)
+if ! python3 -c "import trafilatura" 2>/dev/null; then
+  pip3 install --break-system-packages -q trafilatura 2>/dev/null || true
+fi
+
 # Load optional runtime env before running the pipeline.
 # shellcheck disable=SC1091
 source "${SCRIPT_DIR}/load-brakefast-env.sh"
@@ -105,15 +110,17 @@ else
   log "Step 1.5: Skipped (script or raw input not found)"
 fi
 
-# Step 2: Curate with OpenClaw/Otto (if available)
-# This step is handled by Otto via the brakefast skill prompt.
-# If curated-articles.json doesn't exist, generate-html.sh falls back to enriched, then raw.
-if [ -f "$CURATED_FILE" ]; then
-  log "Step 2: Using curated articles"
-elif [ -f "$ENRICHED_FILE" ]; then
-  log "Step 2: No curated articles found, using enriched article briefings"
+# Step 2: Curate articles via curate.py (rule-based, self-contained)
+log "Step 2: Curating articles..."
+CURATE_SCRIPT="${SCRIPT_DIR}/curate.py"
+if [ -f "$CURATE_SCRIPT" ]; then
+  if python3 "$CURATE_SCRIPT" 2>&1 | tee -a "$LOG_FILE"; then
+    log "Step 2: Curation complete"
+  else
+    log "WARN: curate.py failed; falling back to existing data"
+  fi
 else
-  log "Step 2: No curated articles found, using raw feed data"
+  log "WARN: curate.py not found, using existing curated data"
 fi
 
 # Step 3: Resolve images from source, metadata, fallbacks, then optional generators

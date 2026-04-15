@@ -677,7 +677,8 @@ a { color: inherit; text-decoration: none; }
 .status-card-calendar .status-card-list {
   flex: 1 1 auto;
   min-height: 0;
-  max-height: none;
+  max-height: 260px;
+  overflow-y: auto;
 }
 
 .status-card-list-item {
@@ -1013,7 +1014,9 @@ a { color: inherit; text-decoration: none; }
 .top-story-block {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 10px;
+  flex: 1 1 auto;
+  min-height: 0;
 }
 
 .top-story-image-link {
@@ -1021,11 +1024,14 @@ a { color: inherit; text-decoration: none; }
   border-radius: var(--radius);
   overflow: hidden;
   line-height: 0;
+  flex: 1 1 auto;
+  min-height: 320px;
 }
 
 .top-story-image {
   width: 100%;
-  height: 126px;
+  height: 100%;
+  min-height: 320px;
   object-fit: cover;
   border-radius: var(--radius);
   transition: transform 0.3s ease, opacity 0.3s ease;
@@ -1338,8 +1344,8 @@ a { color: inherit; text-decoration: none; }
 
 .lead-story-img {
   width: 100%;
+  flex: 1 1 auto;
   min-height: 120px;
-  max-height: 480px;
   object-fit: cover;
   border-radius: var(--radius);
   display: block;
@@ -1362,10 +1368,10 @@ a { color: inherit; text-decoration: none; }
    SECONDARY STORIES — with thumbnail images
    ═══════════════════════════════════════════ */
 .secondary-stories {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-rows: repeat(4, 1fr);
   gap: 12px;
-  justify-content: flex-start;
+  min-height: 0;
 }
 
 .secondary-story {
@@ -1375,7 +1381,11 @@ a { color: inherit; text-decoration: none; }
   padding: 14px 16px;
   cursor: pointer;
   transition: all 0.3s ease;
-  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .secondary-story-inner {
@@ -1512,6 +1522,8 @@ a { color: inherit; text-decoration: none; }
   grid-template-columns: repeat(4, 1fr);
   gap: 10px;
   padding: 0 0 8px;
+  margin-left: calc(-1 * max(32px, var(--safe-left)));
+  margin-right: calc(-1 * max(32px, var(--safe-right)));
 }
 
 .morning-tile {
@@ -2138,12 +2150,24 @@ a { color: inherit; text-decoration: none; }
 .category-section-grid {
   display: grid;
   grid-template-columns: 1.2fr 0.8fr;
+  grid-template-rows: repeat(4, 1fr);
   gap: 20px;
   background: var(--bg-secondary);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   padding: 20px;
+  min-height: 720px;
   align-items: stretch;
+}
+
+.category-section-grid > .lead-story {
+  grid-column: 1;
+  grid-row: 1 / span 4;
+}
+
+.category-section-grid > .secondary-stories {
+  grid-column: 2;
+  grid-row: 1 / span 4;
 }
 
 /* Tech Hub detail cards (KI Modelle / Dev Digest) */

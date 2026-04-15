@@ -49,7 +49,7 @@ export function CategorySection({ articles, categoryId, label, sectionId, onArti
   if (articles.length === 0 && !extraCards) return null;
 
   const lead = articles.length > 0 ? articles[0] : null;
-  const secondary = articles.slice(1, 6);
+  const secondary = articles.slice(1, 5);
 
   return (
     <section className="category-section" id={sectionId}>
