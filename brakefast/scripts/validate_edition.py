@@ -15,7 +15,13 @@ import json
 import sys
 from datetime import datetime, timezone
 
-PIPELINE_VERSION = "1.4.0"
+PIPELINE_VERSION = "1.5.0"
+
+# Known fallback values that indicate the auto-mode didn't enrich properly
+FALLBACK_EDITORIALS = {
+    "Ihre Morgenzeitung für den Bezirk Voitsberg.",
+}
+FALLBACK_HISTORY_WIKIS = {"RMS_Titanic", "Hillsborough-Katastrophe"}
 
 
 def print_err(msg):
@@ -136,6 +142,49 @@ def validate(data):
             if isinstance(wiki, str) and " " in wiki:
                 warnings.append(f"widgets.history[{j}].wiki contains spaces: '{wiki}'")
 
+    # --- STRICT: weather must have real data ---
+    weather = widgets.get("weather", {})
+    if isinstance(weather, dict):
+        w_temp = weather.get("temp", 0)
+        w_desc = weather.get("description", "")
+        if w_temp == 0 and ("Keine" in w_desc or not w_desc):
+            warnings.append("widgets.weather has no real data (temp=0, no description)")
+
+    # --- STRICT: BLOCKED values must not appear ---
+    def _check_blocked(obj, path=""):
+        """Recursively check for [BLOCKED: ...] values."""
+        blocked = []
+        if isinstance(obj, dict):
+            for k, v in obj.items():
+                blocked.extend(_check_blocked(v, f"{path}.{k}"))
+        elif isinstance(obj, list):
+            for i, v in enumerate(obj):
+                blocked.extend(_check_blocked(v, f"{path}[{i}]"))
+        elif isinstance(obj, str) and "[BLOCKED:" in obj:
+            blocked.append(f"{path}: {obj[:60]}")
+        return blocked
+
+    blocked_fields = _check_blocked(data)
+    for bf in blocked_fields:
+        errors.append(f"BLOCKED value found at {bf}")
+
+    # --- STRICT: date field must exist ---
+    if not data.get("date"):
+        warnings.append("Top-level 'date' field is missing")
+
+    # --- WARN: editorial is a known fallback ---
+    if editorial.strip() in FALLBACK_EDITORIALS:
+        warnings.append("editorial is a static fallback, not dynamically generated")
+
+    # --- WARN: all history items are fallback ---
+    if history_items:
+        all_fallback = all(
+            item.get("wiki", "") in FALLBACK_HISTORY_WIKIS
+            for item in history_items if isinstance(item, dict)
+        )
+        if all_fallback:
+            warnings.append("widgets.history contains only fallback items (Titanic/Hillsborough)")
+
     return errors, warnings
 
 
@@ -176,9 +225,20 @@ def main():
         sys.exit(1)
 
     # Inject meta and write back
+    # Try to get git SHA for pipeline version
+    import subprocess
+    try:
+        git_sha = subprocess.run(
+            ["git", "rev-parse", "--short", "HEAD"],
+            capture_output=True, text=True, timeout=5, cwd="/data/.openclaw/workspace/brakefast"
+        ).stdout.strip()
+    except Exception:
+        git_sha = ""
+    pv = f"{PIPELINE_VERSION}+{git_sha}" if git_sha else PIPELINE_VERSION
+
     data["meta"] = {
         "data_tier": data_tier,
-        "pipeline_version": PIPELINE_VERSION,
+        "pipeline_version": pv,
         "validated_at": datetime.now(timezone.utc).isoformat(),
         "warnings": warnings,
     }

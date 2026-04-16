@@ -236,5 +236,61 @@ find "$EDITIONS_DIR" -name "index.html" -path "*/????/??/??/*" -mtime +30 -delet
 find "$EDITIONS_DIR" -mindepth 1 -maxdepth 3 -type d -empty -delete 2>/dev/null || true
 log "Step 7: Done"
 
+# Step 8: Smoke-test published data
+log "Step 8: Smoke-testing published edition..."
+SMOKE_OK=1
+PUBLISHED_JSON="/data/brakefast-public/latest/data.json"
+if [ -f "$PUBLISHED_JSON" ]; then
+  SMOKE_RESULT=$(python3 -c "
+import json, sys
+try:
+    with open('$PUBLISHED_JSON') as f:
+        d = json.load(f)
+    issues = []
+    # Weather check
+    w = d.get('widgets', {}).get('weather', {})
+    if w.get('temp', 0) == 0 and 'Keine' in w.get('description', 'Keine'):
+        issues.append('weather: no real data')
+    # History check
+    h = d.get('widgets', {}).get('history', [])
+    if len(h) < 2:
+        issues.append('history: fewer than 2 items')
+    fallback_wikis = {'RMS_Titanic', 'Hillsborough-Katastrophe'}
+    if h and all(item.get('wiki','') in fallback_wikis for item in h):
+        issues.append('history: only fallback items')
+    # Quote check
+    q = d.get('widgets', {}).get('quote', {})
+    author = q.get('author', '')
+    if '[BLOCKED' in author or not author:
+        issues.append('quote: author blocked or empty')
+    # Article count
+    total = d.get('totalArticles', 0)
+    if total < 25:
+        issues.append('articles: only %d (need >= 25)' % total)
+    # Date field
+    if not d.get('date'):
+        issues.append('date: field missing')
+    if issues:
+        print('FAIL: ' + '; '.join(issues))
+        sys.exit(1)
+    else:
+        print('OK: all smoke checks passed')
+except Exception as e:
+    print('FAIL: smoke test error: %s' % e)
+    sys.exit(1)
+" 2>&1)
+  if [ $? -ne 0 ]; then
+    log "WARN: Smoke test issues: $SMOKE_RESULT"
+    SMOKE_OK=0
+    log_step_summary "smoke-test" "\"passed\": false, \"issues\": \"${SMOKE_RESULT}\""
+  else
+    log "Step 8: $SMOKE_RESULT"
+    log_step_summary "smoke-test" "\"passed\": true"
+  fi
+else
+  log "WARN: Published JSON not found at $PUBLISHED_JSON"
+  SMOKE_OK=0
+fi
+
 log "=== BrakeFast Daily Pipeline Complete ==="
 log "Edition available at: https://ottobot.net/"
