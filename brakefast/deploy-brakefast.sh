@@ -12,8 +12,10 @@ SCRIPTS_DIR="${SCRIPT_DIR}/scripts"
 SOURCES_FILE="${SCRIPT_DIR}/sources.json"
 SERVER="gerhard@clogzoehrer.ddns.net"
 CONTAINER="openclaw-xfcd-openclaw-1"
-REMOTE_SCRIPTS="/docker/openclaw-xfcd/data/.openclaw/workspace/brakefast/scripts"
-REMOTE_SOURCES="/docker/openclaw-xfcd/data/.openclaw/workspace/brakefast/sources.json"
+HOST_SCRIPTS="/docker/openclaw-xfcd/data/.openclaw/workspace/brakefast/scripts"
+HOST_SOURCES="/docker/openclaw-xfcd/data/.openclaw/workspace/brakefast/sources.json"
+CONTAINER_SCRIPTS="/data/.openclaw/workspace/brakefast/scripts"
+CONTAINER_SOURCES="/data/.openclaw/workspace/brakefast/sources.json"
 REMOTE_TMP="/tmp/brakefast-deploy-$$"
 
 DRY_RUN=0
@@ -28,7 +30,7 @@ done
 
 echo "=== BrakeFast Deploy ==="
 echo "Source: ${SCRIPTS_DIR}"
-echo "Target: ${SERVER}:${REMOTE_SCRIPTS}"
+echo "Target: ${SERVER}:${HOST_SCRIPTS}"
 
 # Syntax check all Python files before uploading
 echo ""
@@ -66,11 +68,10 @@ fi
 if [ "$DRY_RUN" -eq 1 ]; then
   echo ""
   echo "=== DRY RUN — showing diff ==="
-  ssh -o ConnectTimeout=15 "$SERVER" "sudo docker exec $CONTAINER ls $REMOTE_SCRIPTS/" | while read -r f; do
+  ssh -o ConnectTimeout=15 "$SERVER" "sudo docker exec $CONTAINER ls $CONTAINER_SCRIPTS/" | while read -r f; do
     local_file="${SCRIPTS_DIR}/${f}"
     if [ -f "$local_file" ]; then
-      # Pull remote file and diff
-      remote_content=$(ssh "$SERVER" "sudo docker exec $CONTAINER cat $REMOTE_SCRIPTS/$f" 2>/dev/null || true)
+      remote_content=$(ssh "$SERVER" "sudo docker exec $CONTAINER cat $CONTAINER_SCRIPTS/$f" 2>/dev/null || true)
       local_content=$(cat "$local_file")
       if [ "$remote_content" != "$local_content" ]; then
         echo "CHANGED: $f"
@@ -81,7 +82,7 @@ if [ "$DRY_RUN" -eq 1 ]; then
   done
   for f in "${SCRIPTS_DIR}"/*.{py,sh}; do
     fname=$(basename "$f")
-    remote_check=$(ssh "$SERVER" "sudo docker exec $CONTAINER test -f $REMOTE_SCRIPTS/$fname && echo yes || echo no" 2>/dev/null)
+    remote_check=$(ssh "$SERVER" "sudo docker exec $CONTAINER test -f $CONTAINER_SCRIPTS/$fname && echo yes || echo no" 2>/dev/null)
     if [ "$remote_check" = "no" ]; then
       echo "NEW: $fname"
     fi
@@ -91,7 +92,7 @@ if [ "$DRY_RUN" -eq 1 ]; then
   exit 0
 fi
 
-# Upload scripts
+# Upload scripts to host, then copy into container
 echo ""
 echo "Uploading scripts..."
 ssh -o ConnectTimeout=15 "$SERVER" "mkdir -p $REMOTE_TMP"
@@ -104,21 +105,21 @@ if [ "$DEPLOY_SOURCES" -eq 1 ] && [ -f "$SOURCES_FILE" ]; then
   echo "  Uploaded sources.json"
 fi
 
-# Copy into container with correct permissions
+# Copy from host tmp to host-mapped container volume, then fix permissions
 echo ""
 echo "Installing into container..."
 ssh "$SERVER" "
-  sudo docker cp $REMOTE_TMP/. $CONTAINER:$REMOTE_SCRIPTS/ &&
-  sudo docker exec $CONTAINER chown -R node:node $REMOTE_SCRIPTS/ &&
-  echo '  Permissions set to node:node'
+  sudo cp ${REMOTE_TMP}/*.py ${REMOTE_TMP}/*.sh ${HOST_SCRIPTS}/ &&
+  sudo chown 1000:1000 ${HOST_SCRIPTS}/*.py ${HOST_SCRIPTS}/*.sh &&
+  echo '  Scripts installed with node:node (uid 1000) permissions'
 "
 
 # Deploy sources.json if requested
 if [ "$DEPLOY_SOURCES" -eq 1 ]; then
   ssh "$SERVER" "
     if [ -f $REMOTE_TMP/sources.json ]; then
-      sudo docker cp $REMOTE_TMP/sources.json $CONTAINER:$REMOTE_SOURCES &&
-      sudo docker exec $CONTAINER chown node:node $REMOTE_SOURCES &&
+      sudo cp $REMOTE_TMP/sources.json $HOST_SOURCES &&
+      sudo chown 1000:1000 $HOST_SOURCES &&
       echo '  sources.json deployed'
     fi
   "
@@ -127,6 +128,11 @@ fi
 # Cleanup
 ssh "$SERVER" "rm -rf $REMOTE_TMP"
 
+# Verify deployment
+echo ""
+echo "Verifying..."
+ssh "$SERVER" "sudo docker exec $CONTAINER python3 -c 'import ast; ast.parse(open(\"$CONTAINER_SCRIPTS/curate.py\").read()); print(\"  curate.py: syntax OK\")'"
+
 echo ""
 echo "=== Deploy complete ==="
-echo "To test: ssh $SERVER \"sudo docker exec $CONTAINER su -s /bin/bash node -c 'python3 $REMOTE_SCRIPTS/curate.py --auto'\""
+echo "To test: ssh $SERVER \"sudo docker exec $CONTAINER su -s /bin/bash node -c 'python3 $CONTAINER_SCRIPTS/curate.py --auto'\""
