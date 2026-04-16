@@ -1321,11 +1321,30 @@ def build_auto_spec(source_articles):
         if c in by_cat:
             by_cat[c].append((i, a))
 
+    # URL patterns that should never be top-story
+    BLACKLIST_URL_PATTERNS = ["github.com/", "gitlab.com/", "npmjs.com/", "pypi.org/"]
+
+    def is_german(art):
+        """Heuristic: check if title contains common German words."""
+        title = (art.get("title") or "").lower()
+        lang = (art.get("lang") or "").lower()
+        if lang == "de":
+            return True
+        if lang == "en":
+            return False
+        de_words = ["der ", "die ", "das ", "und ", "für ", "mit ", "ist ", "wird ", "nach ", "bei "]
+        return any(w in title for w in de_words)
+
     def score(art):
         body_len = len((art.get("summary") or art.get("description") or ""))
         has_image = 1 if art.get("image") else 0
+        trust = art.get("trust", 5)
+        lang_bonus = 2 if is_german(art) else 0
         published = art.get("published") or art.get("pubDate") or art.get("date") or ""
-        return (has_image, body_len, published)
+        # Penalize blacklisted URLs
+        link = (art.get("link") or art.get("url") or "")
+        url_penalty = -10 if any(pat in link for pat in BLACKLIST_URL_PATTERNS) else 0
+        return (has_image, trust + lang_bonus + url_penalty, body_len, published)
 
     cats = {}
     for k, items in by_cat.items():
@@ -1337,6 +1356,9 @@ def build_auto_spec(source_articles):
             link = (art.get("link") or art.get("url") or "").split("?")[0].rstrip("/")
             title_key = (art.get("title") or "").strip().lower()[:80]
             if (link and link in seen_links) or (title_key and title_key in seen_titles):
+                continue
+            # Skip blacklisted URLs entirely for top position
+            if not picked and any(pat in link for pat in BLACKLIST_URL_PATTERNS):
                 continue
             if link:
                 seen_links.add(link)
