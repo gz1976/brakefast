@@ -23,10 +23,13 @@ const BAD_IMAGE_PATTERNS = [
   /gravatar\.com/i,
   /feeds\.feedburner/i,
   /\/embed\//i,  // YouTube embeds are not images
+  /\/wikipedia\/commons\/.*Flag_of_/i,  // Flag images used as hero
+  /\/default-image/i,
+  /\/logo[-_]/i,
 ];
 
 // Minimum dimensions we'd want for display images
-const MIN_IMAGE_URL_LENGTH = 30;
+const MIN_IMAGE_URL_LENGTH = 20;
 
 export function isValidArticleImage(url: string | undefined): boolean {
   if (!url) return false;

@@ -91,7 +91,12 @@ export function HeroBriefing({ data, calendarRevealed, onArticleClick, isRead, m
   const [showBriefing, setShowBriefing] = useState(false);
   const [modalData, setModalData] = useState<ModalData | null>(null);
 
-  const weather = data.widgets?.weather;
+  const weatherRaw = data.widgets?.weather;
+  // Detect empty weather: pipeline sends temp=0 + "Keine Wetterdaten" when service is down
+  const weatherUnavailable = weatherRaw
+    && weatherRaw.temp === 0
+    && (weatherRaw.description || '').includes('Keine');
+  const weather = weatherUnavailable ? undefined : weatherRaw;
   const dayInfo = data.widgets?.dayInfo;
   const pollen = data.widgets?.pollen;
   const calendar = data.widgets?.calendar || [];
@@ -111,13 +116,20 @@ export function HeroBriefing({ data, calendarRevealed, onArticleClick, isRead, m
   const calendarWeek = editionDate ? getCalendarWeek(editionDate) : null;
   const weatherSummary = weather
     ? `${weather.location || 'Voitsberg'} · ${translateWeather(weather.description)}`
-    : 'Wetter nicht verfügbar';
+    : weatherUnavailable
+      ? 'Wetterdienst nicht erreichbar'
+      : 'Wetter nicht verfügbar';
 
   // Normalize history: single object or array
   const historyRaw = data.widgets?.history;
   const historyFacts: HistoryFact[] = Array.isArray(historyRaw)
     ? historyRaw
     : historyRaw ? [historyRaw] : [];
+
+  // Detect stale fallback entries (pipeline reuses the same famous events when API fails)
+  const FALLBACK_WIKIS = new Set(['RMS_Titanic', 'Hillsborough-Katastrophe']);
+  const historyAllFallback = historyFacts.length > 0
+    && historyFacts.every(f => f.wiki && FALLBACK_WIKIS.has(f.wiki));
 
   // Top Story
   const topStory = pickTopStory(data);
@@ -372,6 +384,11 @@ export function HeroBriefing({ data, calendarRevealed, onArticleClick, isRead, m
               <span className="status-card-icon">📜</span>
               <span className="status-card-label">Dieser Tag</span>
             </div>
+            {historyAllFallback ? (
+              <div className="status-card-detail" style={{ opacity: 0.6, fontStyle: 'italic', padding: '0.5rem 0' }}>
+                Keine tagesaktuellen Einträge
+              </div>
+            ) : (
             <div className="status-card-history-list">
               {historyFacts.slice(0, 3).map((fact, i) => (
                 <div
@@ -396,6 +413,7 @@ export function HeroBriefing({ data, calendarRevealed, onArticleClick, isRead, m
                 </div>
               ))}
             </div>
+            )}
           </div>
         )}
 
