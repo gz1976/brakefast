@@ -581,7 +581,173 @@ def load_json(path: Path) -> dict[str, Any]:
         return json.load(handle)
 
 
+def generate_curation_spec(enriched_path: Path, spec_output: Path) -> int:
+    """Use LLM to generate a curation spec from enriched articles.
+
+    The spec includes: editorial, article selections per category (by index),
+    ki_modelle, dev_digest, quote, history, and bauernregel.
+    curate.py reads this spec and assembles the final JSON with deterministic
+    widgets (weather, pollen, VPS, calendar).
+    """
+    from datetime import datetime, timezone
+
+    if not enriched_path.exists():
+        print(f"ERROR: Enriched file not found: {enriched_path}", file=sys.stderr)
+        return 1
+
+    data = load_json(enriched_path)
+    categories = data.get("categories", {})
+
+    # Build compact article index for the LLM prompt
+    article_index: list[dict[str, str]] = []
+    global_idx = 0
+    cat_ranges: dict[str, tuple[int, int]] = {}
+    for cat_id, cat_data in categories.items():
+        start = global_idx
+        for art in cat_data.get("articles", []):
+            article_index.append({
+                "idx": global_idx,
+                "cat": cat_id,
+                "title": (art.get("title") or "")[:80],
+                "source": (art.get("source") or "")[:30],
+                "summary": (art.get("summary") or art.get("description") or "")[:150],
+                "has_image": bool(art.get("image")),
+                "lang": "de" if any(w in (art.get("title") or "").lower() for w in
+                    ["der ", "die ", "das ", "und ", "für ", "mit ", "ist ", "wird ", "nach "]) else "en",
+            })
+            global_idx += 1
+        cat_ranges[cat_id] = (start, global_idx)
+
+    now = datetime.now(timezone.utc)
+    today_str = now.strftime("%A, %d. %B %Y")
+    article_list = "\n".join(
+        f"[{a['idx']}] ({a['cat']}) {a['title']} — {a['source']} "
+        f"{'[DE]' if a['lang'] == 'de' else '[EN]'} "
+        f"{'[IMG]' if a['has_image'] else ''}"
+        for a in article_index
+    )
+
+    instructions = f"""Du bist Otto, der persoenliche Kurator fuer BrakeFast — eine deutschsprachige Morgenzeitung.
+Heute ist {today_str}. Erstelle eine Kurations-Spezifikation als JSON.
+
+VERFUEGBARE ARTIKEL (Index, Kategorie, Titel, Quelle):
+{article_list}
+
+AUFGABE — Erzeuge exakt dieses JSON-Format:
+{{
+  "editorial": "3-4 Saetze tagesaktueller Aufmacher, der die Top-Themen buendelt. Deutsch, persoenlich.",
+  "categories": {{
+    "ai": [{{"index": <int>, "headline_de": "<deutsch, max 80 Zeichen>"}}],
+    "security": [...],
+    "tech": [...],
+    "ev": [...],
+    "world": [...],
+    "knapp": [...],
+    "local": [...]
+  }},
+  "ki_modelle": {{
+    "<modell_name>": {{"title": "...", "summary": "1 Satz", "link": "<url aus Artikel>"}}
+  }},
+  "dev_digest": {{
+    "<tool_name>": {{"title": "...", "summary": "1 Satz", "link": "<url aus Artikel>"}}
+  }},
+  "widgets": {{
+    "quote": {{"text": "<deutsches Zitat>", "author": "<Autor>"}},
+    "history": [
+      {{"year": <int>, "text": "<Ereignis am heutigen Tag>", "wiki": "<Wikipedia-Artikelname>"}},
+      {{"year": <int>, "text": "...", "wiki": "..."}},
+      {{"year": <int>, "text": "...", "wiki": "..."}}
+    ],
+    "bauernregel": {{"text": "<passend zum Monat>", "meaning": "<Erklaerung>"}}
+  }}
+}}
+
+REGELN:
+- Pro Kategorie genau 5 Artikel auswaehlen (per Index-Nummer aus der Liste oben).
+- Deutsche Quellen bevorzugen. Englische Titel mit headline_de uebersetzen.
+- Fuer Top-Story (erster Artikel in "ai"): den relevantesten Artikel mit Bild waehlen.
+- ki_modelle: 2-3 neue KI-Modelle/Tools aus den AI-Artikeln extrahieren.
+- dev_digest: 2-3 Dev-Tools/Plattform-News aus Tech/Security extrahieren.
+- history: 3 Ereignisse die HEUTE ({now.strftime('%d. %B')}) passiert sind. Verschiedene Epochen.
+- quote: Ein deutsches Zitat (nicht Alan Kay, nicht englisch).
+- bauernregel: Passend zum Monat {now.strftime('%B')}.
+- Antworte NUR mit dem JSON, kein weiterer Text."""
+
+    client = OpenClawChatClient()
+    if not client.enabled:
+        print("ERROR: No LLM providers available for curation spec", file=sys.stderr)
+        return 1
+
+    print(f"Generating curation spec via LLM ({client.describe_chain()})...", file=sys.stderr)
+    response = client.complete_json(
+        messages=[
+            {"role": "system", "content": "Du bist ein JSON-Generator. Antworte ausschliesslich mit validem JSON."},
+            {"role": "user", "content": instructions},
+        ],
+        temperature=0.3,
+        response_format={"type": "json_object"},
+        timeout=90,
+    )
+
+    if response is None:
+        print(f"ERROR: LLM curation spec generation failed: {client.last_error}", file=sys.stderr)
+        return 1
+
+    # Parse and validate the spec
+    try:
+        content = response.content
+        if isinstance(content, str):
+            # Strip markdown code fences if present
+            content = re.sub(r"^```(?:json)?\s*\n?", "", content.strip())
+            content = re.sub(r"\n?```\s*$", "", content.strip())
+            spec = json.loads(content)
+        else:
+            spec = content
+    except (json.JSONDecodeError, TypeError) as exc:
+        print(f"ERROR: Could not parse LLM curation spec: {exc}", file=sys.stderr)
+        enrichment_logger.error("Curation spec parse failed: %s. Raw: %.3000s", exc, response.content)
+        return 1
+
+    # Validate minimum structure
+    if not isinstance(spec, dict):
+        print("ERROR: Curation spec is not a dict", file=sys.stderr)
+        return 1
+    if "categories" not in spec:
+        print("ERROR: Curation spec missing 'categories'", file=sys.stderr)
+        return 1
+    if not spec.get("editorial"):
+        spec["editorial"] = "Ihre Morgenzeitung fuer den Bezirk Voitsberg."
+
+    # Validate article indices are in range
+    max_idx = len(article_index) - 1
+    for cat_id, items in spec.get("categories", {}).items():
+        if not isinstance(items, list):
+            continue
+        for item in items:
+            idx = item.get("index")
+            if isinstance(idx, int) and (idx < 0 or idx > max_idx):
+                enrichment_logger.warning("Curation spec: index %d out of range for %s (max %d)",
+                                          idx, cat_id, max_idx)
+
+    spec_output.write_text(json.dumps(spec, ensure_ascii=False, indent=2))
+    print(f"Curation spec written to {spec_output}", file=sys.stderr)
+    enrichment_logger.info("Curation spec generated via %s (%s): editorial=%d chars, cats=%s",
+                           response.provider_name, response.model,
+                           len(spec.get("editorial", "")),
+                           list(spec.get("categories", {}).keys()))
+    return 0
+
+
 def main() -> int:
+    # Check for --curation-spec mode
+    if "--curation-spec" in sys.argv:
+        sys.argv.remove("--curation-spec")
+        enriched_path = Path(sys.argv[1]) if len(sys.argv) > 1 else DEFAULT_OUTPUT
+        spec_output = OUTPUT_DIR / "curation-spec.json"
+        if len(sys.argv) > 2:
+            spec_output = Path(sys.argv[2])
+        return generate_curation_spec(enriched_path, spec_output)
+
     input_path = Path(sys.argv[1]) if len(sys.argv) > 1 else DEFAULT_INPUT
     output_path = Path(sys.argv[2]) if len(sys.argv) > 2 else DEFAULT_OUTPUT
     cache_path = Path(sys.argv[3]) if len(sys.argv) > 3 else DEFAULT_CACHE

@@ -110,14 +110,48 @@ else
   log "Step 1.5: Skipped (script or raw input not found)"
 fi
 
-# Step 2: Curate articles via curate.py (rule-based, self-contained)
+# Step 2: Curate articles — try LLM spec first, fall back to --auto
 log "Step 2: Curating articles..."
 CURATE_SCRIPT="${SCRIPT_DIR}/curate.py"
-if [ -f "$CURATE_SCRIPT" ]; then
-  if python3 "$CURATE_SCRIPT" --auto 2>&1 | tee -a "$LOG_FILE"; then
-    log "Step 2: Curation complete"
+SPEC_FILE="${BRAKEFAST_DIR}/output/curation-spec.json"
+LLM_CURATION=0
+
+# Try LLM curation spec (uses enriched articles as input)
+if [ -f "$ENGINE_SCRIPT" ] && [ -f "$ENRICHED_FILE" ]; then
+  log "Step 2a: Generating LLM curation spec..."
+  if python3 "$ENGINE_SCRIPT" --curation-spec "$ENRICHED_FILE" "$SPEC_FILE" 2>&1 | tee -a "$LOG_FILE"; then
+    if [ -f "$SPEC_FILE" ] && [ -s "$SPEC_FILE" ]; then
+      log "Step 2a: LLM curation spec generated"
+      LLM_CURATION=1
+    else
+      log "WARN: LLM spec file empty or missing"
+    fi
   else
-    log "WARN: curate.py failed; falling back to existing data"
+    log "WARN: LLM curation spec generation failed"
+  fi
+fi
+
+# Curate with LLM spec or fall back to --auto
+if [ -f "$CURATE_SCRIPT" ]; then
+  if [ "$LLM_CURATION" -eq 1 ] && [ -f "$SPEC_FILE" ]; then
+    log "Step 2b: Curating with LLM spec..."
+    if python3 "$CURATE_SCRIPT" "$SPEC_FILE" 2>&1 | tee -a "$LOG_FILE"; then
+      log "Step 2: Curation complete (LLM-curated)"
+      log_step_summary "curation" "\"mode\": \"llm\""
+    else
+      log "WARN: LLM-curated curation failed, falling back to --auto"
+      python3 "$CURATE_SCRIPT" --auto 2>&1 | tee -a "$LOG_FILE"
+      log "Step 2: Curation complete (auto-fallback)"
+      log_step_summary "curation" "\"mode\": \"auto-fallback\""
+    fi
+  else
+    log "Step 2b: Using auto-curation (no LLM spec)..."
+    if python3 "$CURATE_SCRIPT" --auto 2>&1 | tee -a "$LOG_FILE"; then
+      log "Step 2: Curation complete (auto)"
+      log_step_summary "curation" "\"mode\": \"auto\""
+    else
+      log "WARN: curate.py --auto failed; falling back to existing data"
+    fi
   fi
 else
   log "WARN: curate.py not found, using existing curated data"
