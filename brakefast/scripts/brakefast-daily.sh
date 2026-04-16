@@ -114,7 +114,7 @@ fi
 log "Step 2: Curating articles..."
 CURATE_SCRIPT="${SCRIPT_DIR}/curate.py"
 if [ -f "$CURATE_SCRIPT" ]; then
-  if python3 "$CURATE_SCRIPT" 2>&1 | tee -a "$LOG_FILE"; then
+  if python3 "$CURATE_SCRIPT" --auto 2>&1 | tee -a "$LOG_FILE"; then
     log "Step 2: Curation complete"
   else
     log "WARN: curate.py failed; falling back to existing data"
