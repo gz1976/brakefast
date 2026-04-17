@@ -30,7 +30,8 @@ import re
 import subprocess
 import urllib.request
 import urllib.parse
-from datetime import datetime, timezone
+import xml.etree.ElementTree as ET
+from datetime import datetime, timezone, timedelta
 from pathlib import Path
 
 BASE = "/data/.openclaw/workspace/brakefast"
@@ -480,11 +481,264 @@ def score_media_tip(entry, context_text, recent_tips):
     return score
 
 
+# ============================================================================
+# Apple Podcasts AT Charts + Episode fetcher (replaces hardcoded MEDIA_TIP_CATALOG)
+# ============================================================================
+def _http_get_text(url, timeout=12):
+    """GET with User-Agent, return decoded body. Raises on error."""
+    req = urllib.request.Request(url, headers={"User-Agent": "BrakeFast/1.0"})
+    with urllib.request.urlopen(req, timeout=timeout) as resp:
+        return resp.read().decode("utf-8", errors="replace")
+
+
+def _strip_html(text):
+    """Remove HTML tags, decode common entities."""
+    if not text:
+        return ""
+    text = re.sub(r"<img[^>]*>", " ", text, flags=re.I)
+    text = re.sub(r"<[^>]+>", " ", text)
+    text = re.sub(r"\s+", " ", text).strip()
+    for ent, ch in [("&amp;", "&"), ("&lt;", "<"), ("&gt;", ">"),
+                    ("&quot;", '"'), ("&#39;", "'"), ("&nbsp;", " "),
+                    ("&auml;", "ä"), ("&ouml;", "ö"), ("&uuml;", "ü"),
+                    ("&Auml;", "Ä"), ("&Ouml;", "Ö"), ("&Uuml;", "Ü"),
+                    ("&szlig;", "ß")]:
+        text = text.replace(ent, ch)
+    return text
+
+
+def _format_duration_pretty(secs_or_hms):
+    """'3600' or '01:00:00' or '45:00' → 'X min' / 'Yh Zmin'."""
+    if not secs_or_hms:
+        return ""
+    s = str(secs_or_hms).strip()
+    try:
+        if s.isdigit():
+            total_seconds = int(s)
+        else:
+            parts = [int(p) for p in s.split(":")]
+            if len(parts) == 3:
+                total_seconds = parts[0] * 3600 + parts[1] * 60 + parts[2]
+            elif len(parts) == 2:
+                total_seconds = parts[0] * 60 + parts[1]
+            else:
+                return ""
+        mins = total_seconds // 60
+        if mins >= 90:
+            h, m = divmod(mins, 60)
+            return f"{h}h {m:02d}min" if m else f"{h}h"
+        return f"{mins} min" if mins else ""
+    except Exception:
+        return ""
+
+
+def fetch_apple_charts_at(limit=25):
+    """Top AT podcasts from iTunes RSS. Returns list of {name, artist, track_id, url}."""
+    url = f"https://itunes.apple.com/at/rss/toppodcasts/limit={limit}/json"
+    try:
+        data = json.loads(_http_get_text(url))
+    except Exception:
+        return []
+    results = []
+    for e in data.get("feed", {}).get("entry", []):
+        try:
+            results.append({
+                "name": e["im:name"]["label"],
+                "artist": e["im:artist"]["label"],
+                "track_id": e["id"]["attributes"]["im:id"],
+                "url": e["id"]["label"],
+            })
+        except (KeyError, TypeError):
+            continue
+    return results
+
+
+def resolve_itunes_feed(track_id):
+    """Resolve iTunes podcast ID to RSS feedUrl. Returns str or None."""
+    try:
+        data = json.loads(_http_get_text(
+            f"https://itunes.apple.com/lookup?id={track_id}&country=AT"))
+    except Exception:
+        return None
+    results = data.get("results", [])
+    if not results:
+        return None
+    return results[0].get("feedUrl")
+
+
+def fetch_latest_episode(feed_url):
+    """Parse podcast RSS, return newest episode dict or None."""
+    if not feed_url:
+        return None
+    try:
+        xml_raw = _http_get_text(feed_url)
+    except Exception:
+        return None
+    try:
+        root = ET.fromstring(xml_raw)
+    except ET.ParseError:
+        return None
+    ns = {"itunes": "http://www.itunes.com/dtds/podcast-1.0.dtd"}
+    channel = root.find("channel")
+    if channel is None:
+        return None
+    item = channel.find("item")
+    if item is None:
+        return None
+    title = (item.findtext("title") or "").strip()
+    desc = item.findtext("description") or ""
+    summary_itunes = item.findtext("itunes:summary", namespaces=ns) or ""
+    summary = _strip_html(summary_itunes or desc)
+    if len(summary) > 260:
+        summary = summary[:257].rsplit(" ", 1)[0] + "…"
+    duration = item.findtext("itunes:duration", namespaces=ns) or ""
+    pub = item.findtext("pubDate") or ""
+    link = (item.findtext("link") or "").strip()
+    return {
+        "episode_title": title,
+        "summary": summary,
+        "duration": _format_duration_pretty(duration),
+        "pub_date": pub,
+        "link": link,
+    }
+
+
+def fetch_podcast_of_day(recent_tips):
+    """Pick a top AT podcast not used recently, fetch its latest episode.
+    Returns full media_tip dict or None on any failure.
+    """
+    recent_titles = {t.get("title", "").lower() for t in recent_tips}
+    charts = fetch_apple_charts_at(limit=25)
+    if not charts:
+        return None
+    for entry in charts:
+        if entry["name"].lower() in recent_titles:
+            continue
+        feed_url = resolve_itunes_feed(entry["track_id"])
+        if not feed_url:
+            continue
+        ep = fetch_latest_episode(feed_url)
+        if not ep or not ep.get("episode_title"):
+            continue
+        return {
+            "title": entry["name"],
+            "type": "Podcast",
+            "source": entry["artist"],
+            "url": entry["url"],
+            "episode_title": ep["episode_title"],
+            "summary": ep["summary"],
+            "duration": ep["duration"],
+            "pub_date": ep["pub_date"],
+            "episode_url": ep["link"] or entry["url"],
+        }
+    return None
+
+
+# ============================================================================
+# Voitsberg local events from meinbezirk.at RSS
+# ============================================================================
+EVENT_KEYWORDS = (
+    "vernissage", "ausstellung", "konzert", "theater", "premiere", "aufführung",
+    "veranstaltung", "fest", "markt", "flohmarkt", "kirtag", "messe",
+    "lesung", "vortrag", "show", "tagung", "workshop", "kurs", "seminar",
+    "benefiz", "musical", "open air", "oper", "saison", "einladung",
+    "livemusik", "liveshow", "band", "chor", "tanz", "jahre",
+)
+NEWS_KEYWORDS = (
+    "unfall", "brand", "heckenbrand", "einsatz", "gericht", "prozess",
+    "verletzt", "gestorben", "verhaftet", "razzia", "diebstahl",
+    "raub", "crash", "kollision", "polizei",
+)
+
+
+def _score_event(title, desc, categories):
+    text = (title + " " + desc).lower()
+    score = 0
+    for kw in EVENT_KEYWORDS:
+        if kw in text:
+            score += 2
+    for kw in NEWS_KEYWORDS:
+        if kw in text:
+            score -= 3
+    if "Freizeit & Kultur" in categories:
+        score += 3
+    if "Leute" in categories:
+        score += 1
+    return score
+
+
+def _extract_event_location(text):
+    m = re.search(r"\b([A-ZÄÖÜ][A-ZÄÖÜ\- ]{3,40})\.\s", text or "")
+    if m:
+        loc = m.group(1).strip()
+        if loc not in {"HTML", "DER", "DIE", "DAS"}:
+            return loc.title()
+    return "Bezirk Voitsberg"
+
+
+def fetch_local_events(max_items=2, max_age_days=14):
+    """Fetch Voitsberg events from meinbezirk RSS. Returns list of dicts."""
+    try:
+        xml_raw = _http_get_text("https://www.meinbezirk.at/voitsberg/rss")
+    except Exception:
+        return []
+    try:
+        root = ET.fromstring(xml_raw)
+    except ET.ParseError:
+        return []
+    channel = root.find("channel")
+    if channel is None:
+        return []
+
+    from email.utils import parsedate_to_datetime as _parse_rss_date
+    now = datetime.now(timezone.utc)
+    max_age = timedelta(days=max_age_days)
+
+    candidates = []
+    for item in channel.findall("item"):
+        title = (item.findtext("title") or "").strip()
+        link = (item.findtext("link") or "").strip()
+        desc_raw = item.findtext("description") or ""
+        pub = item.findtext("pubDate") or ""
+        categories = {(c.text or "").strip() for c in item.findall("category")}
+        try:
+            pub_dt = _parse_rss_date(pub) if pub else None
+            if pub_dt and (now - pub_dt) > max_age:
+                continue
+        except Exception:
+            pub_dt = None
+        img_match = re.search(r'<img[^>]+src="([^"]+)"', desc_raw or "", flags=re.I)
+        image = img_match.group(1) if img_match else None
+        desc_text = _strip_html(desc_raw)
+        s = _score_event(title, desc_text, categories)
+        if s < 2:
+            continue
+        location = _extract_event_location(desc_text)
+        summary = desc_text
+        if len(summary) > 220:
+            summary = summary[:217].rsplit(" ", 1)[0] + "…"
+        candidates.append({
+            "title": title,
+            "summary": summary,
+            "location": location,
+            "date": pub_dt.strftime("%d.%m.%Y") if pub_dt else "",
+            "source": "MeinBezirk",
+            "url": link,
+            "image": image,
+            "_score": s,
+            "_pub": pub_dt or datetime.min.replace(tzinfo=timezone.utc),
+        })
+    candidates.sort(key=lambda e: (e["_score"], e["_pub"]), reverse=True)
+    return [{k: v for k, v in e.items() if not k.startswith("_")}
+            for e in candidates[:max_items]]
+
+
 def choose_media_tip(spec_tip, spec, source_articles):
     recent_tips = load_recent_media_tips()
     recent_titles = {tip.get("title", "").lower() for tip in recent_tips}
     recent_sources = [tip.get("source", "").lower() for tip in recent_tips]
 
+    # Tier 1: honor spec tip if valid and not recently repeated
     if validate_media_tip(spec_tip):
         title = spec_tip.get("title", "").lower()
         source = spec_tip.get("source", "").lower()
@@ -494,6 +748,12 @@ def choose_media_tip(spec_tip, spec, source_articles):
         if not (repeated_title or repeated_source or generic_lex):
             return spec_tip
 
+    # Tier 2: Apple Podcasts AT charts + latest episode (real, daily-fresh data)
+    live_tip = fetch_podcast_of_day(recent_tips)
+    if live_tip:
+        return live_tip
+
+    # Tier 3: emergency fallback to hardcoded catalog (if iTunes + network both fail)
     context_text = build_media_context(spec, source_articles)
     ranked = sorted(
         MEDIA_TIP_CATALOG,
@@ -998,6 +1258,10 @@ def build_curated(spec, source_articles):
         day_info_widget["namenstag"] = namenstag
     morning_tiles = dict(spec.get("morning_tiles", {}))
     morning_tiles["media_tip"] = choose_media_tip(morning_tiles.get("media_tip"), spec, source_articles)
+    # Real Voitsberg events from meinbezirk RSS (no LLM involvement).
+    # Only populate if spec didn't provide events itself.
+    if not morning_tiles.get("events"):
+        morning_tiles["events"] = fetch_local_events()
 
     # Build categories from spec
     categories = {}

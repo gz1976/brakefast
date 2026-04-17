@@ -278,10 +278,13 @@ export interface WorldHeadline {
 export interface MediaTip {
   title: string;
   type: string;       // "Podcast", "Artikel", "Video"
-  source: string;     // "Lex Fridman Podcast"
+  source: string;     // "DER STANDARD"
   url?: string;
-  duration?: string;  // "2h 15m" or "8 min Lesezeit"
+  duration?: string;  // "23 min" or "2h 15min"
   summary?: string;   // Beschreibung der Folge/des Inhalts
+  episode_title?: string;  // Konkreter Folgentitel (z.B. Podcast-Episode)
+  pub_date?: string;       // RFC-Datum der Folge
+  episode_url?: string;    // Direkter Link zur Folge (falls anders als show-URL)
 }
 
 // ─── Streaming Tip ───

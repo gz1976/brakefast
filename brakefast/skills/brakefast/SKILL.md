@@ -119,7 +119,7 @@ So sparst du Output-Tokens und die Pipeline laeuft zuverlaessig.**
    - `editorial` (2-3 Saetze, persoenlich)
    - `ki_modelle` (4 Items — JEDES Item MUSS `link` haben! Nimm die echte URL aus raw-articles per `index`. NIEMALS link weglassen)
    - `dev_digest` (4 Items — JEDES Item MUSS `link` haben! Nimm die echte URL aus raw-articles per `index`. NIEMALS link weglassen)
-   - `morning_tiles` (media_tip — mit URL; KEINE streaming/events — diese wurden entfernt weil nicht verifizierbar)
+   - `morning_tiles` — `media_tip` und `events` werden automatisch aus echten Quellen befuellt (Apple Podcasts AT + meinbezirk.at RSS). Du KANNST optional ein `media_tip` vorschlagen wenn du eine passende Empfehlung hast; sonst leer lassen. `events` NIEMALS selbst generieren — wird gefetcht.
    - `headlines` (3 Top-Schlagzeilen — JEDE Headline MUSS `link` haben! Verwende die URL des zugehoerigen Artikels aus raw-articles. Headlines OHNE link sind WERTLOS)
    - `widgets` (ALLE folgenden sind PFLICHT, nicht optional):
      - `namenstag`: Name des heutigen Namenstages
@@ -233,7 +233,7 @@ Wenn ein Widget oder eine Sektion nicht befuellt werden kann:
 - **vps**: Leeres Objekt `{}` (wird im Frontend ignoriert)
 - **quote/history/bauernregel**: Diese sind PFLICHT und haben keine API-Abhaengigkeit — generiere sie IMMER aus deinem Wissen. History MUSS `wiki`-Feld enthalten
 - **ki_modelle/dev_digest**: Falls keine passenden Artikel in raw-articles.json, verwende dein Wissen ueber aktuelle Entwicklungen. IMMER befuellen!
-- **morning_tiles**: Nur media_tip liefern. KEINE streaming/events erfinden — lieber weglassen als halluzinieren
+- **morning_tiles**: `media_tip` und `events` werden automatisch aus echten Quellen gefetcht (Apple Podcasts AT Charts + meinbezirk.at Voitsberg RSS). Du darfst einen `media_tip`-Vorschlag liefern, wenn du eine besonders relevante Empfehlung hast; sonst weglassen. `events` NIEMALS selbst generieren — werden per RSS gefetcht.
 
 ## Dateien
 

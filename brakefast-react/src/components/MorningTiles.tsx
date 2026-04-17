@@ -57,26 +57,34 @@ export function MorningTiles({ data }: Props) {
           </div>
           <div className="morning-tile-body">
             <div className="morning-tile-media-list">
-              {mediaTips.slice(0, 2).map((tip, i) => (
-                <div
-                  key={i}
-                  className="morning-tile-media-content morning-tile-event-clickable"
-                  onClick={() => setModalData({
-                    title: tip.title,
-                    text: `🎙️ ${tip.source}${tip.duration ? ` · ${tip.duration}` : ''}${tip.summary ? `\n\n${tip.summary}` : ''}`,
-                    source: tip.url ? (() => { try { return new URL(tip.url!).hostname.replace('www.', ''); } catch { return tip.source; } })() : tip.source,
-                    url: tip.url,
-                  })}
-                  role="button"
-                  tabIndex={0}
-                >
-                  <div className="morning-tile-media-title">{tip.title}</div>
-                  <div className="morning-tile-media-meta">
-                    {tip.source}
-                    {tip.duration && ` · ${tip.duration}`}
+              {mediaTips.slice(0, 2).map((tip, i) => {
+                const primaryTitle = tip.episode_title || tip.title;
+                const showName = tip.episode_title ? tip.title : '';
+                const targetUrl = tip.episode_url || tip.url;
+                return (
+                  <div
+                    key={i}
+                    className="morning-tile-media-content morning-tile-event-clickable"
+                    onClick={() => setModalData({
+                      title: primaryTitle,
+                      text: `🎙️ ${showName ? `${showName} · ` : ''}${tip.source}${tip.duration ? ` · ${tip.duration}` : ''}${tip.summary ? `\n\n${tip.summary}` : ''}`,
+                      source: targetUrl ? (() => { try { return new URL(targetUrl).hostname.replace('www.', ''); } catch { return tip.source; } })() : tip.source,
+                      url: targetUrl,
+                    })}
+                    role="button"
+                    tabIndex={0}
+                  >
+                    <div className="morning-tile-media-title">{primaryTitle}</div>
+                    <div className="morning-tile-media-meta">
+                      {showName ? `${showName} · ` : ''}{tip.source}
+                      {tip.duration && ` · ${tip.duration}`}
+                    </div>
+                    {tip.summary && (
+                      <div className="morning-tile-media-summary">{tip.summary}</div>
+                    )}
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         </div>
