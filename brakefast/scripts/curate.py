@@ -1253,9 +1253,8 @@ def build_curated(spec, source_articles):
     bauernregel_widget = sw.get("bauernregel") or bauernregel_default
     if not bauernregel_widget.get("text"):
         bauernregel_widget = bauernregel_default
-    namenstag = sw.get("namenstag") or day_info_widget.get("namenstag", "")
-    if namenstag:
-        day_info_widget["namenstag"] = namenstag
+    namenstag = sw.get("namenstag") or day_info_widget.get("namenstag", "") or fetch_namenstag(now) or "Heiliger des Tages"
+    day_info_widget["namenstag"] = namenstag
     morning_tiles = dict(spec.get("morning_tiles", {}))
     morning_tiles["media_tip"] = choose_media_tip(morning_tiles.get("media_tip"), spec, source_articles)
     # Real Voitsberg events from meinbezirk RSS (no LLM involvement).
@@ -1727,6 +1726,12 @@ def main():
     with open(archive_file, "w") as f:
         json.dump(result, f, ensure_ascii=False, indent=2)
     print(f"Archived: {archive_file}")
+
+    # Fail if LLM spec produced an unusable edition — lets brakefast-daily.sh
+    # trigger the --auto fallback instead of publishing an empty page.
+    if not auto_mode and result["totalArticles"] == 0:
+        print("ERROR: LLM spec produced 0 articles — triggering auto fallback", file=sys.stderr)
+        sys.exit(2)
 
 
 if __name__ == "__main__":

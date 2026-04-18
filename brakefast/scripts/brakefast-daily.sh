@@ -33,6 +33,30 @@ log() {
   echo "[$(date '+%Y-%m-%d %H:%M:%S')] $*" | tee -a "$LOG_FILE"
 }
 
+# Telegram alert on failure. Chat ID matches openclaw cron delivery target.
+TELEGRAM_CHAT_ID="${TELEGRAM_CHAT_ID:-544762684}"
+send_telegram_alert() {
+  local token="${TELEGRAM_BOT_TOKEN:-}"
+  [ -z "$token" ] && return 0
+  curl -sf --max-time 10 -X POST \
+    "https://api.telegram.org/bot${token}/sendMessage" \
+    -d chat_id="${TELEGRAM_CHAT_ID}" \
+    --data-urlencode "text=$1" >/dev/null 2>&1 || true
+}
+
+on_pipeline_error() {
+  local code=$?
+  local line="$1"
+  local tail_log
+  tail_log="$(tail -6 "$LOG_FILE" 2>/dev/null | tr -d '\r' | head -c 2000)"
+  send_telegram_alert "⚠️ BrakeFast Pipeline FAILED
+Exit ${code} at line ${line}
+Host: $(hostname -s)
+Last log lines:
+${tail_log}"
+}
+trap 'on_pipeline_error $LINENO' ERR
+
 PIPELINE_LOG="${BRAKEFAST_DIR}/output/pipeline-run.json"
 echo "[]" > "$PIPELINE_LOG"
 
