@@ -1181,14 +1181,29 @@ def enrich_history(facts):
             wiki_title = ""
         summary_data = fetch_wikipedia_summary(wiki_title) if wiki_title else None
 
+        # Reject disambiguation pages — the Wikipedia API returns
+        # `type == "disambiguation"` for titles like "Titanic" that point
+        # to a list page rather than the intended article ("RMS_Titanic").
+        # Drop the summary so the fallback search picks a better slug.
+        if summary_data and summary_data.get("type") == "disambiguation":
+            summary_data = None
+            fact.pop("wiki", None)
+            fact.pop("url", None)
+            fact.pop("image", None)
+            wiki_title = ""
+
         if not summary_data:
             for candidate in build_history_search_candidates(fact):
                 resolved_title = search_wikipedia_title(candidate)
                 if not resolved_title or is_bad_history_title(resolved_title):
                     continue
                 wiki_title = resolved_title
-                summary_data = fetch_wikipedia_summary(resolved_title)
-                if summary_data:
+                candidate_summary = fetch_wikipedia_summary(resolved_title)
+                # Skip disambig pages during fallback search too.
+                if candidate_summary and candidate_summary.get("type") == "disambiguation":
+                    continue
+                if candidate_summary:
+                    summary_data = candidate_summary
                     fact["wiki"] = resolved_title
                     break
 
@@ -1249,7 +1264,14 @@ def build_curated(spec, source_articles):
     quote_widget = sw.get("quote") or quote_default
     if not quote_widget.get("text"):
         quote_widget = quote_default
-    history_widget = enrich_history(sw.get("history") or [])
+    # Prefer Wikipedia's own "on this day" list over LLM-generated history:
+    # the LLM routinely hallucinates wrong dates (e.g. Titanic on April 18
+    # instead of April 15) and disambiguation-page slugs (e.g. "Titanic"
+    # instead of "RMS_Titanic"). The API returns fact-checked events linked
+    # to specific Wikipedia pages, pre-scored by Wikipedia's own editors.
+    # LLM-supplied history is kept only as a fallback when the API is empty.
+    api_history = fetch_onthisday_history(now)
+    history_widget = enrich_history(api_history or sw.get("history") or [])
     word_of_day_widget = choose_word_of_day(sw.get("word_of_day"), now)
     bauernregel_default = {"text": "Wie der März, so der Herbst", "meaning": "Das Märzwetter gibt Hinweise auf den Herbst"}
     bauernregel_widget = sw.get("bauernregel") or bauernregel_default
