@@ -654,7 +654,7 @@ AUFGABE — Erzeuge exakt dieses JSON-Format:
   "widgets": {{
     "quote": {{"text": "<deutsches Zitat>", "author": "<Autor>"}},
     "history": [
-      {{"year": <int>, "text": "<Ereignis am heutigen Tag>", "wiki": "<Wikipedia-Artikelname>"}},
+      {{"year": <int>, "text": "<Ereignis am heutigen Tag>", "wiki": "<Wikipedia-Slug_mit_Underscores>"}},
       {{"year": <int>, "text": "...", "wiki": "..."}},
       {{"year": <int>, "text": "...", "wiki": "..."}}
     ],

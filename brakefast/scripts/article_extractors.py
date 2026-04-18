@@ -13,7 +13,11 @@ from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
 
 import trafilatura
 
-USER_AGENT = "BrakeFast/1.0 (Article Briefing Engine)"
+USER_AGENT = (
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
+    "AppleWebKit/537.36 (KHTML, like Gecko) "
+    "Chrome/131.0.0.0 Safari/537.36"
+)
 DEFAULT_TIMEOUT = 12
 MAX_HTML_BYTES = 700_000
 
@@ -82,7 +86,11 @@ ARXIV_ABSTRACT_RE = re.compile(
 def fetch_html(url: str, timeout: int = DEFAULT_TIMEOUT, max_bytes: int = MAX_HTML_BYTES) -> str:
     if not url:
         return ""
-    request = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
+    request = urllib.request.Request(url, headers={
+        "User-Agent": USER_AGENT,
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        "Accept-Language": "de-AT,de;q=0.9,en;q=0.8",
+    })
     with urllib.request.urlopen(request, timeout=timeout) as response:
         return response.read(max_bytes).decode("utf-8", errors="ignore")
 

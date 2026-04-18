@@ -812,8 +812,8 @@ def build_article_payload(item, source_article):
         return default
 
     article = {
-        "title": pick("headline", "title"),
-        "headline": pick("headline", "title"),
+        "title": pick("headline_de", "headline", "title"),
+        "headline": pick("headline_de", "headline", "title"),
         "link": pick("canonical_url", "source_url", "link"),
         "canonical_url": pick("canonical_url", "source_url", "link"),
         "source": pick("source"),
@@ -1170,7 +1170,9 @@ def enrich_history(facts):
     enriched = []
     for raw_fact in facts:
         fact = dict(raw_fact)
-        wiki_title = (fact.get("wiki") or "").strip()
+        wiki_title = (fact.get("wiki") or "").strip().replace(" ", "_")
+        if wiki_title:
+            fact["wiki"] = wiki_title
         if is_bad_history_title(wiki_title):
             fact.pop("wiki", None)
             fact.pop("url", None)
