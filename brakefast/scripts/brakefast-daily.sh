@@ -25,6 +25,14 @@ if ! python3 -c "import trafilatura" 2>/dev/null; then
   pip3 install --break-system-packages -q trafilatura 2>/dev/null || true
 fi
 
+# Self-heal ownership drift. Manual `docker exec` runs (default root) leave
+# files as root:root, which blocks the node-uid cron from overwriting them.
+# node has passwordless sudo inside the container, so this is a no-op when
+# everything is already correctly owned.
+if command -v sudo >/dev/null 2>&1; then
+  sudo -n chown -R node:node /data/brakefast-public /data/.openclaw/workspace/brakefast/output 2>/dev/null || true
+fi
+
 # Load optional runtime env before running the pipeline.
 # shellcheck disable=SC1091
 source "${SCRIPT_DIR}/load-brakefast-env.sh"
