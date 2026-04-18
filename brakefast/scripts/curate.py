@@ -1353,6 +1353,46 @@ def build_curated(spec, source_articles):
     return result
 
 
+SPORTS_KEYWORDS = (
+    "fußball", "fussball", "basketball", "handball", "volleyball", "eishockey",
+    "champions league", "uefa", "fifa", "bundesliga", "premier league",
+    "serie a", "ligue 1", "pokalfinale", "cup final", "endspiel",
+    "viertelfinale", "halbfinale",
+    "olympia", "olympische", "olympischen",
+    "weltmeisterschaft", "europameisterschaft",
+    "tour de france", "wimbledon", "grand slam", "grand-slam",
+    "formel 1", "formel-1", "formel_1", "formula 1", "grand prix",
+    "nba", "nfl", "nhl", "mlb",
+    "tennis", "golf", "skirennen", "slalom", "riesenslalom", "abfahrtslauf",
+    "leichtathletik", "marathon", "triathlon",
+    "turnier",
+)
+
+
+def _looks_like_sports(text: str, wiki_title: str) -> bool:
+    haystack = f"{text} {wiki_title}".lower().replace("_", " ")
+    return any(kw in haystack for kw in SPORTS_KEYWORDS)
+
+
+def _short_headline(wiki_title: str, year: int, raw_text: str) -> str:
+    """Produce a compact headline for the history widget.
+
+    Wikipedia's on-this-day API puts the entire event description in
+    ``text``, which can run 80+ characters and dominates the tile. The
+    page's ``normalizedtitle`` is almost always a better short headline.
+    Strip trailing-year suffixes so the frontend's `${year}: ${text}`
+    template doesn't render the year twice.
+    """
+    import re
+    title = (wiki_title or "").replace("_", " ").strip()
+    if not title:
+        # Fallback: take first clause of the raw text
+        title = raw_text.split(".")[0].strip()
+    # Strip trailing year (e.g. "Erdbeben von San Francisco 1906" -> "...San Francisco")
+    title = re.sub(rf"\s*[\(\[]?\s*{year}\s*[\)\]]?\s*$", "", title).strip()
+    return title or raw_text[:80]
+
+
 def fetch_onthisday_history(now):
     """Fetch 'on this day' events from German Wikipedia API. Returns list of history dicts."""
     month = now.month
@@ -1376,9 +1416,13 @@ def fetch_onthisday_history(now):
             wiki_title = pages[0].get("normalizedtitle", "").replace(" ", "_")
             if not wiki_title:
                 wiki_title = pages[0].get("title", "").replace(" ", "_")
+            # Skip sports events — user doesn't care about them for "Dieser Tag".
+            if _looks_like_sports(text, wiki_title):
+                continue
+            short = _short_headline(wiki_title, year, text)
             candidates.append({
                 "year": year,
-                "text": text,
+                "text": short,
                 "wiki": wiki_title,
                 "url": f"https://de.wikipedia.org/wiki/{urllib.parse.quote(wiki_title)}",
             })
