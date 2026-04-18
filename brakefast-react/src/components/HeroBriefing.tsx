@@ -1,8 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import type { NewspaperData, HistoryFact, Article, WorldHeadline, CalendarEvent } from '../types';
-import { BriefingModal } from './BriefingModal';
 import { DetailModal } from './DetailModal';
-import { formatHeadline, getArticleTeaser, to24h, translateWeather } from '../utils/textUtils';
+import { getArticleTeaser, to24h, translateWeather } from '../utils/textUtils';
 import { getCategoryGradient, getCategoryIcon, isValidLeadImage } from '../utils/imageUtils';
 import { pickTopStory } from '../utils/scoring';
 import { usePrivateCalendar } from '../hooks/usePrivateCalendar';
@@ -113,7 +112,6 @@ function findArticleForHeadline(headline: WorldHeadline, data: NewspaperData): A
 }
 
 export function HeroBriefing({ data, calendarRevealed, onArticleClick, isRead, markAsRead }: Props) {
-  const [showBriefing, setShowBriefing] = useState(false);
   const [modalData, setModalData] = useState<ModalData | null>(null);
 
   const weatherRaw = data.widgets?.weather;
@@ -244,26 +242,6 @@ export function HeroBriefing({ data, calendarRevealed, onArticleClick, isRead, m
               )}
               <span className="top-story-original-link">Details ansehen →</span>
             </div>
-          </div>
-        )}
-
-        {/* Ottos Briefing — always visible */}
-        {data.editorial && (
-          <div
-            className={`editorial-banner${topStory ? '' : ' editorial-banner-hero'}`}
-            onClick={() => setShowBriefing(true)}
-            role="button"
-            tabIndex={0}
-            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setShowBriefing(true); }}
-          >
-            <div className="editorial-banner-header">
-              <span className="editorial-banner-icon">🤖</span>
-              <span className="editorial-banner-label">Ottos Briefing</span>
-            </div>
-            {!topStory && data.headline && (
-              <h1 className="hero-briefing-headline">{formatHeadline(data.headline)}</h1>
-            )}
-            <p className={`editorial-banner-text${topStory ? '' : ' editorial-banner-text-full'}`}>{data.editorial}</p>
           </div>
         )}
 
@@ -471,15 +449,6 @@ export function HeroBriefing({ data, calendarRevealed, onArticleClick, isRead, m
           )}
         </div>
       </div>
-
-      {showBriefing && (
-        <BriefingModal
-          headline={data.headline || 'Guten Morgen — dein persönlicher Überblick für heute.'}
-          editorial={data.editorial}
-          date={data.generated}
-          onClose={() => setShowBriefing(false)}
-        />
-      )}
 
       {modalData && (
         <DetailModal
