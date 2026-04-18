@@ -148,6 +148,16 @@ print(f"Published edition snapshot: {edition_data_path}")
 print(f"Published edition meta: {meta_path}")
 PYTHON_SCRIPT
 
+# Publish the private calendar JSON to a key-protected nginx location.
+# File only exposes titles/locations to clients that hold the secret key.
+PRIVATE_CALENDAR_SRC="${BRAKEFAST_DIR}/output/calendar-events-private.json"
+PRIVATE_DIR="${PUBLIC_DIR}/private"
+if [ -f "$PRIVATE_CALENDAR_SRC" ]; then
+  mkdir -p "$PRIVATE_DIR"
+  cp "$PRIVATE_CALENDAR_SRC" "${PRIVATE_DIR}/calendar.json"
+  echo "Published private calendar: ${PRIVATE_DIR}/calendar.json"
+fi
+
 if [ -f "${SCRIPT_DIR}/generate-archive.sh" ]; then
   bash "${SCRIPT_DIR}/generate-archive.sh"
 fi

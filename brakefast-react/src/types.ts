@@ -112,9 +112,21 @@ export interface MarketsData {
 }
 
 // ─── Calendar ───
+// Public events are redacted — only time slot + category ("privat" | "arbeit").
+// Titles / locations arrive through the separate key-protected /private/calendar.json.
 export interface CalendarEvent {
+  date?: string;
   time: string;
+  end?: string;
+  kind?: 'privat' | 'arbeit' | string;
+  title?: string;
+}
+
+// Full event payload delivered only when a valid key unlocks /private/calendar.json.
+export interface PrivateCalendarEvent extends CalendarEvent {
   title: string;
+  location?: string;
+  description?: string;
 }
 
 // ─── Day Info ───

@@ -1,10 +1,35 @@
 import { useState, useEffect, useCallback } from 'react';
-import type { NewspaperData, HistoryFact, Article, WorldHeadline } from '../types';
+import type { NewspaperData, HistoryFact, Article, WorldHeadline, CalendarEvent } from '../types';
 import { BriefingModal } from './BriefingModal';
 import { DetailModal } from './DetailModal';
 import { formatHeadline, getArticleTeaser, to24h, translateWeather } from '../utils/textUtils';
 import { getCategoryGradient, getCategoryIcon, isValidLeadImage } from '../utils/imageUtils';
 import { pickTopStory } from '../utils/scoring';
+import { usePrivateCalendar } from '../hooks/usePrivateCalendar';
+
+const KIND_LABELS: Record<string, string> = {
+  privat: 'Privat',
+  arbeit: 'Arbeit',
+  work: 'Arbeit',
+  private: 'Privat',
+};
+
+function mergeCalendar(
+  publicEvents: CalendarEvent[],
+  privateEvents: ReturnType<typeof usePrivateCalendar>['privateEvents'],
+): CalendarEvent[] {
+  if (!privateEvents) return publicEvents;
+  // privateEvents has the same order + length as publicEvents by construction
+  // (same pipeline run, same sort). If lengths differ (stale cache), fall back
+  // to public so we never show mismatched titles for the wrong slot.
+  if (privateEvents.length !== publicEvents.length) return publicEvents;
+  return publicEvents.map((ev, i) => ({ ...ev, title: privateEvents[i]?.title || ev.title }));
+}
+
+function eventDisplayLabel(ev: CalendarEvent): string {
+  if (ev.title) return ev.title;
+  return KIND_LABELS[(ev.kind || '').toLowerCase()] || 'Termin';
+}
 
 /** Map text icon names from pipeline to emoji */
 const WEATHER_ICONS: Record<string, string> = {
@@ -99,7 +124,9 @@ export function HeroBriefing({ data, calendarRevealed, onArticleClick, isRead, m
   const weather = weatherUnavailable ? undefined : weatherRaw;
   const dayInfo = data.widgets?.dayInfo;
   const pollen = data.widgets?.pollen;
-  const calendar = data.widgets?.calendar || [];
+  const rawCalendar = data.widgets?.calendar || [];
+  const { privateEvents } = usePrivateCalendar();
+  const calendar = mergeCalendar(rawCalendar, privateEvents);
   const calendarCount = calendar.length;
   const headlines = data.morning_tiles?.headlines || [];
   const editionDate = data.generated ? new Date(data.generated) : null;
@@ -434,7 +461,7 @@ export function HeroBriefing({ data, calendarRevealed, onArticleClick, isRead, m
                 {calendar.map((ev, i) => (
                   <div key={i} className="status-card-list-item">
                     <span className="status-card-list-time">{ev.time}</span>
-                    <span>{ev.title}</span>
+                    <span>{eventDisplayLabel(ev)}</span>
                   </div>
                 ))}
               </div>

@@ -92,18 +92,25 @@ log "=== BrakeFast Daily Pipeline Start ==="
 log "Step 0: Fetching Google Calendar events..."
 CALENDAR_SCRIPT="${SCRIPT_DIR}/fetch-calendar.py"
 CALENDAR_JSON="${BRAKEFAST_DIR}/output/calendar-events.json"
-GCAL_TOKEN="${BRAKEFAST_DIR}/config/gcal_token.json"
-GCAL_CREDS="${BRAKEFAST_DIR}/config/gcal_credentials.json"
+CALENDAR_PRIVATE_JSON="${BRAKEFAST_DIR}/output/calendar-events-private.json"
+
+# Self-heal icalendar deps for the private ICS-URL fetcher
+if ! python3 -c "import icalendar, recurring_ical_events" 2>/dev/null; then
+  pip3 install --break-system-packages -q icalendar recurring_ical_events 2>/dev/null || true
+fi
+
 if [ -f "$CALENDAR_SCRIPT" ]; then
-  if python3 "$CALENDAR_SCRIPT" "$GCAL_TOKEN" "$GCAL_CREDS" 2>/dev/null > "$CALENDAR_JSON"; then
-    log "Step 0: Calendar events fetched ($(python3 -c "import json; print(len(json.load(open('$CALENDAR_JSON'))))" 2>/dev/null || echo '?') events)"
+  if python3 "$CALENDAR_SCRIPT" 2>&1 | tee -a "$LOG_FILE"; then
+    log "Step 0: Calendar events fetched"
   else
-    log "WARN: Calendar fetch failed, using empty array"
+    log "WARN: Calendar fetch failed, using empty arrays"
     echo "[]" > "$CALENDAR_JSON"
+    echo "[]" > "$CALENDAR_PRIVATE_JSON"
   fi
 else
-  log "WARN: Calendar script not found, using empty array"
+  log "WARN: Calendar script not found, using empty arrays"
   echo "[]" > "$CALENDAR_JSON"
+  echo "[]" > "$CALENDAR_PRIVATE_JSON"
 fi
 
 # Step 1: Fetch RSS feeds
