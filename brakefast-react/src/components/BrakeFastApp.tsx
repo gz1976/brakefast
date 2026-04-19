@@ -13,6 +13,7 @@ import { Toast } from './Toast';
 import { MorningTiles } from './MorningTiles';
 import { TimeMachineBar } from './TimeMachineBar';
 import { ErrorBoundary } from './ErrorBoundary';
+import { EditorialFirstScreen } from './EditorialFirstScreen';
 import type { ArchiveEdition } from '../types';
 
 interface Props {
@@ -53,6 +54,13 @@ export function BrakeFastApp({
   const handleToast = useCallback((msg: string) => {
     setToastMsg(msg);
     setToastVisible(true);
+  }, []);
+
+  // Feature flag: ?editorial=1 switches the first screen to the Newsprint EditorialFirstScreen.
+  // Phase 6 (ROLL-02) deletes this flag and the legacy branch below.
+  const editorialFlag = useMemo(() => {
+    if (typeof window === 'undefined') return false;
+    return new URLSearchParams(window.location.search).get('editorial') === '1';
   }, []);
 
   // Category display config: maps data keys to display properties
@@ -96,25 +104,45 @@ export function BrakeFastApp({
 
   return (
     <>
-      <Masthead
-        date={data.generated}
-        totalArticles={data.totalArticles}
-        editionNumber={data.edition_number}
-        readingTimeTotal={data.reading_time_total}
-        onLogoClick={() => setCalendarRevealed(prev => !prev)}
-      />
-
-      <NavTabs sections={sections} activeId={activeId} onNavigate={scrollTo} />
-
-      {/* First Screen: Hero + Morning Tiles fill iPad viewport */}
-      <div className="first-screen container" id="main-content">
+      {editorialFlag ? (
         <ErrorBoundary label="Titelseite">
-          <HeroBriefing data={data} calendarRevealed={calendarRevealed} onArticleClick={(article) => handleArticleClick(article, 'top-stories')} isRead={isRead} markAsRead={markAsRead} />
+          <EditorialFirstScreen
+            data={data}
+            calendarRevealed={calendarRevealed}
+            onArticleClick={(article) => handleArticleClick(article, 'top-stories')}
+            isRead={isRead}
+            markAsRead={markAsRead}
+            sections={sections}
+            activeSectionId={activeId}
+            onSectionNavigate={scrollTo}
+            editionNumber={data.edition_number}
+            generatedDate={data.generated}
+            onCalendarRevealToggle={() => setCalendarRevealed(prev => !prev)}
+          />
         </ErrorBoundary>
-        <ErrorBoundary label="Morgenueberblick">
-          <MorningTiles data={data} />
-        </ErrorBoundary>
-      </div>
+      ) : (
+        <>
+          <Masthead
+            date={data.generated}
+            totalArticles={data.totalArticles}
+            editionNumber={data.edition_number}
+            readingTimeTotal={data.reading_time_total}
+            onLogoClick={() => setCalendarRevealed(prev => !prev)}
+          />
+
+          <NavTabs sections={sections} activeId={activeId} onNavigate={scrollTo} />
+
+          {/* First Screen: Hero + Morning Tiles fill iPad viewport */}
+          <div className="first-screen container" id="main-content">
+            <ErrorBoundary label="Titelseite">
+              <HeroBriefing data={data} calendarRevealed={calendarRevealed} onArticleClick={(article) => handleArticleClick(article, 'top-stories')} isRead={isRead} markAsRead={markAsRead} />
+            </ErrorBoundary>
+            <ErrorBoundary label="Morgenueberblick">
+              <MorningTiles data={data} />
+            </ErrorBoundary>
+          </div>
+        </>
+      )}
 
       <div className="container">
         {activeCategories.map(cat => (
