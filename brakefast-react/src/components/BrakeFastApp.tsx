@@ -13,6 +13,7 @@ import { Toast } from './Toast';
 import { MorningTiles } from './MorningTiles';
 import { TimeMachineBar } from './TimeMachineBar';
 import { ErrorBoundary } from './ErrorBoundary';
+import { EditorialFirstScreen } from './EditorialFirstScreen';
 import type { ArchiveEdition } from '../types';
 
 interface Props {
@@ -53,6 +54,13 @@ export function BrakeFastApp({
   const handleToast = useCallback((msg: string) => {
     setToastMsg(msg);
     setToastVisible(true);
+  }, []);
+
+  // Feature flag: ?editorial=1 switches the first screen to the Newsprint EditorialFirstScreen.
+  // Phase 6 (ROLL-02) deletes this flag and the legacy branch below.
+  const editorialFlag = useMemo(() => {
+    if (typeof window === 'undefined') return false;
+    return new URLSearchParams(window.location.search).get('editorial') === '1';
   }, []);
 
   // Category display config: maps data keys to display properties
