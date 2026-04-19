@@ -37,6 +37,8 @@ interface Props {
   /** Edition meta — shown in masthead. */
   editionNumber?: number;
   generatedDate?: string;
+  /** Toggles calendar blur. Bind to the right-hand date cell (Option B). */
+  onCalendarRevealToggle?: () => void;
 }
 
 interface ModalData {
@@ -138,6 +140,7 @@ export function EditorialFirstScreen({
   onSectionNavigate,
   editionNumber,
   generatedDate,
+  onCalendarRevealToggle,
 }: Props) {
   const [modalData, setModalData] = useState<ModalData | null>(null);
   const [weatherModalOpen, setWeatherModalOpen] = useState(false);
@@ -232,7 +235,20 @@ export function EditorialFirstScreen({
           <div className="ed-tagline">Deine persönliche Morgenzeitung</div>
         </div>
         <div className="ed-masthead-r">
-          <span>{fullDate}</span>
+          <span
+            onClick={onCalendarRevealToggle}
+            role={onCalendarRevealToggle ? 'button' : undefined}
+            tabIndex={onCalendarRevealToggle ? 0 : undefined}
+            onKeyDown={(e) => {
+              if ((e.key === 'Enter' || e.key === ' ') && onCalendarRevealToggle) {
+                e.preventDefault();
+                onCalendarRevealToggle();
+              }
+            }}
+            style={onCalendarRevealToggle ? { cursor: 'pointer' } : undefined}
+          >
+            {fullDate}
+          </span>
           {editionNumber != null && (
             <span className="ed-edition">No. {editionNumber} · Frühausgabe</span>
           )}
