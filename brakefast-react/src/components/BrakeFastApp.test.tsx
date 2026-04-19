@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeAll, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeAll, beforeEach, afterEach } from 'vitest';
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { BrakeFastApp } from './BrakeFastApp';
@@ -308,5 +308,38 @@ describe('BrakeFastApp', () => {
     expect(dividerLabels).toContain('Welt');
     // Security has 0 articles, so no divider
     expect(dividerLabels).not.toContain('Security');
+  });
+});
+
+describe('BrakeFastApp editorial flag (ROLL-01 + EDIT-03)', () => {
+  // Reset URL between tests so flag state doesn't bleed into the wider suite.
+  afterEach(() => {
+    window.history.pushState({}, '', '/');
+  });
+
+  it('renders EditorialFirstScreen when ?editorial=1 is present', () => {
+    window.history.pushState({}, '', '/?editorial=1');
+    const { container } = render(<BrakeFastApp {...defaultProps()} />);
+    expect(container.querySelector('.ed-firstscreen')).toBeInTheDocument();
+    // Legacy nodes must NOT render in the editorial branch
+    expect(container.querySelector('.masthead')).toBeNull();
+    expect(container.querySelector('.first-screen')).toBeNull();
+    expect(container.querySelector('.hero-briefing')).toBeNull();
+  });
+
+  it('renders legacy Masthead + first-screen when the flag is absent (default path unchanged)', () => {
+    window.history.pushState({}, '', '/');
+    const { container } = render(<BrakeFastApp {...defaultProps()} />);
+    expect(container.querySelector('.masthead')).toBeInTheDocument();
+    expect(container.querySelector('.first-screen')).toBeInTheDocument();
+    expect(container.querySelector('.hero-briefing')).toBeInTheDocument();
+    expect(container.querySelector('.ed-firstscreen')).toBeNull();
+  });
+
+  it('renders legacy path when ?editorial has a non-"1" value (strict comparison)', () => {
+    window.history.pushState({}, '', '/?editorial=true');
+    const { container } = render(<BrakeFastApp {...defaultProps()} />);
+    expect(container.querySelector('.masthead')).toBeInTheDocument();
+    expect(container.querySelector('.ed-firstscreen')).toBeNull();
   });
 });
