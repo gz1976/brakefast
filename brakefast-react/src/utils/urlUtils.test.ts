@@ -88,10 +88,57 @@ describe('deduplicateArticles', () => {
   });
 
   it('returns data unchanged when no duplicates exist', () => {
-    const a1 = makeArticle({ link: 'https://example.com/one' });
-    const a2 = makeArticle({ link: 'https://example.com/two' });
+    const a1 = makeArticle({ title: 'Klimagipfel in Dubai startet', link: 'https://example.com/one', description: 'Weltklima-Konferenz beginnt.' });
+    const a2 = makeArticle({ title: 'Neue Chipfabrik in Magdeburg', link: 'https://example.com/two', description: 'Halbleiter-Werk eröffnet.' });
     const data = wrapInData([a1, a2]);
     const result = deduplicateArticles(data);
+    expect(result.categories['test'].articles).toHaveLength(2);
+  });
+
+  it('merges cross-source duplicates via title+summary similarity (Rattengift case)', () => {
+    // Real-world example: Der Standard + Tagesschau both covering the Spar/Hipp incident
+    const derStandard = makeArticle({
+      title: 'Rattengift in Hipp-Glas im Burgenland festgestellt',
+      link: 'https://www.derstandard.at/story/3000000317158/rueckruf-aller-hipp-glaeser-bei-spar',
+      source: 'Der Standard',
+      summary: 'Spar Österreich hat vorsorglich sein gesamtes Hipp-Sortiment zurückgerufen, nachdem in einem Glas der Sorte Karotte mit Kartoffel Rattengift nachgewiesen wurde.',
+      content_quality: 'medium',
+    });
+    const tagesschau = makeArticle({
+      title: 'Rattengift in Babynahrung in Österreich entdeckt',
+      link: 'https://www.tagesschau.de/ausland/europa/oesterreich-hipp-erpressung-100.html',
+      source: 'Tagesschau',
+      summary: 'Ein Kunde entdeckte in Österreich ein Glas Babynahrung von Hipp, das mit Rattengift versetzt war. Die österreichische Gesundheitsagentur vermutet einen Erpressungsversuch gegen Hipp, der daraufhin betroffene Produkte zurückrief.',
+      content_quality: 'medium',
+    });
+    const unrelated = makeArticle({
+      title: 'Iran hat neues Luftabwehrsystem eingesetzt',
+      link: 'https://example.com/iran',
+      summary: 'Iranische Streitkräfte meldeten den Einsatz eines neuen Abwehrsystems gegen US-Kampfjets.',
+    });
+    const data = wrapInData([derStandard, tagesschau, unrelated]);
+    const result = deduplicateArticles(data);
+    const articles = result.categories['test'].articles;
+    expect(articles).toHaveLength(2);
+    // Longer summary (Tagesschau) should win the tie-breaker
+    const kept = articles.find((a) => a.title.includes('Rattengift'));
+    expect(kept?.source).toBe('Tagesschau');
+  });
+
+  it('does not merge unrelated articles that share a single common token', () => {
+    const a = makeArticle({
+      title: 'Neue Ransomware-Variante entdeckt',
+      link: 'https://example.com/ransomware-a',
+      summary: 'Sicherheitsforscher identifizieren eine bisher unbekannte Malware-Familie.',
+    });
+    const b = makeArticle({
+      title: 'Ransomware-Angriff auf Krankenhaus',
+      link: 'https://example.com/ransomware-b',
+      summary: 'Ein Klinikum in Deutschland wurde Opfer eines Cyberangriffs.',
+    });
+    const data = wrapInData([a, b]);
+    const result = deduplicateArticles(data);
+    // Only "ransomware" overlaps as strong token — needs >=2 to merge
     expect(result.categories['test'].articles).toHaveLength(2);
   });
 });
