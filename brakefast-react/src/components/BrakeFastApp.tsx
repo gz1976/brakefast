@@ -106,17 +106,17 @@ export function BrakeFastApp({
 
       <NavTabs sections={sections} activeId={activeId} onNavigate={scrollTo} />
 
-      <div className="container" id="main-content">
-        {/* First Screen: Hero + Morning Tiles fill iPad viewport */}
-        <div className="first-screen">
-          <ErrorBoundary label="Titelseite">
-            <HeroBriefing data={data} calendarRevealed={calendarRevealed} onArticleClick={(article) => handleArticleClick(article, 'top-stories')} isRead={isRead} markAsRead={markAsRead} />
-          </ErrorBoundary>
-          <ErrorBoundary label="Morgenueberblick">
-            <MorningTiles data={data} />
-          </ErrorBoundary>
-        </div>
+      {/* First Screen: Hero + Morning Tiles fill iPad viewport */}
+      <div className="first-screen container" id="main-content">
+        <ErrorBoundary label="Titelseite">
+          <HeroBriefing data={data} calendarRevealed={calendarRevealed} onArticleClick={(article) => handleArticleClick(article, 'top-stories')} isRead={isRead} markAsRead={markAsRead} />
+        </ErrorBoundary>
+        <ErrorBoundary label="Morgenueberblick">
+          <MorningTiles data={data} />
+        </ErrorBoundary>
+      </div>
 
+      <div className="container">
         {activeCategories.map(cat => (
           <ErrorBoundary key={cat.key} label={cat.label}>
             <SectionDivider label={cat.label} colorClass={cat.colorClass} />
