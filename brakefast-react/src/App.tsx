@@ -3,6 +3,7 @@ import { useNewspaper } from './hooks/useNewspaper';
 import { BrakeFastApp } from './components/BrakeFastApp';
 import { OttoMonitor } from './components/OttoMonitor';
 import './styles/newspaper.css';
+import './styles/editorial-firstscreen.css';
 
 type AppView = 'brakefast' | 'monitor';
 
