@@ -148,22 +148,37 @@ export function BrakeFastApp({
       <div className="container">
         {activeCategories.map(cat => (
           <ErrorBoundary key={cat.key} label={cat.label}>
-            <SectionDivider label={cat.label} colorClass={cat.colorClass} />
-            {cat.component === 'techhub' ? (
-              <TechHub
-                aiArticles={cat.articles}
-                onArticleClick={(article) => handleArticleClick(article, cat.key)}
-                isRead={isRead}
-              />
-            ) : (
-              <CategorySection
+            {editorialFlag ? (
+              <EditorialCategorySection
                 articles={cat.articles}
                 categoryId={cat.key}
                 label={cat.label}
                 sectionId={cat.sectionId}
+                editionNumber={data.edition_number}
+                generatedDate={data.generated}
                 onArticleClick={(article) => handleArticleClick(article, cat.key)}
                 isRead={isRead}
               />
+            ) : (
+              <>
+                <SectionDivider label={cat.label} colorClass={cat.colorClass} />
+                {cat.component === 'techhub' ? (
+                  <TechHub
+                    aiArticles={cat.articles}
+                    onArticleClick={(article) => handleArticleClick(article, cat.key)}
+                    isRead={isRead}
+                  />
+                ) : (
+                  <CategorySection
+                    articles={cat.articles}
+                    categoryId={cat.key}
+                    label={cat.label}
+                    sectionId={cat.sectionId}
+                    onArticleClick={(article) => handleArticleClick(article, cat.key)}
+                    isRead={isRead}
+                  />
+                )}
+              </>
             )}
           </ErrorBoundary>
         ))}
