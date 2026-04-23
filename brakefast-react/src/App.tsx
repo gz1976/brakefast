@@ -4,6 +4,7 @@ import { BrakeFastApp } from './components/BrakeFastApp';
 import { OttoMonitor } from './components/OttoMonitor';
 import './styles/newspaper.css';
 import './styles/editorial-firstscreen.css';
+import './styles/editorial-categories.css';
 
 type AppView = 'brakefast' | 'monitor';
 
