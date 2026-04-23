@@ -14,6 +14,7 @@ import { MorningTiles } from './MorningTiles';
 import { TimeMachineBar } from './TimeMachineBar';
 import { ErrorBoundary } from './ErrorBoundary';
 import { EditorialFirstScreen } from './EditorialFirstScreen';
+import { EditorialCategorySection } from './EditorialCategorySection';
 import type { ArchiveEdition } from '../types';
 
 interface Props {
