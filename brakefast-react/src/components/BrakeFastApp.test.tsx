@@ -342,4 +342,23 @@ describe('BrakeFastApp editorial flag (ROLL-01 + EDIT-03)', () => {
     expect(container.querySelector('.masthead')).toBeInTheDocument();
     expect(container.querySelector('.ed-firstscreen')).toBeNull();
   });
+
+  it('renders .ed-category sections and hides .section-divider when ?editorial=1 is present (EDIT-04)', () => {
+    window.history.pushState({}, '', '/?editorial=1');
+    const { container } = render(<BrakeFastApp {...defaultProps()} />);
+    // Editorial branch emits .ed-category for every non-empty category
+    expect(container.querySelectorAll('.ed-category').length).toBeGreaterThanOrEqual(1);
+    // Legacy SectionDivider MUST NOT render when the flag is on
+    expect(container.querySelectorAll('.section-divider').length).toBe(0);
+    // Legacy CategorySection MUST NOT render either
+    expect(container.querySelectorAll('.category-section').length).toBe(0);
+  });
+
+  it('renders .section-divider + .category-section and hides .ed-category when the flag is absent (EDIT-04 legacy preservation)', () => {
+    window.history.pushState({}, '', '/');
+    const { container } = render(<BrakeFastApp {...defaultProps()} />);
+    expect(container.querySelectorAll('.section-divider').length).toBeGreaterThanOrEqual(1);
+    expect(container.querySelectorAll('.category-section').length).toBeGreaterThanOrEqual(1);
+    expect(container.querySelectorAll('.ed-category').length).toBe(0);
+  });
 });
