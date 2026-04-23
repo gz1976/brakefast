@@ -32,4 +32,9 @@ describe('contrast helper', () => {
     const ratio = contrastRatio('#8a1a1a', '#faf7f0');
     expect(ratio).toBeGreaterThanOrEqual(4.5);
   });
+
+  it('Accent red #8a1a1a unread dot on paper #faf7f0 meets WCAG 1.4.11 non-text UI (>= 3.0) — D-12 gate', () => {
+    const ratio = contrastRatio('#8a1a1a', '#faf7f0');
+    expect(ratio).toBeGreaterThanOrEqual(3.0);
+  });
 });
