@@ -395,25 +395,9 @@ export function EditorialFirstScreen({
             </>
           )}
 
-          <div className="ed-section-title">
-            <span>Termine heute</span>
-            <span className="ed-section-meta">{calendar.length}</span>
-          </div>
-          <div className={`ed-cal-list${!calendarRevealed ? ' ed-cal-list-blurred' : ''}`}>
-            {calendar.length > 0 ? (
-              calendar.slice(0, 5).map((ev, i) => (
-                <div key={i} className="ed-cal-item">
-                  <div className="ed-cal-time">{ev.time}</div>
-                  <div className="ed-cal-title">{eventDisplayLabel(ev)}</div>
-                </div>
-              ))
-            ) : (
-              <div className="ed-cal-empty">Keine Termine heute</div>
-            )}
-          </div>
         </div>
 
-        {/* Column 3 — Today */}
+        {/* Column 3 — Today + Termine */}
         <div className="ed-col ed-col-3">
           <div className="ed-today">
             <div className="ed-today-date">{weekday}</div>
@@ -437,6 +421,23 @@ export function EditorialFirstScreen({
                   <div className="ed-suninfo-val">{dayInfo.dayLength || '—'}</div>
                 </div>
               </div>
+            )}
+          </div>
+
+          <div className="ed-section-title">
+            <span>Termine heute</span>
+            <span className="ed-section-meta">{calendar.length}</span>
+          </div>
+          <div className={`ed-cal-list${!calendarRevealed ? ' ed-cal-list-blurred' : ''}`}>
+            {calendar.length > 0 ? (
+              calendar.slice(0, 5).map((ev, i) => (
+                <div key={i} className="ed-cal-item">
+                  <div className="ed-cal-time">{ev.time}</div>
+                  <div className="ed-cal-title">{eventDisplayLabel(ev)}</div>
+                </div>
+              ))
+            ) : (
+              <div className="ed-cal-empty">Keine Termine heute</div>
             )}
           </div>
         </div>
