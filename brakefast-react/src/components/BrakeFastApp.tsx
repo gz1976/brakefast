@@ -2,19 +2,13 @@ import { useCallback, useMemo, useState } from 'react';
 import type { NewspaperData, Article } from '../types';
 import { useActiveSection } from '../hooks/useActiveSection';
 import { useReadTracker } from '../hooks/useReadTracker';
-import { Masthead } from './Masthead';
-import { NavTabs } from './NavTabs';
-import { HeroBriefing } from './HeroBriefing';
-import { TechHub } from './TechHub';
-import { CategorySection } from './CategorySection';
 import { Footer } from './Footer';
-import { ArticleModal } from './ArticleModal';
 import { Toast } from './Toast';
-import { MorningTiles } from './MorningTiles';
 import { TimeMachineBar } from './TimeMachineBar';
 import { ErrorBoundary } from './ErrorBoundary';
 import { EditorialFirstScreen } from './EditorialFirstScreen';
 import { EditorialCategorySection } from './EditorialCategorySection';
+import { EditorialArticleModal } from './EditorialArticleModal';
 import type { ArchiveEdition } from '../types';
 
 interface Props {
@@ -30,15 +24,16 @@ interface NavSection {
   label: string;
 }
 
-function SectionDivider({ label, colorClass }: { label: string; colorClass: string }) {
-  return (
-    <div className={`section-divider section-divider-${colorClass}`}>
-      <div className="section-divider-line" />
-      <span className="section-divider-label">{label}</span>
-      <div className="section-divider-line" />
-    </div>
-  );
-}
+const CATEGORY_DISPLAY: { key: string; sectionId: string; label: string; colorClass: string }[] = [
+  { key: 'ai', sectionId: 'ai-tech', label: 'AI & Tech', colorClass: 'ai' },
+  { key: 'knapp', sectionId: 'knapp', label: 'KNAPP & Intralogistik', colorClass: 'knapp' },
+  { key: 'dev_digest', sectionId: 'dev-digest', label: 'Dev Digest', colorClass: 'dev' },
+  { key: 'ki_modelle', sectionId: 'ki-modelle', label: 'KI Modelle', colorClass: 'ki' },
+  { key: 'security', sectionId: 'security', label: 'Security', colorClass: 'security' },
+  { key: 'world', sectionId: 'welt', label: 'Welt', colorClass: 'world' },
+  { key: 'local', sectionId: 'steiermark', label: 'Steiermark', colorClass: 'local' },
+  { key: 'ev', sectionId: 'ev', label: 'E-Mobilität', colorClass: 'ev' },
+];
 
 export function BrakeFastApp({
   data,
@@ -56,26 +51,6 @@ export function BrakeFastApp({
     setToastMsg(msg);
     setToastVisible(true);
   }, []);
-
-  // Feature flag: ?editorial=1 switches the first screen to the Newsprint EditorialFirstScreen.
-  // Phase 6 (ROLL-02) deletes this flag and the legacy branch below.
-  const editorialFlag = useMemo(() => {
-    if (typeof window === 'undefined') return false;
-    return new URLSearchParams(window.location.search).get('editorial') === '1';
-  }, []);
-
-  // Category display config: maps data keys to display properties
-  // Order here determines render order on the page
-  const CATEGORY_DISPLAY: { key: string; sectionId: string; label: string; colorClass: string; component?: 'techhub' }[] = [
-    { key: 'ai', sectionId: 'ai-tech', label: 'AI & Tech', colorClass: 'ai', component: 'techhub' },
-    { key: 'knapp', sectionId: 'knapp', label: 'KNAPP & Intralogistik', colorClass: 'knapp' },
-    { key: 'dev_digest', sectionId: 'dev-digest', label: 'Dev Digest', colorClass: 'dev' },
-    { key: 'ki_modelle', sectionId: 'ki-modelle', label: 'KI Modelle', colorClass: 'ki' },
-    { key: 'security', sectionId: 'security', label: 'Security', colorClass: 'security' },
-    { key: 'world', sectionId: 'welt', label: 'Welt', colorClass: 'world' },
-    { key: 'local', sectionId: 'steiermark', label: 'Steiermark', colorClass: 'local' },
-    { key: 'ev', sectionId: 'ev', label: 'E-Mobilität', colorClass: 'ev' },
-  ];
 
   const activeCategories = useMemo(() =>
     CATEGORY_DISPLAY
@@ -104,82 +79,36 @@ export function BrakeFastApp({
   };
 
   return (
-    <div className={editorialFlag ? 'ed-page-root' : undefined}>
-      {editorialFlag ? (
-        <ErrorBoundary label="Titelseite">
-          <EditorialFirstScreen
-            data={data}
-            calendarRevealed={calendarRevealed}
-            onArticleClick={(article) => handleArticleClick(article, 'top-stories')}
-            isRead={isRead}
-            markAsRead={markAsRead}
-            sections={sections}
-            activeSectionId={activeId}
-            onSectionNavigate={scrollTo}
-            editionNumber={data.edition_number}
-            generatedDate={data.generated}
-            onCalendarRevealToggle={() => setCalendarRevealed(prev => !prev)}
-          />
-        </ErrorBoundary>
-      ) : (
-        <>
-          <Masthead
-            date={data.generated}
-            totalArticles={data.totalArticles}
-            editionNumber={data.edition_number}
-            readingTimeTotal={data.reading_time_total}
-            onLogoClick={() => setCalendarRevealed(prev => !prev)}
-          />
-
-          <NavTabs sections={sections} activeId={activeId} onNavigate={scrollTo} />
-
-          {/* First Screen: Hero + Morning Tiles fill iPad viewport */}
-          <div className="first-screen container" id="main-content">
-            <ErrorBoundary label="Titelseite">
-              <HeroBriefing data={data} calendarRevealed={calendarRevealed} onArticleClick={(article) => handleArticleClick(article, 'top-stories')} isRead={isRead} markAsRead={markAsRead} />
-            </ErrorBoundary>
-            <ErrorBoundary label="Morgenueberblick">
-              <MorningTiles data={data} />
-            </ErrorBoundary>
-          </div>
-        </>
-      )}
+    <div className="ed-page-root">
+      <ErrorBoundary label="Titelseite">
+        <EditorialFirstScreen
+          data={data}
+          calendarRevealed={calendarRevealed}
+          onArticleClick={(article) => handleArticleClick(article, 'top-stories')}
+          isRead={isRead}
+          markAsRead={markAsRead}
+          sections={sections}
+          activeSectionId={activeId}
+          onSectionNavigate={scrollTo}
+          editionNumber={data.edition_number}
+          generatedDate={data.generated}
+          onCalendarRevealToggle={() => setCalendarRevealed(prev => !prev)}
+        />
+      </ErrorBoundary>
 
       <div className="container">
         {activeCategories.map(cat => (
           <ErrorBoundary key={cat.key} label={cat.label}>
-            {editorialFlag ? (
-              <EditorialCategorySection
-                articles={cat.articles}
-                categoryId={cat.key}
-                label={cat.label}
-                sectionId={cat.sectionId}
-                editionNumber={data.edition_number}
-                generatedDate={data.generated}
-                onArticleClick={(article) => handleArticleClick(article, cat.key)}
-                isRead={isRead}
-              />
-            ) : (
-              <>
-                <SectionDivider label={cat.label} colorClass={cat.colorClass} />
-                {cat.component === 'techhub' ? (
-                  <TechHub
-                    aiArticles={cat.articles}
-                    onArticleClick={(article) => handleArticleClick(article, cat.key)}
-                    isRead={isRead}
-                  />
-                ) : (
-                  <CategorySection
-                    articles={cat.articles}
-                    categoryId={cat.key}
-                    label={cat.label}
-                    sectionId={cat.sectionId}
-                    onArticleClick={(article) => handleArticleClick(article, cat.key)}
-                    isRead={isRead}
-                  />
-                )}
-              </>
-            )}
+            <EditorialCategorySection
+              articles={cat.articles}
+              categoryId={cat.key}
+              label={cat.label}
+              sectionId={cat.sectionId}
+              editionNumber={data.edition_number}
+              generatedDate={data.generated}
+              onArticleClick={(article) => handleArticleClick(article, cat.key)}
+              isRead={isRead}
+            />
           </ErrorBoundary>
         ))}
 
@@ -200,7 +129,7 @@ export function BrakeFastApp({
       />
 
       {selectedArticle && (
-        <ArticleModal
+        <EditorialArticleModal
           article={selectedArticle.article}
           categoryId={selectedArticle.categoryId}
           onClose={() => setSelectedArticle(null)}

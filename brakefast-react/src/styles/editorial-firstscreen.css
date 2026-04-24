@@ -755,3 +755,211 @@
     overflow: visible;
   }
 }
+
+/* ─── Editorial Article Modal ─────────────────────────── */
+
+.ed-modal-overlay {
+  --ed-paper:        #faf7f0;
+  --ed-paper-2:      #f3efe4;
+  --ed-ink:          #15140f;
+  --ed-ink-2:        #3d3a30;
+  --ed-ink-3:        #6e6957;
+  --ed-rule:         #c8c2ad;
+  --ed-rule-soft:    #e3decb;
+  --ed-accent:       #8a1a1a;
+  --ed-accent-2:     #1a3a5c;
+
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(21, 20, 15, 0.72);
+  overflow-y: auto;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 2rem 1rem;
+}
+
+.ed-modal-panel {
+  background: var(--ed-paper);
+  max-width: 720px;
+  width: 100%;
+  border-top: 4px solid var(--ed-ink);
+  position: relative;
+  margin-bottom: 2rem;
+}
+
+.ed-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1.25rem;
+}
+
+.ed-modal-close {
+  font-size: 13px;
+  color: var(--ed-ink-2);
+  cursor: pointer;
+  border: none;
+  background: none;
+  padding: 0;
+  letter-spacing: 0.05em;
+  font-family: 'Inter', sans-serif;
+}
+
+.ed-modal-close:hover {
+  color: var(--ed-ink);
+}
+
+.ed-modal-meta {
+  font-size: 11px;
+  color: var(--ed-ink-3);
+  font-family: 'Inter', sans-serif;
+  letter-spacing: 0.04em;
+}
+
+.ed-modal-rule {
+  height: 3px;
+  border-top: 1px solid var(--ed-ink);
+  border-bottom: 1px solid var(--ed-ink);
+  background: var(--ed-paper-2);
+  margin: 0;
+}
+
+.ed-modal-content {
+  padding: 1.5rem 2rem 2.5rem;
+}
+
+.ed-modal-kicker {
+  font-size: 11px;
+  font-family: 'Inter', sans-serif;
+  font-variant: small-caps;
+  letter-spacing: 0.1em;
+  color: var(--ed-accent);
+  margin-bottom: 0.6rem;
+}
+
+.ed-modal-title {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 34px;
+  font-weight: 700;
+  color: var(--ed-ink);
+  line-height: 1.15;
+  margin: 0 0 0.75rem;
+}
+
+.ed-modal-standfirst {
+  font-size: 17px;
+  font-style: italic;
+  color: var(--ed-ink-2);
+  line-height: 1.5;
+  margin: 0 0 0.75rem;
+  font-family: 'Source Serif 4', Georgia, serif;
+}
+
+.ed-modal-byline {
+  font-size: 12px;
+  color: var(--ed-ink-3);
+  font-family: 'Inter', sans-serif;
+  letter-spacing: 0.03em;
+  margin-bottom: 0.75rem;
+}
+
+.ed-modal-divider {
+  border: none;
+  border-top: 1px solid var(--ed-rule);
+  margin: 0.75rem 0;
+}
+
+.ed-modal-image {
+  width: 100%;
+  max-height: 280px;
+  object-fit: cover;
+  display: block;
+}
+
+.ed-modal-image-placeholder {
+  width: 100%;
+  height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 48px;
+}
+
+.ed-modal-caption {
+  font-size: 11px;
+  font-style: italic;
+  color: var(--ed-ink-3);
+  font-family: 'Inter', sans-serif;
+  margin-top: 0.25rem;
+  margin-bottom: 0.25rem;
+}
+
+.ed-modal-body {
+  font-size: 15px;
+  line-height: 1.65;
+  color: var(--ed-ink-2);
+  font-family: 'Source Serif 4', Georgia, serif;
+  margin: 0.75rem 0;
+}
+
+.ed-modal-section-title {
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-family: 'Inter', sans-serif;
+  color: var(--ed-ink-3);
+  border-bottom: 1px solid var(--ed-rule);
+  padding-bottom: 4px;
+  margin: 1.25rem 0 0.75rem;
+}
+
+.ed-modal-bullets {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 0.75rem;
+}
+
+.ed-modal-bullets li {
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--ed-ink-2);
+  font-family: 'Source Serif 4', Georgia, serif;
+  padding: 0.25rem 0 0.25rem 1.25rem;
+  position: relative;
+}
+
+.ed-modal-bullets li::before {
+  content: '•';
+  position: absolute;
+  left: 0;
+  color: var(--ed-accent);
+}
+
+.ed-modal-why {
+  font-size: 14px;
+  font-style: italic;
+  color: var(--ed-ink-2);
+  line-height: 1.55;
+  font-family: 'Source Serif 4', Georgia, serif;
+  margin: 0 0 0.75rem;
+}
+
+.ed-modal-footer {
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--ed-rule-soft);
+  margin-top: 1rem;
+}
+
+.ed-modal-link {
+  font-size: 13px;
+  font-family: 'Inter', sans-serif;
+  color: var(--ed-accent);
+  text-decoration: none;
+  letter-spacing: 0.04em;
+}
+
+.ed-modal-link:hover {
+  text-decoration: underline;
+}
