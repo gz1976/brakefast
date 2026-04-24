@@ -22,7 +22,71 @@
       "sunset": "19:33",
       "dayLength": "12h 59m"
     },
-    "calendar": [],
+    "calendar": [
+      {
+        "date": "2026-04-21",
+        "time": "09:00",
+        "end": "10:00",
+        "kind": "arbeit",
+        "title": "Teammeeting"
+      },
+      {
+        "date": "2026-04-22",
+        "time": "14:00",
+        "end": "15:00",
+        "kind": "privat",
+        "title": "Zahnarzt"
+      },
+      {
+        "date": "2026-04-23",
+        "time": "10:00",
+        "end": "11:30",
+        "kind": "arbeit",
+        "title": "Sprint Review"
+      },
+      {
+        "date": "2026-04-23",
+        "time": "16:00",
+        "end": "17:00",
+        "kind": "arbeit",
+        "title": "1:1 mit Thomas"
+      },
+      {
+        "date": "2026-04-24",
+        "time": "09:30",
+        "end": "10:00",
+        "kind": "arbeit",
+        "title": "Daily Standup"
+      },
+      {
+        "date": "2026-04-24",
+        "time": "13:00",
+        "end": "14:00",
+        "kind": "privat",
+        "title": "Mittagessen"
+      },
+      {
+        "date": "2026-04-25",
+        "time": "11:00",
+        "end": "12:00",
+        "kind": "arbeit",
+        "title": "Architektur-Meeting"
+      },
+      {
+        "date": "2026-04-26",
+        "time": "09:00",
+        "end": "17:00",
+        "kind": "privat",
+        "title": "Ausflug Graz"
+      },
+      {
+        "date": "2026-04-28",
+        "time": "15:00",
+        "end": "16:00",
+        "kind": "arbeit",
+        "title": "Quartalsgespräch"
+      }
+    ],
     "history": [
       {
         "year": 1860,

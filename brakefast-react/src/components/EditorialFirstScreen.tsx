@@ -162,6 +162,23 @@ export function EditorialFirstScreen({
   const fullDate = editionDate.toLocaleDateString('de-AT', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
   const calWeek = getCalendarWeek(editionDate);
 
+  // Day navigation: 0 = edition date, ±7 max
+  const [calDayOffset, setCalDayOffset] = useState(0);
+  const selectedCalDate = useMemo(() => {
+    const d = new Date(Date.UTC(editionDate.getFullYear(), editionDate.getMonth(), editionDate.getDate()));
+    d.setUTCDate(d.getUTCDate() + calDayOffset);
+    return d.toISOString().slice(0, 10);
+  }, [editionDate, calDayOffset]);
+  const dayEvents = useMemo(() =>
+    calendar.filter(ev => ev.date ? ev.date === selectedCalDate : calDayOffset === 0),
+    [calendar, selectedCalDate, calDayOffset]
+  );
+  const calNavLabel = useMemo(() => {
+    if (calDayOffset === 0) return 'heute';
+    const d = new Date(selectedCalDate + 'T00:00:00');
+    return d.toLocaleDateString('de-AT', { weekday: 'short', day: 'numeric', month: 'short' });
+  }, [calDayOffset, selectedCalDate]);
+
   const historyRaw = data.widgets?.history;
   const historyFacts: HistoryFact[] = Array.isArray(historyRaw) ? historyRaw : (historyRaw ? [historyRaw] : []);
   const FALLBACK_WIKIS = new Set(['RMS_Titanic', 'Hillsborough-Katastrophe']);
@@ -424,20 +441,34 @@ export function EditorialFirstScreen({
             )}
           </div>
 
-          <div className="ed-section-title">
-            <span>Termine heute</span>
-            <span className="ed-section-meta">{calendar.length}</span>
+          <div className="ed-section-title ed-section-title--cal">
+            <span>Termine</span>
+            <div className="ed-cal-nav">
+              <button
+                className="ed-cal-nav-btn"
+                onClick={() => setCalDayOffset(o => Math.max(-7, o - 1))}
+                disabled={calDayOffset <= -7}
+                aria-label="Vorheriger Tag"
+              >‹</button>
+              <span className="ed-cal-nav-label">{calNavLabel}</span>
+              <button
+                className="ed-cal-nav-btn"
+                onClick={() => setCalDayOffset(o => Math.min(7, o + 1))}
+                disabled={calDayOffset >= 7}
+                aria-label="Nächster Tag"
+              >›</button>
+            </div>
           </div>
           <div className={`ed-cal-list${!calendarRevealed ? ' ed-cal-list-blurred' : ''}`}>
-            {calendar.length > 0 ? (
-              calendar.slice(0, 5).map((ev, i) => (
+            {dayEvents.length > 0 ? (
+              dayEvents.slice(0, 5).map((ev, i) => (
                 <div key={i} className="ed-cal-item">
                   <div className="ed-cal-time">{ev.time}</div>
                   <div className="ed-cal-title">{eventDisplayLabel(ev)}</div>
                 </div>
               ))
             ) : (
-              <div className="ed-cal-empty">Keine Termine heute</div>
+              <div className="ed-cal-empty">Keine Termine</div>
             )}
           </div>
         </div>

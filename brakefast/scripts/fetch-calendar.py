@@ -41,7 +41,8 @@ OUTPUT_DIR = BRAKEFAST_DIR / "output"
 PUBLIC_FILE = OUTPUT_DIR / "calendar-events.json"
 PRIVATE_FILE = OUTPUT_DIR / "calendar-events-private.json"
 
-# Look ahead 7 days so tomorrow's events can still render in the widget
+# Fetch ±7 days so the frontend calendar widget supports week navigation
+LOOKBACK_DAYS = 7
 LOOKAHEAD_DAYS = 7
 
 
@@ -155,8 +156,9 @@ def main() -> int:
         return 0
 
     now = datetime.now(VIENNA_TZ)
-    window_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
-    window_end = window_start + timedelta(days=LOOKAHEAD_DAYS)
+    today = now.replace(hour=0, minute=0, second=0, microsecond=0)
+    window_start = today - timedelta(days=LOOKBACK_DAYS)
+    window_end = today + timedelta(days=LOOKAHEAD_DAYS)
 
     collected: list[dict] = []
     for src in sources:
