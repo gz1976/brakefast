@@ -321,6 +321,25 @@ export function EditorialFirstScreen({
 
         {/* Column 2 — Schlagzeilen + Geschichte */}
         <div className="ed-col ed-col-2">
+          {weather ? (
+            <div
+              className="ed-weather-row ed-weather-compact"
+              onClick={() => setWeatherModalOpen(true)}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setWeatherModalOpen(true); }}
+            >
+              <div className="ed-w-temp">{weather.temp}°</div>
+              <div className="ed-w-meta">
+                <strong>{translateWeather(weather.description)}</strong>
+                Gefühlt {weather.feelsLike}° · {weather.min}°/{weather.max}°
+                {weather.location ? ` · ${weather.location}` : ''}
+              </div>
+              <div className="ed-w-icon">{getWeatherEmoji(weather.icon)}</div>
+            </div>
+          ) : (
+            <div className="ed-weather-empty ed-weather-compact">Wetter nicht verfügbar</div>
+          )}
           <div className="ed-section-title">
             <span>Schlagzeilen</span>
             <span className="ed-section-meta">3 in 30 Sek.</span>
@@ -397,26 +416,6 @@ export function EditorialFirstScreen({
         {/* Column 3 — Today */}
         <div className="ed-col ed-col-3">
           <div className="ed-today">
-            {weather ? (
-              <div
-                className="ed-weather-row"
-                onClick={() => setWeatherModalOpen(true)}
-                role="button"
-                tabIndex={0}
-                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setWeatherModalOpen(true); }}
-              >
-                <div className="ed-w-temp">{weather.temp}°</div>
-                <div className="ed-w-meta">
-                  <strong>{translateWeather(weather.description)}</strong>
-                  Gefühlt {weather.feelsLike}° · {weather.min}°/{weather.max}°
-                  {weather.location ? ` · ${weather.location}` : ''}
-                </div>
-                <div className="ed-w-icon">{getWeatherEmoji(weather.icon)}</div>
-              </div>
-            ) : (
-              <div className="ed-weather-empty">Wetter nicht verfügbar</div>
-            )}
-
             <div className="ed-today-date">{weekday}</div>
             <div className="ed-today-sub">
               {editionDate.toLocaleDateString('de-AT', { day: 'numeric', month: 'long' })} · KW {calWeek}

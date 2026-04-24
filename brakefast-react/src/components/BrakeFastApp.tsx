@@ -104,7 +104,7 @@ export function BrakeFastApp({
   };
 
   return (
-    <>
+    <div className={editorialFlag ? 'ed-page-root' : undefined}>
       {editorialFlag ? (
         <ErrorBoundary label="Titelseite">
           <EditorialFirstScreen
@@ -208,6 +208,6 @@ export function BrakeFastApp({
       )}
 
       <Toast message={toastMsg} visible={toastVisible} onDone={() => setToastVisible(false)} />
-    </>
+    </div>
   );
 }
