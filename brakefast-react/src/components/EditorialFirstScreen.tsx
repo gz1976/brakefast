@@ -375,17 +375,28 @@ export function EditorialFirstScreen({
               )}
             </>
           )}
+
+          <div className="ed-section-title">
+            <span>Termine heute</span>
+            <span className="ed-section-meta">{calendar.length}</span>
+          </div>
+          <div className={`ed-cal-list${!calendarRevealed ? ' ed-cal-list-blurred' : ''}`}>
+            {calendar.length > 0 ? (
+              calendar.slice(0, 5).map((ev, i) => (
+                <div key={i} className="ed-cal-item">
+                  <div className="ed-cal-time">{ev.time}</div>
+                  <div className="ed-cal-title">{eventDisplayLabel(ev)}</div>
+                </div>
+              ))
+            ) : (
+              <div className="ed-cal-empty">Keine Termine heute</div>
+            )}
+          </div>
         </div>
 
         {/* Column 3 — Today */}
         <div className="ed-col ed-col-3">
           <div className="ed-today">
-            <div className="ed-today-date">{weekday}</div>
-            <div className="ed-today-sub">
-              {editionDate.toLocaleDateString('de-AT', { day: 'numeric', month: 'long' })} · KW {calWeek}
-              {dayInfo?.namenstag ? ` · Namenstag ${dayInfo.namenstag}` : ''}
-            </div>
-
             {weather ? (
               <div
                 className="ed-weather-row"
@@ -406,6 +417,12 @@ export function EditorialFirstScreen({
               <div className="ed-weather-empty">Wetter nicht verfügbar</div>
             )}
 
+            <div className="ed-today-date">{weekday}</div>
+            <div className="ed-today-sub">
+              {editionDate.toLocaleDateString('de-AT', { day: 'numeric', month: 'long' })} · KW {calWeek}
+              {dayInfo?.namenstag ? ` · Namenstag ${dayInfo.namenstag}` : ''}
+            </div>
+
             {dayInfo && (
               <div className="ed-suninfo">
                 <div>
@@ -421,23 +438,6 @@ export function EditorialFirstScreen({
                   <div className="ed-suninfo-val">{dayInfo.dayLength || '—'}</div>
                 </div>
               </div>
-            )}
-          </div>
-
-          <div className="ed-section-title">
-            <span>Termine heute</span>
-            <span className="ed-section-meta">{calendar.length}</span>
-          </div>
-          <div className={`ed-cal-list${!calendarRevealed ? ' ed-cal-list-blurred' : ''}`}>
-            {calendar.length > 0 ? (
-              calendar.slice(0, 5).map((ev, i) => (
-                <div key={i} className="ed-cal-item">
-                  <div className="ed-cal-time">{ev.time}</div>
-                  <div className="ed-cal-title">{eventDisplayLabel(ev)}</div>
-                </div>
-              ))
-            ) : (
-              <div className="ed-cal-empty">Keine Termine heute</div>
             )}
           </div>
         </div>
