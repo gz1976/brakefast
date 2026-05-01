@@ -676,7 +676,7 @@ def _extract_event_location(text):
     return "Bezirk Voitsberg"
 
 
-def fetch_local_events(max_items=2, max_age_days=14):
+def fetch_local_events(max_items=4, max_age_days=7):
     """Fetch Voitsberg events from meinbezirk RSS. Returns list of dicts."""
     try:
         xml_raw = _http_get_text("https://www.meinbezirk.at/voitsberg/rss")
@@ -1345,10 +1345,20 @@ def build_curated(spec, source_articles):
         "morning_tiles": morning_tiles,
     }
 
-    # Headlines from top articles
-    headlines = spec.get("headlines", [])
-    if headlines:
-        result["headlines"] = headlines
+    # Headlines: spec may supply them at top level or inside morning_tiles.
+    # Frontend reads data.morning_tiles.headlines — normalise to that location.
+    if not morning_tiles.get("headlines"):
+        spec_headlines = spec.get("headlines") or morning_tiles.get("headlines") or []
+        if spec_headlines:
+            morning_tiles["headlines"] = spec_headlines
+        else:
+            # Auto-fallback: top 3 preferred articles become plain headlines
+            morning_tiles["headlines"] = [
+                {"text": a["title"], "source": a.get("source", ""), "url": a.get("link", "")}
+                for a in preferred_articles[:3]
+                if a.get("title")
+            ]
+    result["morning_tiles"] = morning_tiles
 
     return result
 
@@ -1377,20 +1387,19 @@ def _looks_like_sports(text: str, wiki_title: str) -> bool:
 def _short_headline(wiki_title: str, year: int, raw_text: str) -> str:
     """Produce a compact headline for the history widget.
 
-    Wikipedia's on-this-day API puts the entire event description in
-    ``text``, which can run 80+ characters and dominates the tile. The
-    page's ``normalizedtitle`` is almost always a better short headline.
-    Strip trailing-year suffixes so the frontend's `${year}: ${text}`
-    template doesn't render the year twice.
+    Use the Wikipedia event description (raw_text) which carries a verb
+    ("Johannes Paul II. stirbt", "Erdbeben zerstört San Francisco") rather
+    than just the page title. Cap at 100 chars at a word boundary.
     """
     import re
-    title = (wiki_title or "").replace("_", " ").strip()
-    if not title:
-        # Fallback: take first clause of the raw text
-        title = raw_text.split(".")[0].strip()
-    # Strip trailing year (e.g. "Erdbeben von San Francisco 1906" -> "...San Francisco")
-    title = re.sub(rf"\s*[\(\[]?\s*{year}\s*[\)\]]?\s*$", "", title).strip()
-    return title or raw_text[:80]
+    text = (raw_text or "").strip()
+    if not text:
+        text = (wiki_title or "").replace("_", " ").strip()
+    # Strip trailing year so frontend's "{year}: {text}" doesn't duplicate it
+    text = re.sub(rf"\s*[\(\[]?\s*{year}\s*[\)\]]?\s*[.,]?\s*$", "", text).strip()
+    if len(text) > 100:
+        text = text[:100].rsplit(" ", 1)[0].rstrip(".,") + "…"
+    return text or raw_text[:80]
 
 
 def fetch_onthisday_history(now):

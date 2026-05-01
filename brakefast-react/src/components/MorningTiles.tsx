@@ -113,7 +113,7 @@ export function MorningTiles({ data }: Props) {
         <div className="morning-tile-body">
           {events.length > 0 ? (
             <ul className="morning-tile-events-list">
-              {events.slice(0, 2).map((ev, i) => (
+              {events.slice(0, 4).map((ev, i) => (
                 <li
                   key={i}
                   className="morning-tile-event-item morning-tile-event-clickable"

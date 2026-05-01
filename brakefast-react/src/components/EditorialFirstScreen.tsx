@@ -248,7 +248,14 @@ export function EditorialFirstScreen({
           )}
         </div>
         <div className="ed-masthead-c">
-          <div className="ed-logo">BrakeFast</div>
+          <div
+            className="ed-logo ed-logo-clickable"
+            onClick={() => window.location.reload()}
+            role="button"
+            tabIndex={0}
+            title="Seite neu laden"
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') window.location.reload(); }}
+          >BrakeFast</div>
           <div className="ed-tagline">Deine persönliche Morgenzeitung</div>
         </div>
         <div className="ed-masthead-r">

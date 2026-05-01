@@ -139,6 +139,12 @@
   letter-spacing: 1px;
   color: var(--ed-ink);
 }
+.ed-logo-clickable {
+  cursor: pointer;
+  user-select: none;
+}
+.ed-logo-clickable:hover { opacity: 0.75; }
+.ed-logo-clickable:active { opacity: 0.55; }
 .ed-tagline {
   font-style: italic;
   font-size: 12px;
