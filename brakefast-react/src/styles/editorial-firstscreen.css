@@ -262,11 +262,13 @@
 
 .ed-lead-image-wrap {
   cursor: pointer;
-  margin-bottom: 6px;
+  display: block;
+  width: 100%;
+  margin-bottom: 14px;
 }
 .ed-lead-image {
   width: 100%;
-  height: clamp(220px, 24vh, 320px);
+  height: clamp(280px, 32vh, 420px);
   object-fit: contain;
   background: var(--ed-paper-2);
   border-radius: 2px;
@@ -751,7 +753,7 @@
   }
   .ed-col { padding: 0 12px; }
   .ed-strip { gap: 16px; }
-  .ed-lead-image { height: clamp(190px, 22vh, 260px); }
+  .ed-lead-image { height: clamp(240px, 28vh, 340px); }
   .ed-body { font-size: 12.5px; line-height: 1.5; min-height: 5em; }
 }
 
