@@ -189,7 +189,8 @@
   display: grid;
   grid-template-columns: 2.4fr 1.2fr 1fr;
   grid-template-rows: 1fr auto;
-  gap: 0;
+  column-gap: 0;
+  row-gap: 18px;
   padding-top: 14px;
   min-height: 0;
 }
