@@ -266,7 +266,7 @@
 }
 .ed-lead-image {
   width: 100%;
-  height: clamp(280px, 32vh, 420px);
+  height: clamp(220px, 24vh, 320px);
   object-fit: contain;
   background: var(--ed-paper-2);
   border-radius: 2px;
@@ -298,9 +298,10 @@
   color: var(--ed-ink-2);
   text-align: left;
   hyphens: auto;
-  flex: 1;
-  min-height: 0;
+  flex: 1 1 auto;
+  min-height: 6em;
   overflow: hidden;
+  margin-top: 6px;
 }
 .ed-body p::first-letter {
   font-family: 'Source Serif 4', serif;
@@ -750,8 +751,8 @@
   }
   .ed-col { padding: 0 12px; }
   .ed-strip { gap: 16px; }
-  .ed-lead-image { height: clamp(240px, 28vh, 340px); }
-  .ed-body { font-size: 12.5px; line-height: 1.5; }
+  .ed-lead-image { height: clamp(190px, 22vh, 260px); }
+  .ed-body { font-size: 12.5px; line-height: 1.5; min-height: 5em; }
 }
 
 /* ─── Print: act like a real newspaper ──────── */
