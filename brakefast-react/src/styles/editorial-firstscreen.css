@@ -266,8 +266,9 @@
 }
 .ed-lead-image {
   width: 100%;
-  height: clamp(200px, 22vh, 280px);
-  object-fit: cover;
+  height: clamp(280px, 32vh, 420px);
+  object-fit: contain;
+  background: var(--ed-paper-2);
   border-radius: 2px;
   filter: grayscale(0.15) contrast(1.05);
   display: block;
@@ -295,10 +296,7 @@
   font-size: 13.5px;
   line-height: 1.55;
   color: var(--ed-ink-2);
-  column-count: 2;
-  column-gap: 16px;
-  column-rule: 1px solid var(--ed-rule-soft);
-  text-align: justify;
+  text-align: left;
   hyphens: auto;
   flex: 1;
   min-height: 0;
@@ -439,7 +437,7 @@
 /* ─── Column 3 (Today + Termine) ────────────── */
 .ed-today {
   background: var(--ed-paper-2);
-  padding: 14px;
+  padding: 18px 16px;
   border-radius: 2px;
   border: 1px solid var(--ed-rule-soft);
   margin-bottom: 14px;
@@ -459,7 +457,8 @@
   letter-spacing: 1.6px;
   text-transform: uppercase;
   color: var(--ed-ink-3);
-  margin-bottom: 12px;
+  margin-bottom: 18px;
+  line-height: 1.6;
 }
 
 .ed-weather-row {
@@ -531,7 +530,8 @@
 .ed-suninfo {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
-  gap: 8px;
+  gap: 14px;
+  padding-top: 6px;
   font-family: 'Inter', sans-serif;
 }
 .ed-suninfo > div { text-align: center; }
@@ -540,11 +540,11 @@
   letter-spacing: 1.4px;
   text-transform: uppercase;
   color: var(--ed-ink-3);
-  margin-bottom: 2px;
+  margin-bottom: 6px;
 }
 .ed-suninfo-val {
   font-family: 'Source Serif 4', serif;
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 600;
   color: var(--ed-ink);
   font-variant-numeric: tabular-nums;
@@ -750,7 +750,7 @@
   }
   .ed-col { padding: 0 12px; }
   .ed-strip { gap: 16px; }
-  .ed-lead-image { height: clamp(170px, 18vh, 220px); }
+  .ed-lead-image { height: clamp(240px, 28vh, 340px); }
   .ed-body { font-size: 12.5px; line-height: 1.5; }
 }
 

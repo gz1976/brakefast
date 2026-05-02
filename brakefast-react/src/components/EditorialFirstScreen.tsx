@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect, useCallback } from 'react';
 import type { NewspaperData, Article, HistoryFact, WorldHeadline, CalendarEvent } from '../types';
 import { DetailModal } from './DetailModal';
-import { getArticleTeaser, to24h, translateWeather } from '../utils/textUtils';
+import { getArticleTeaser, getArticleBody, to24h, translateWeather } from '../utils/textUtils';
 import { isValidLeadImage, getCategoryGradient, getCategoryIcon } from '../utils/imageUtils';
 import { pickTopStory } from '../utils/scoring';
 import { usePrivateCalendar } from '../hooks/usePrivateCalendar';
@@ -185,10 +185,21 @@ export function EditorialFirstScreen({
   const historyAllFallback = historyFacts.length > 0 && historyFacts.every(f => f.wiki && FALLBACK_WIKIS.has(f.wiki));
 
   const topStory = useMemo(() => pickTopStory(data), [data]);
-  const filteredHeadlines = useMemo(
-    () => headlines.filter(h => !topStory || (h.text !== topStory.title && h.url !== topStory.link)),
-    [headlines, topStory]
-  );
+  const filteredHeadlines = useMemo(() => {
+    const filtered = headlines.filter(h => !topStory || (h.text !== topStory.title && h.url !== topStory.link));
+    if (filtered.length >= 3) return filtered;
+    // Safety net: if dedup left fewer than 3, fall back to unfiltered headlines
+    // so the Schlagzeilen block always shows 3 entries (even if the top story repeats).
+    const seen = new Set(filtered.map(h => h.text));
+    for (const h of headlines) {
+      if (filtered.length >= 3) break;
+      if (!seen.has(h.text)) {
+        filtered.push(h);
+        seen.add(h.text);
+      }
+    }
+    return filtered;
+  }, [headlines, topStory]);
 
   const wordOfDay = data.widgets?.word_of_day;
   const quote = data.widgets?.quote;
@@ -234,6 +245,7 @@ export function EditorialFirstScreen({
   }
 
   const teaserText = getArticleTeaser(topStory);
+  const bodyText = getArticleBody(topStory) || teaserText;
 
   return (
     <section className="ed-firstscreen" id="top-stories">
@@ -336,9 +348,9 @@ export function EditorialFirstScreen({
           {topStory.source && (
             <div className="ed-caption">— Bild: {topStory.source}</div>
           )}
-          {teaserText && (
+          {bodyText && (
             <div className="ed-body">
-              <p>{teaserText}</p>
+              <p>{bodyText}</p>
             </div>
           )}
         </div>
