@@ -52,6 +52,7 @@ const fixtureArticles: Article[] = [
   makeArticle({ title: 'Stacked One',   link: 'https://example.com/one'   }),
   makeArticle({ title: 'Stacked Two',   link: 'https://example.com/two'   }),
   makeArticle({ title: 'Stacked Three', link: 'https://example.com/three' }),
+  makeArticle({ title: 'Stacked Four',  link: 'https://example.com/four'  }),
 ];
 
 const baseProps = () => ({
@@ -95,16 +96,17 @@ describe('EditorialCategorySection', () => {
     expect(bodyText.length).toBeGreaterThan(0);
   });
 
-  it('renders exactly 3 stacked items (D-05 resolved: articles.slice(1, 4))', () => {
+  it('renders exactly 4 stacked items (D-05 resolved: articles.slice(1, 5))', () => {
     const { container } = render(<EditorialCategorySection {...baseProps()} />);
     const stackItems = container.querySelectorAll('.ed-cat-stack-item');
-    expect(stackItems.length).toBe(3);
+    expect(stackItems.length).toBe(4);
     expect(screen.getByText('Stacked One')).toBeInTheDocument();
     expect(screen.getByText('Stacked Two')).toBeInTheDocument();
     expect(screen.getByText('Stacked Three')).toBeInTheDocument();
+    expect(screen.getByText('Stacked Four')).toBeInTheDocument();
   });
 
-  it('renders only 2 stacked items when the fixture has 3 articles (Welt floor — graceful slice(1,4))', () => {
+  it('renders only 2 stacked items when the fixture has 3 articles (Welt floor — graceful slice(1,5))', () => {
     const props = baseProps();
     props.articles = fixtureArticles.slice(0, 3);
     const { container } = render(<EditorialCategorySection {...props} />);

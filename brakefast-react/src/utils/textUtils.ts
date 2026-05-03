@@ -88,14 +88,16 @@ export function getReadingTime(
   text: string | undefined,
   providedMinutes?: number,
 ): number | null {
+  // Trust a valid pipeline value even when only a short teaser is available.
+  if (typeof providedMinutes === 'number' && Number.isFinite(providedMinutes) && providedMinutes > 0) {
+    return providedMinutes;
+  }
+
   const content = (text || '').trim();
   const words = content ? content.split(/\s+/).length : 0;
 
   // No meaningful content → hide reading time
   if (words < 20) return null;
-
-  // Trust pipeline value if provided
-  if (providedMinutes && providedMinutes > 0) return providedMinutes;
 
   // Calculate: ceil(words / 200), minimum 1
   return Math.max(1, Math.ceil(words / 200));

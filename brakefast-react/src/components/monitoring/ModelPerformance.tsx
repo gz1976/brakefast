@@ -10,6 +10,17 @@ const TIER_COLORS: Record<string, string> = {
   'Tier 3': '#9775fa',
 };
 
+function latencyLabel(ms: number): string {
+  return ms > 0 ? `${(ms / 1000).toFixed(1)}s` : 'n/a';
+}
+
+function successLabel(calls: number, rate: number): { text: string; className: string } {
+  if (calls <= 0) return { text: 'n/a', className: 'stat-muted' };
+  if (rate >= 95) return { text: `${rate.toFixed(0)}%`, className: 'stat-good' };
+  if (rate >= 80) return { text: `${rate.toFixed(0)}%`, className: 'stat-warn' };
+  return { text: `${rate.toFixed(0)}%`, className: 'stat-bad' };
+}
+
 export function ModelPerformance({ models }: Props) {
   return (
     <div className="monitor-card">
@@ -31,27 +42,30 @@ export function ModelPerformance({ models }: Props) {
             </tr>
           </thead>
           <tbody>
-            {models.map((m) => (
-              <tr key={m.model}>
-                <td className="model-name">{m.model}</td>
-                <td>
-                  <span
-                    className="tier-badge"
-                    style={{ color: TIER_COLORS[m.tier] || '#8a8a9e' }}
-                  >
-                    {m.tier}
-                  </span>
-                </td>
-                <td>{m.calls}</td>
-                <td>{m.avg_latency_ms > 0 ? `${(m.avg_latency_ms / 1000).toFixed(1)}s` : '—'}</td>
-                <td>
-                  <span className={m.success_rate >= 95 ? 'stat-good' : m.success_rate >= 80 ? 'stat-warn' : 'stat-bad'}>
-                    {m.success_rate.toFixed(0)}%
-                  </span>
-                </td>
-                <td>${m.estimated_cost_usd.toFixed(2)}</td>
-              </tr>
-            ))}
+            {models.map((m) => {
+              const success = successLabel(m.calls, m.success_rate);
+              return (
+                <tr key={m.model}>
+                  <td className="model-name">{m.model || 'Unbekanntes Modell'}</td>
+                  <td>
+                    <span
+                      className="tier-badge"
+                      style={{ color: TIER_COLORS[m.tier] || '#8a8a9e' }}
+                    >
+                      {m.tier || 'n/a'}
+                    </span>
+                  </td>
+                  <td>{m.calls}</td>
+                  <td>{latencyLabel(m.avg_latency_ms)}</td>
+                  <td>
+                    <span className={success.className}>
+                      {success.text}
+                    </span>
+                  </td>
+                  <td>${m.estimated_cost_usd.toFixed(2)}</td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>

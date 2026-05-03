@@ -1,11 +1,21 @@
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import type { AgentActivity } from '../../types';
+import type { AgentActivity, MonitoringData } from '../../types';
 
 interface Props {
   data: AgentActivity[];
+  agents?: MonitoringData['agents'];
 }
 
-export function AgentActivityChart({ data }: Props) {
+type AgentId = 'main' | 'worker' | 'expert';
+
+function agentLabel(id: AgentId, agents?: MonitoringData['agents']): string {
+  const model = agents?.[id]?.model;
+  const tier = id === 'main' ? 'Tier 2' : id === 'worker' ? 'Tier 1' : 'Tier 3';
+  const label = id === 'main' ? 'Main' : id === 'worker' ? 'Worker' : 'Expert';
+  return model ? `${label} (${tier}) · ${model}` : `${label} (${tier})`;
+}
+
+export function AgentActivityChart({ data, agents }: Props) {
   // Formatiere Datum fuer X-Achse (nur Tag)
   const chartData = data.map((d) => ({
     ...d,
@@ -34,9 +44,9 @@ export function AgentActivityChart({ data }: Props) {
               }}
             />
             <Legend wrapperStyle={{ fontSize: '12px', color: '#8a8a9e' }} />
-            <Bar dataKey="main" name="Main (Kimi)" fill="#4dabf7" radius={[4, 4, 0, 0]} />
-            <Bar dataKey="worker" name="Worker (Gemini)" fill="#51cf66" radius={[4, 4, 0, 0]} />
-            <Bar dataKey="expert" name="Expert (Opus)" fill="#9775fa" radius={[4, 4, 0, 0]} />
+            <Bar dataKey="main" name={agentLabel('main', agents)} fill="#4dabf7" radius={[4, 4, 0, 0]} />
+            <Bar dataKey="worker" name={agentLabel('worker', agents)} fill="#51cf66" radius={[4, 4, 0, 0]} />
+            <Bar dataKey="expert" name={agentLabel('expert', agents)} fill="#9775fa" radius={[4, 4, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>
       </div>

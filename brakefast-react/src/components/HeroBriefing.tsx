@@ -188,7 +188,7 @@ export function HeroBriefing({ data, calendarRevealed, onArticleClick, isRead, m
       if (pollenModalOpen) setPollenModalOpen(false);
       else if (weatherModalOpen) setWeatherModalOpen(false);
     }
-  }, [pollenModalOpen, weatherModalOpen]);
+  }, [pollenModalOpen, setPollenModalOpen, setWeatherModalOpen, weatherModalOpen]);
 
   useEffect(() => {
     if (weatherModalOpen || pollenModalOpen) {

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { z } from 'zod';
-import type { ArchiveEdition, ArchiveIndex, NewspaperData } from '../types';
+import type { ArchiveEdition, ArchiveIndex, Article, NewspaperData, WorldHeadline } from '../types';
 import { getReadingTime } from '../utils/textUtils';
 import { NewspaperDataSchema } from '../utils/schemas';
 import { deduplicateArticles } from '../utils/urlUtils';
@@ -76,7 +76,66 @@ function normalizeData(raw: NewspaperData): NewspaperData {
     data.reading_time_total = totalMinutes;
   }
 
+  enrichHeadlineLinks(data);
+
   return data;
+}
+
+function enrichHeadlineLinks(data: NewspaperData): void {
+  const headlines = data.morning_tiles?.headlines;
+  if (!headlines?.length) return;
+
+  const articles = Object.values(data.categories).flatMap(cat => cat.articles || []);
+  for (const headline of headlines) {
+    if (headline.url) continue;
+    const match = findMatchingArticleForHeadline(headline, articles);
+    if (match?.link) {
+      headline.url = match.link;
+    }
+  }
+}
+
+function findMatchingArticleForHeadline(headline: WorldHeadline, articles: Article[]): Article | undefined {
+  const source = headline.source?.toLowerCase();
+  const words = normalizeWords(headline.text).filter(word => word.length > 4);
+  const distinctiveNumbers = (headline.text.match(/\d[\d.]*/g) || [])
+    .map(value => value.replace(/\D/g, ''))
+    .filter(value => value.length >= 5);
+
+  let best: { article: Article; score: number } | undefined;
+  for (const article of articles) {
+    if (source && article.source?.toLowerCase() !== source) continue;
+    const raw = [
+      article.title,
+      article.headline,
+      article.summary,
+      article.description,
+      article.dek,
+    ].filter(Boolean).join(' ');
+    const rawNormalized = normalizeText(raw);
+    const digitStream = raw.replace(/\D/g, '');
+
+    if (distinctiveNumbers.some(number => digitStream.includes(number))) {
+      return article;
+    }
+
+    const score = words.filter(word => rawNormalized.includes(word)).length;
+    if (score >= 2 && (!best || score > best.score)) {
+      best = { article, score };
+    }
+  }
+  return best?.article;
+}
+
+function normalizeText(value: string): string {
+  return value
+    .toLowerCase()
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '');
+}
+
+function normalizeWords(value: string): string[] {
+  return normalizeText(value).split(/[^a-z0-9]+/).filter(Boolean);
 }
 
 function getEditionFromLocation(): string | null {

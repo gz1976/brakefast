@@ -66,10 +66,10 @@ export function OttoMonitor() {
 
         {/* Zeile 2: Aktivitaet + Routing */}
         <div className="monitor-grid-wide">
-          <AgentActivityChart data={data.activity_7d} />
+          <AgentActivityChart data={data.activity_7d} agents={data.agents} />
         </div>
         <div className="monitor-grid-narrow">
-          <RoutingDistribution data={data.routing} />
+          <RoutingDistribution data={data.routing} agents={data.agents} />
         </div>
 
         {/* Zeile 3: Kosten + Modell-Performance */}

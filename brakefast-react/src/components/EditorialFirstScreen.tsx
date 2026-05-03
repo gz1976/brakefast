@@ -95,13 +95,222 @@ function mergeCalendar(
   return publicEvents.map((ev, i) => ({ ...ev, title: privateEvents[i]?.title || ev.title }));
 }
 
-function findArticleForHeadline(h: WorldHeadline, data: NewspaperData): Article | undefined {
+function findArticleForHeadline(
+  h: WorldHeadline,
+  data: NewspaperData,
+  excludedArticle?: Article | null,
+): Article | undefined {
+  const sourceCandidate = findSourceCandidateForHeadline(h, data, excludedArticle);
+  if (sourceCandidate) return sourceCandidate;
+
+  const titleTokens = tokenize(h.text);
+  const summaryTokens = tokenize(h.summary || '');
+  const numericTokens = [...titleTokens].filter(token => /^\d+$/.test(token));
+  const distinctiveNumbers = (h.text.match(/\d[\d.]*/g) || [])
+    .map(value => value.replace(/\D/g, ''))
+    .filter(value => value.length >= 5);
+  let best: { article: Article; score: number } | undefined;
+
   for (const cat of Object.values(data.categories)) {
     for (const art of cat.articles || []) {
+      if (
+        excludedArticle &&
+        h.text !== excludedArticle.title &&
+        (art.link === excludedArticle.link || art.title === excludedArticle.title)
+      ) {
+        continue;
+      }
       if (art.title === h.text || art.link === h.url) return art;
+      if (h.url && (art.canonical_url === h.url || art.source_url === h.url)) return art;
+      const articleRaw = [
+        art.title,
+        art.headline,
+        art.summary,
+        art.description,
+        art.dek,
+      ].filter(Boolean).join(' ');
+      if (
+        distinctiveNumbers.length > 0 &&
+        distinctiveNumbers.some(value => articleRaw.replace(/\D/g, '').includes(value))
+      ) {
+        return art;
+      }
+
+      const articleTokens = tokenize(articleRaw);
+      const sourceMatches = h.source && art.source && h.source.toLowerCase() === art.source.toLowerCase();
+      if (numericTokens.length > 0 && numericTokens.every(token => articleTokens.has(token))) {
+        return art;
+      }
+      const sourceTitleMatches = sourceMatches
+        ? [...titleTokens].filter(token => articleTokens.has(token)).length
+        : 0;
+      if (sourceTitleMatches >= 2) {
+        return art;
+      }
+      const titleOverlap = overlapScore(titleTokens, articleTokens);
+      const summaryOverlap = overlapScore(summaryTokens, articleTokens);
+      const score = titleOverlap * 3 + summaryOverlap + (sourceMatches ? 0.35 : 0);
+
+      if (score >= 1.2 && (!best || score > best.score)) {
+        best = { article: art, score };
+      }
+    }
+  }
+  return best?.article;
+}
+
+function findArticleByUrl(url: string, newspaper: NewspaperData): Article | undefined {
+  for (const cat of Object.values(newspaper.categories)) {
+    const article = (cat.articles || []).find(candidate =>
+      candidate.link === url ||
+      candidate.canonical_url === url ||
+      candidate.source_url === url
+    );
+    if (article) return article;
+  }
+  return undefined;
+}
+
+function findSourceCandidateForHeadline(
+  h: WorldHeadline,
+  data: NewspaperData,
+  excludedArticle?: Article | null,
+): Article | undefined {
+  if (!h.source) return undefined;
+  const headlineWords = (h.text || '')
+    .toLowerCase()
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .split(/[^a-z0-9]+/)
+    .filter(word => word.length > 4);
+
+  for (const cat of Object.values(data.categories)) {
+    for (const art of cat.articles || []) {
+      if (
+        excludedArticle &&
+        h.text !== excludedArticle.title &&
+        (art.link === excludedArticle.link || art.title === excludedArticle.title)
+      ) {
+        continue;
+      }
+      if (!art.source || art.source.toLowerCase() !== h.source.toLowerCase()) continue;
+      const raw = [art.title, art.headline, art.summary, art.description, art.dek]
+        .filter(Boolean)
+        .join(' ')
+        .toLowerCase()
+        .normalize('NFKD')
+        .replace(/[\u0300-\u036f]/g, '');
+      const matches = headlineWords.filter(word => raw.includes(word)).length;
+      if (matches >= 2) return art;
     }
   }
   return undefined;
+}
+
+const TOKEN_STOPWORDS = new Set([
+  'der', 'die', 'das', 'und', 'oder', 'eine', 'einer', 'einem', 'einen', 'mit',
+  'von', 'vor', 'bei', 'auf', 'für', 'als', 'ist', 'hat', 'haben', 'seine',
+  'seinen', 'seiner', 'noch', 'mehr', 'wie', 'nach', 'aus', 'dem', 'den',
+]);
+
+function tokenize(value: string): Set<string> {
+  const normalized = value
+    .toLowerCase()
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, ' ');
+  return new Set(
+    normalized
+      .split(/\s+/)
+      .map(token => token.trim())
+      .filter(token => token.length > 2 && !TOKEN_STOPWORDS.has(token)),
+  );
+}
+
+function overlapScore(needle: Set<string>, haystack: Set<string>): number {
+  if (needle.size === 0 || haystack.size === 0) return 0;
+  let matches = 0;
+  for (const token of needle) {
+    if (haystack.has(token)) matches += 1;
+  }
+  return matches / Math.max(1, Math.min(needle.size, haystack.size));
+}
+
+function headlineFromArticle(article: Article): WorldHeadline {
+  return {
+    text: article.title,
+    source: article.source,
+    summary: getArticleTeaser(article),
+    url: article.link,
+  };
+}
+
+function headlineKey(headline: WorldHeadline): string {
+  if (headline.url) return `url:${headline.url}`;
+  return headlineTextKey(headline);
+}
+
+function headlineTextKey(headline: WorldHeadline): string {
+  const tokens = tokenize(headline.text);
+  return `text:${[...tokens].sort().slice(0, 6).join('|') || headline.text.toLowerCase()}`;
+}
+
+function articleMatchesHeadline(article: Article | null | undefined, headline: WorldHeadline): boolean {
+  if (!article) return false;
+  if (headline.url && [article.link, article.canonical_url, article.source_url].includes(headline.url)) return true;
+  if (article.title === headline.text) return true;
+  const articleTokens = tokenize(article.title);
+  const headlineTokens = tokenize(headline.text);
+  return overlapScore(headlineTokens, articleTokens) >= 0.65;
+}
+
+function buildDisplayHeadlines(
+  sourceHeadlines: WorldHeadline[],
+  data: NewspaperData,
+  topStory: Article | null,
+): WorldHeadline[] {
+  const result: WorldHeadline[] = [];
+  const seen = new Set<string>();
+  const push = (headline: WorldHeadline) => {
+    if (articleMatchesHeadline(topStory, headline)) return;
+    const keys = [headlineKey(headline), headlineTextKey(headline)];
+    if (keys.some(key => seen.has(key))) return;
+    keys.forEach(key => seen.add(key));
+    result.push(headline);
+  };
+
+  for (const headline of sourceHeadlines) {
+    const article = headline.url
+      ? findArticleByUrl(headline.url, data)
+      : findArticleForHeadline(headline, data, topStory);
+    if (article) {
+      const sourceMatches = headline.url ||
+        !headline.source ||
+        !article.source ||
+        headline.source.toLowerCase() === article.source.toLowerCase();
+      if (!sourceMatches) continue;
+      push({
+        text: headline.text || article.title,
+        source: headline.source || article.source,
+        summary: headline.summary || getArticleTeaser(article),
+        url: article.link,
+      });
+    } else if (headline.url) {
+      push(headline);
+    }
+  }
+
+  const worldArticles = data.categories.world?.articles || [];
+  worldArticles.map(headlineFromArticle).forEach(push);
+
+  for (const cat of Object.values(data.categories)) {
+    for (const article of cat.articles || []) {
+      push(headlineFromArticle(article));
+      if (result.length >= 4) return result.slice(0, 4);
+    }
+  }
+
+  return result.slice(0, 4);
 }
 
 function TopStoryVisual({ article }: { article: Article }) {
@@ -152,12 +361,15 @@ export function EditorialFirstScreen({
   const weather = weatherUnavailable ? undefined : weatherRaw;
   const dayInfo = data.widgets?.dayInfo;
 
-  const rawCalendar = data.widgets?.calendar || [];
+  const rawCalendar = useMemo(() => data.widgets?.calendar || [], [data.widgets?.calendar]);
   const { privateEvents } = usePrivateCalendar();
   const calendar = useMemo(() => mergeCalendar(rawCalendar, privateEvents), [rawCalendar, privateEvents]);
 
-  const headlines = data.morning_tiles?.headlines || [];
-  const editionDate = generatedDate ? new Date(generatedDate) : (data.generated ? new Date(data.generated) : new Date());
+  const headlines = useMemo(() => data.morning_tiles?.headlines || [], [data.morning_tiles?.headlines]);
+  const editionDate = useMemo(
+    () => generatedDate ? new Date(generatedDate) : (data.generated ? new Date(data.generated) : new Date()),
+    [data.generated, generatedDate],
+  );
   const weekday = editionDate.toLocaleDateString('de-AT', { weekday: 'long' });
   const fullDate = editionDate.toLocaleDateString('de-AT', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
   const calWeek = getCalendarWeek(editionDate);
@@ -185,21 +397,10 @@ export function EditorialFirstScreen({
   const historyAllFallback = historyFacts.length > 0 && historyFacts.every(f => f.wiki && FALLBACK_WIKIS.has(f.wiki));
 
   const topStory = useMemo(() => pickTopStory(data), [data]);
-  const filteredHeadlines = useMemo(() => {
-    const filtered = headlines.filter(h => !topStory || (h.text !== topStory.title && h.url !== topStory.link));
-    if (filtered.length >= 3) return filtered;
-    // Safety net: if dedup left fewer than 3, fall back to unfiltered headlines
-    // so the Schlagzeilen block always shows 3 entries (even if the top story repeats).
-    const seen = new Set(filtered.map(h => h.text));
-    for (const h of headlines) {
-      if (filtered.length >= 3) break;
-      if (!seen.has(h.text)) {
-        filtered.push(h);
-        seen.add(h.text);
-      }
-    }
-    return filtered;
-  }, [headlines, topStory]);
+  const displayHeadlines = useMemo(
+    () => buildDisplayHeadlines(headlines, data, topStory),
+    [data, headlines, topStory],
+  );
 
   const wordOfDay = data.widgets?.word_of_day;
   const quote = data.widgets?.quote;
@@ -208,14 +409,20 @@ export function EditorialFirstScreen({
     || (data.morning_tiles?.media_tip ? [data.morning_tiles.media_tip] : []);
 
   const openHeadline = (h: WorldHeadline) => {
+    const linkedArticle = h.url ? findArticleByUrl(h.url, data) : undefined;
+    const art = linkedArticle || findArticleForHeadline(h, data, topStory);
+    if (art) {
+      markAsRead?.(art.link, art.title);
+      setModalData(null);
+      onArticleClick?.(art);
+      return;
+    }
     markAsRead?.(h.url || '', h.text);
-    const art = findArticleForHeadline(h, data);
     setModalData({
       title: h.text,
-      text: h.summary || getArticleTeaser(art) || undefined,
-      source: h.source || art?.source,
-      url: h.url || art?.link,
-      image: art?.image,
+      text: h.summary || undefined,
+      source: h.source,
+      url: h.url,
     });
   };
 
@@ -272,9 +479,12 @@ export function EditorialFirstScreen({
         </div>
         <div className="ed-masthead-r">
           <span
+            className="ed-date-toggle"
             onClick={onCalendarRevealToggle}
             role={onCalendarRevealToggle ? 'button' : undefined}
             tabIndex={onCalendarRevealToggle ? 0 : undefined}
+            title={onCalendarRevealToggle ? 'Termine ein- oder ausblenden' : undefined}
+            aria-label={onCalendarRevealToggle ? 'Termine ein- oder ausblenden' : undefined}
             onKeyDown={(e) => {
               if ((e.key === 'Enter' || e.key === ' ') && onCalendarRevealToggle) {
                 e.preventDefault();
@@ -283,6 +493,7 @@ export function EditorialFirstScreen({
             }}
             style={onCalendarRevealToggle ? { cursor: 'pointer' } : undefined}
           >
+            <span aria-hidden="true" className="ed-date-toggle-icon">▦</span>
             {fullDate}
           </span>
           {editionNumber != null && (
@@ -378,10 +589,10 @@ export function EditorialFirstScreen({
           )}
           <div className="ed-section-title">
             <span>Schlagzeilen</span>
-            <span className="ed-section-meta">3 in 30 Sek.</span>
+            <span className="ed-section-meta">{displayHeadlines.length} in {displayHeadlines.length * 10} Sek.</span>
           </div>
           <div className="ed-headlines">
-            {filteredHeadlines.slice(0, 3).map((h, i) => {
+            {displayHeadlines.map((h, i) => {
               const unread = !!(isRead && !isRead(h.url || '', h.text));
               return (
                 <div
@@ -550,10 +761,15 @@ export function EditorialFirstScreen({
             )}
           </div>
 
-          {/* Hörtipp (always visible if media exists) */}
-          <div className="ed-strip-tile">
-            <div className="ed-strip-label">Hörtipp</div>
-            {mediaTips[0] ? (
+          {/* Hörtipp — hidden while the Podcast tab is active to avoid duplicated content. */}
+          <div className={`ed-strip-tile${stripTab === 'podcast' ? ' ed-strip-tile-muted' : ''}`}>
+            <div className="ed-strip-label">{stripTab === 'podcast' ? 'Zitat' : 'Hörtipp'}</div>
+            {stripTab === 'podcast' && quote && quote.text ? (
+              <>
+                <blockquote className="ed-strip-quote">„{quote.text}"</blockquote>
+                {quote.author && <div className="ed-strip-author">— {quote.author}</div>}
+              </>
+            ) : mediaTips[0] ? (
               <>
                 <div
                   className="ed-strip-pod-title"
@@ -573,7 +789,9 @@ export function EditorialFirstScreen({
                 </div>
               </>
             ) : (
-              <div className="ed-strip-meaning ed-strip-empty">Kein Hörtipp heute</div>
+              <div className="ed-strip-meaning ed-strip-empty">
+                {stripTab === 'podcast' ? 'Heute kein Zitat' : 'Kein Hörtipp heute'}
+              </div>
             )}
           </div>
 

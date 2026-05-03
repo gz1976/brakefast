@@ -31,7 +31,15 @@ export function useActiveSection(sectionIds: string[]) {
   const scrollTo = (id: string) => {
     const el = document.getElementById(id);
     if (el) {
-      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      setActiveId(id);
+      const nav = document.querySelector('.ed-nav');
+      const navHeight = nav instanceof HTMLElement ? nav.offsetHeight : 0;
+      const offset = Math.max(16, navHeight + 16);
+      const targetTop = el.getBoundingClientRect().top + window.scrollY - offset;
+      window.scrollTo({
+        top: Math.max(0, targetTop),
+        behavior: 'smooth',
+      });
     }
   };
 

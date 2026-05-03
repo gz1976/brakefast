@@ -26,7 +26,8 @@ export function RecentEvents({ events }: Props) {
           <div className="events-empty">Keine Ereignisse vorhanden</div>
         ) : (
           events.map((event, i) => (
-            <div key={i} className="event-row">
+            <details key={i} className="event-row">
+              <summary className="event-row-summary">
               <span className="event-time">
                 {new Date(event.timestamp).toLocaleTimeString('de-AT', {
                   hour: '2-digit',
@@ -41,7 +42,9 @@ export function RecentEvents({ events }: Props) {
               </span>
               <span className="event-agent">{event.agent}</span>
               <span className="event-summary">{event.summary}</span>
-            </div>
+              </summary>
+              <div className="event-detail">{event.summary}</div>
+            </details>
           ))
         )}
       </div>

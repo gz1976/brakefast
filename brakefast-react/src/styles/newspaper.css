@@ -265,6 +265,7 @@ a { color: inherit; text-decoration: none; }
   font-family: inherit;
   font-size: 12px;
   padding: 7px 12px;
+  min-height: 40px;
   border-radius: var(--radius-pill);
   border: 1px solid var(--border-light);
   background: transparent;
@@ -1897,6 +1898,11 @@ a { color: inherit; text-decoration: none; }
   max-width: 420px;
   padding: 32px;
   text-align: center;
+  background: #faf7f0;
+  color: #15140f;
+  border-radius: 2px;
+  border: 1px solid #c8c2ad;
+  font-family: 'Source Serif 4', Georgia, serif;
 }
 .weather-modal-header {
   display: flex;
@@ -1911,18 +1917,18 @@ a { color: inherit; text-decoration: none; }
 .weather-modal-temp {
   font-size: 48px;
   font-weight: 800;
-  color: var(--text-primary);
-  font-family: var(--font-display);
+  color: #15140f;
+  font-family: 'Source Serif 4', Georgia, serif;
 }
 .weather-modal-location {
   font-size: 18px;
   font-weight: 600;
-  color: var(--text-primary);
+  color: #15140f;
   margin-bottom: 4px;
 }
 .weather-modal-desc {
   font-size: 14px;
-  color: var(--text-muted);
+  color: #6e6957;
   margin-bottom: 24px;
 }
 .weather-modal-grid {
@@ -1931,8 +1937,9 @@ a { color: inherit; text-decoration: none; }
   gap: 10px;
 }
 .weather-modal-card {
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 10px;
+  background: #f3efe4;
+  border: 1px solid #e3decb;
+  border-radius: 2px;
   padding: 14px 10px;
   display: flex;
   flex-direction: column;
@@ -1943,12 +1950,22 @@ a { color: inherit; text-decoration: none; }
   font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: var(--text-muted);
+  color: #6e6957;
+  font-family: 'Inter', sans-serif;
 }
 .weather-modal-card-value {
   font-size: 20px;
   font-weight: 700;
-  color: var(--text-primary);
+  color: #15140f;
+}
+.weather-modal .modal-close {
+  background: #f3efe4;
+  border-color: #c8c2ad;
+  color: #15140f;
+}
+.weather-modal .modal-close:hover {
+  background: #8a1a1a;
+  color: #faf7f0;
 }
 
 /* ─── Pollen Modal ─── */
@@ -2292,22 +2309,24 @@ a { color: inherit; text-decoration: none; }
 .footer {
   text-align: center;
   padding: 40px 32px calc(var(--safe-bottom) + 40px);
-  border-top: 1px solid var(--border);
+  border-top: 3px double #15140f;
   margin-top: 32px;
+  background: #faf7f0;
+  color: #15140f;
 }
 
 .footer-logo {
-  font-family: 'Playfair Display', serif;
+  font-family: 'UnifrakturMaguntia', 'Source Serif 4', serif;
   font-size: 24px;
-  font-weight: 900;
-  color: var(--text-muted);
+  font-weight: 400;
+  color: #15140f;
   margin-bottom: 8px;
 }
-.footer-logo span { color: var(--accent); }
+.footer-logo span { color: #8a1a1a; }
 
 .footer-text {
   font-size: 13px;
-  color: var(--text-secondary);
+  color: #6e6957;
 }
 .footer-text + .footer-text { margin-top: 6px; }
 
@@ -2784,7 +2803,7 @@ a { color: inherit; text-decoration: none; }
 }
 .routing-chart {
   flex: 0 0 auto;
-  width: 200px;
+  width: 220px;
 }
 .routing-legend {
   flex: 1;
@@ -2807,6 +2826,9 @@ a { color: inherit; text-decoration: none; }
 .routing-legend-label {
   color: var(--text-secondary);
   flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .routing-legend-value {
   color: var(--text-primary);
@@ -2859,6 +2881,7 @@ a { color: inherit; text-decoration: none; }
 .stat-good { color: #51cf66; }
 .stat-warn { color: #ffd43b; }
 .stat-bad { color: #ff6b6b; }
+.stat-muted { color: var(--text-muted); }
 
 /* System Health */
 .agents-status {
@@ -2935,15 +2958,23 @@ a { color: inherit; text-decoration: none; }
   padding: 24px;
 }
 .event-row {
+  display: block;
+  border-bottom: 1px solid var(--border-light);
+}
+.event-row:last-child {
+  border-bottom: none;
+}
+.event-row-summary {
   display: flex;
   align-items: center;
   gap: 12px;
   padding: 8px 0;
   font-size: 13px;
-  border-bottom: 1px solid var(--border-light);
+  cursor: pointer;
+  list-style: none;
 }
-.event-row:last-child {
-  border-bottom: none;
+.event-row-summary::-webkit-details-marker {
+  display: none;
 }
 .event-time {
   color: var(--text-muted);
@@ -2971,6 +3002,17 @@ a { color: inherit; text-decoration: none; }
   overflow: hidden;
   text-overflow: ellipsis;
 }
+.event-detail {
+  margin: 0 0 10px 200px;
+  padding: 10px 12px;
+  color: var(--text-secondary);
+  background: var(--bg-surface);
+  border-radius: var(--radius);
+  font-size: 12px;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
 
 /* Monitor Footer */
 .monitor-footer {
@@ -2993,8 +3035,9 @@ a { color: inherit; text-decoration: none; }
   .routing-content { flex-direction: column; }
   .routing-chart { width: 100%; }
   .health-metrics-grid { grid-template-columns: repeat(2, 1fr); }
-  .event-row { flex-wrap: wrap; }
+  .event-row-summary { flex-wrap: wrap; }
   .event-summary { min-width: 100%; margin-top: 4px; }
+  .event-detail { margin-left: 0; }
   .view-switcher-fab { bottom: 16px; right: 16px; width: 48px; height: 48px; font-size: 20px; }
 }
 
@@ -3300,21 +3343,51 @@ a { color: inherit; text-decoration: none; }
   padding: 8px 16px;
   min-height: 44px;
   background: transparent;
-  border: 1px solid var(--border);
+  border: 1px solid #c8c2ad;
   border-radius: var(--radius-pill);
-  color: var(--text-secondary);
+  color: #3d3a30;
   font-size: 13px;
   cursor: pointer;
   transition: border-color 0.15s ease, color 0.15s ease;
 }
 
 .footer-clear-history:hover {
-  border-color: var(--accent-red);
-  color: var(--accent-red);
+  border-color: #8a1a1a;
+  color: #8a1a1a;
 }
 
 .footer-clear-history:active {
-  background: rgba(255, 107, 107, 0.08);
+  background: rgba(138, 26, 26, 0.08);
+}
+
+@media (max-width: 767px) {
+  .time-machine-bar {
+    padding: 14px 16px 0;
+    align-items: stretch;
+  }
+
+  .time-machine-copy,
+  .time-machine-actions {
+    width: 100%;
+  }
+
+  .time-machine-actions {
+    justify-content: flex-start;
+  }
+
+  .time-machine-select {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .footer {
+    padding: 32px 16px calc(var(--safe-bottom) + 88px);
+  }
+
+  .view-switcher-fab {
+    bottom: calc(var(--safe-bottom) + 20px);
+    right: 16px;
+  }
 }
 
 /* --- Confirmation Toast (UX-02) --- */

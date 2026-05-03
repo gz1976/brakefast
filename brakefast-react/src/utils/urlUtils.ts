@@ -116,7 +116,9 @@ export function deduplicateArticles(data: NewspaperData): NewspaperData {
     const final: Article[] = [];
     for (const article of afterUrl) {
       const tokens = getTokens(article);
-      const dupIdx = final.findIndex((kept) => isNearDuplicate(getTokens(kept), tokens));
+      const dupIdx = final.findIndex((kept) =>
+        kept.source !== article.source && isNearDuplicate(getTokens(kept), tokens)
+      );
       if (dupIdx < 0) {
         final.push(article);
       } else if (preferArticle(article, final[dupIdx])) {

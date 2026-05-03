@@ -42,8 +42,9 @@ export function EditorialArticleModal({ article, categoryId, onClose }: Props) {
     <div className="ed-modal-overlay" onClick={onClose}>
       <div className="ed-modal-panel" ref={containerRef} onClick={(e) => e.stopPropagation()}>
         <div className="ed-modal-header">
-          <button className="ed-modal-close modal-close" onClick={onClose}>
-            ✕ Schließen
+          <button className="ed-modal-close" onClick={onClose} aria-label="Artikel schließen">
+            <span aria-hidden="true">✕</span>
+            <span>Schließen</span>
           </button>
           <div className="ed-modal-meta">
             {article.source}
@@ -122,7 +123,7 @@ export function EditorialArticleModal({ article, categoryId, onClose }: Props) {
             </>
           )}
 
-          {(article.canonical_url || article.link) && (
+          {((article.canonical_url || article.link)?.trim()) && (
             <div className="ed-modal-footer">
               <a
                 className="ed-modal-link"

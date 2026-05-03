@@ -34,9 +34,9 @@ describe('DetailModal', () => {
     expect(screen.getByText('Keine weiteren Details verfügbar.')).toBeInTheDocument();
   });
 
-  it('shows "Weiterlesen" link when URL provided', () => {
+  it('shows original link when URL provided', () => {
     render(<DetailModal {...baseProps} url="https://example.com/article" />);
-    const link = screen.getByText('Weiterlesen →');
+    const link = screen.getByText('Original öffnen →');
     expect(link).toBeInTheDocument();
     expect(link.closest('a')).toHaveAttribute('href', 'https://example.com/article');
     expect(link.closest('a')).toHaveAttribute('target', '_blank');
@@ -44,7 +44,7 @@ describe('DetailModal', () => {
 
   it('hides link when no URL', () => {
     render(<DetailModal {...baseProps} />);
-    expect(screen.queryByText('Weiterlesen →')).not.toBeInTheDocument();
+    expect(screen.queryByText('Original öffnen →')).not.toBeInTheDocument();
   });
 
   it('calls onClose on overlay click', async () => {
@@ -53,6 +53,13 @@ describe('DetailModal', () => {
     const overlay = container.querySelector('.modal-overlay')!;
     await userEvent.click(overlay);
     expect(onClose).toHaveBeenCalled();
+  });
+
+  it('calls onClose from the newspaper close button', async () => {
+    const onClose = vi.fn();
+    render(<DetailModal {...baseProps} onClose={onClose} />);
+    await userEvent.click(screen.getByRole('button', { name: 'Schließen' }));
+    expect(onClose).toHaveBeenCalledTimes(1);
   });
 
   it('does not close on content click (stopPropagation)', async () => {

@@ -32,7 +32,8 @@ function App() {
     <button
       className="view-switcher-fab"
       onClick={() => switchView(view === 'brakefast' ? 'monitor' : 'brakefast')}
-      title={view === 'brakefast' ? 'Otto Monitor oeffnen' : 'BrakeFast oeffnen'}
+      title={view === 'brakefast' ? 'Otto Monitor öffnen' : 'BrakeFast öffnen'}
+      aria-label={view === 'brakefast' ? 'Otto Monitor öffnen' : 'BrakeFast öffnen'}
     >
       {view === 'brakefast' ? '📊' : '📰'}
     </button>

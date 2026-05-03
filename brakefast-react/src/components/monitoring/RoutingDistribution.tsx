@@ -1,8 +1,9 @@
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
-import type { RoutingDecision } from '../../types';
+import type { MonitoringData, RoutingDecision } from '../../types';
 
 interface Props {
   data: RoutingDecision[];
+  agents?: MonitoringData['agents'];
 }
 
 const COLORS: Record<string, string> = {
@@ -11,14 +12,17 @@ const COLORS: Record<string, string> = {
   expert: '#9775fa',
 };
 
-const LABELS: Record<string, string> = {
-  self: 'Main (Tier 2)',
-  worker: 'Worker (Tier 1)',
-  expert: 'Expert (Tier 3)',
-};
+function labelFor(agent: RoutingDecision['agent'], agents?: MonitoringData['agents']): string {
+  const agentId = agent === 'self' ? 'main' : agent;
+  const tier = agentId === 'main' ? 'Tier 2' : agentId === 'worker' ? 'Tier 1' : 'Tier 3';
+  const label = agentId === 'main' ? 'Main' : agentId === 'worker' ? 'Worker' : 'Expert';
+  const model = agents?.[agentId]?.model;
+  return model ? `${label} (${tier}) · ${model}` : `${label} (${tier})`;
+}
 
-export function RoutingDistribution({ data }: Props) {
+export function RoutingDistribution({ data, agents }: Props) {
   const total = data.reduce((sum, d) => sum + d.count, 0);
+  const displayData = data.filter((entry) => entry.count > 0);
 
   return (
     <div className="monitor-card">
@@ -32,7 +36,7 @@ export function RoutingDistribution({ data }: Props) {
           <ResponsiveContainer width="100%" height={200}>
             <PieChart>
               <Pie
-                data={data}
+                data={displayData}
                 dataKey="count"
                 nameKey="agent"
                 cx="50%"
@@ -42,7 +46,7 @@ export function RoutingDistribution({ data }: Props) {
                 paddingAngle={3}
                 strokeWidth={0}
               >
-                {data.map((entry) => (
+                {displayData.map((entry) => (
                   <Cell key={entry.agent} fill={COLORS[entry.agent] || '#55556a'} />
                 ))}
               </Pie>
@@ -58,7 +62,7 @@ export function RoutingDistribution({ data }: Props) {
                   const numVal = Number(value);
                   const pct = total > 0 ? ((numVal / total) * 100).toFixed(1) : '0';
                   const agent = props?.payload?.agent as string;
-                  return [`${numVal} (${pct}%)`, LABELS[agent] || agent];
+                  return [`${numVal} (${pct}%)`, labelFor(agent as RoutingDecision['agent'], agents)];
                 }}
               />
             </PieChart>
@@ -74,7 +78,7 @@ export function RoutingDistribution({ data }: Props) {
                   className="routing-legend-dot"
                   style={{ background: COLORS[entry.agent] || '#55556a' }}
                 />
-                <span className="routing-legend-label">{LABELS[entry.agent] || entry.agent}</span>
+                <span className="routing-legend-label">{labelFor(entry.agent, agents)}</span>
                 <span className="routing-legend-value">{entry.count} ({pct}%)</span>
               </div>
             );

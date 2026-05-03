@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { MorningTiles } from './MorningTiles';
+import type { NewspaperData } from '../types';
 
 const mockData = {
   widgets: {
@@ -18,9 +19,9 @@ const mockData = {
     headlines: [],
   },
   categories: {},
-} as any;
+} as NewspaperData;
 
-function emptyData(overrides: Record<string, unknown> = {}) {
+function emptyData(overrides: Partial<NewspaperData> = {}): NewspaperData {
   return {
     widgets: {},
     morning_tiles: {
@@ -31,7 +32,8 @@ function emptyData(overrides: Record<string, unknown> = {}) {
     },
     categories: {},
     ...overrides,
-  } as any;
+    totalArticles: 0,
+  } as NewspaperData;
 }
 
 describe('MorningTiles', () => {

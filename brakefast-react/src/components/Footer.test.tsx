@@ -29,7 +29,7 @@ describe('Footer', () => {
 
   it('shows clear button when clearAll and readCount > 0', () => {
     render(<Footer generated={generated} clearAll={vi.fn()} readCount={5} />);
-    expect(screen.getByRole('button', { name: /zuruecksetzen/ })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /zurücksetzen/ })).toBeInTheDocument();
   });
 
   it('hides clear button when readCount is 0', () => {
@@ -41,7 +41,7 @@ describe('Footer', () => {
     render(<Footer generated={generated} clearAll={vi.fn()} readCount={3} />);
     const btn = screen.getByRole('button');
     fireEvent.click(btn);
-    expect(btn).toHaveTextContent('Wirklich loeschen?');
+    expect(btn).toHaveTextContent('Wirklich löschen?');
   });
 
   it('second click calls clearAll and onToast', () => {
@@ -52,7 +52,7 @@ describe('Footer', () => {
     fireEvent.click(btn);
     fireEvent.click(btn);
     expect(clearAll).toHaveBeenCalledOnce();
-    expect(onToast).toHaveBeenCalledWith('Lesehistorie geloescht');
+    expect(onToast).toHaveBeenCalledWith('Lesehistorie gelöscht');
   });
 
   describe('confirmation timeout', () => {
@@ -68,12 +68,12 @@ describe('Footer', () => {
       render(<Footer generated={generated} clearAll={vi.fn()} readCount={2} />);
       const btn = screen.getByRole('button');
       fireEvent.click(btn);
-      expect(btn).toHaveTextContent('Wirklich loeschen?');
+      expect(btn).toHaveTextContent('Wirklich löschen?');
 
       act(() => {
         vi.advanceTimersByTime(3000);
       });
-      expect(btn).toHaveTextContent('Lesehistorie loeschen');
+      expect(btn).toHaveTextContent('Lesehistorie löschen');
     });
   });
 });

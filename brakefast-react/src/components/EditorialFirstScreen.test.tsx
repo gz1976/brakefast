@@ -78,7 +78,7 @@ const mockData: NewspaperData = {
   },
   morning_tiles: {
     headlines: [
-      { text: 'Headline One', source: 'Source A', summary: 'summary-a' },
+      { text: 'Headline One', source: 'Source A', summary: 'summary-a', url: 'https://source.test/headline-one' },
       { text: 'Headline Two', source: 'Source B' },
     ],
   },
@@ -131,7 +131,7 @@ describe('EditorialFirstScreen', () => {
       morning_tiles: {
         headlines: [
           { text: 'Top AI Story', source: 'AI Source' },
-          { text: 'Unique Headline', source: 'Source A' },
+          { text: 'Unique Headline', source: 'Source A', url: 'https://source.test/unique' },
         ],
       },
     } as NewspaperData;
@@ -223,6 +223,158 @@ describe('EditorialFirstScreen', () => {
     // DetailModal renders a modal-overlay + modal-content tree; use the same selectors
     // the modal test uses (DetailModal.test.tsx:50-55).
     expect(container.querySelector('.modal-overlay .modal-content')).toBeInTheDocument();
+  });
+
+  it('fills the Schlagzeilen rail to four items from category articles', () => {
+    const data = {
+      ...mockData,
+      categories: {
+        ...mockData.categories,
+        world: {
+          name: 'Welt',
+          emoji: '',
+          css_class: 'world',
+          articles: [
+            {
+              title: 'World One',
+              link: 'https://world.test/one',
+              description: 'World one summary.',
+              date: '2026-03-28',
+              source: 'World Source',
+            },
+            {
+              title: 'World Two',
+              link: 'https://world.test/two',
+              description: 'World two summary.',
+              date: '2026-03-28',
+              source: 'World Source',
+            },
+            {
+              title: 'World Three',
+              link: 'https://world.test/three',
+              description: 'World three summary.',
+              date: '2026-03-28',
+              source: 'World Source',
+            },
+          ],
+        },
+      },
+    } as NewspaperData;
+    const { container } = render(<EditorialFirstScreen {...baseProps()} data={data} />);
+
+    expect(screen.getByText('4 in 40 Sek.')).toBeInTheDocument();
+    expect(container.querySelectorAll('.ed-headline-item')).toHaveLength(4);
+    expect(screen.getByText('World One')).toBeInTheDocument();
+    expect(screen.getByText('World Two')).toBeInTheDocument();
+    expect(screen.getByText('World Three')).toBeInTheDocument();
+  });
+
+  it('opens the full article modal flow when a Schlagzeile matches a real article', async () => {
+    const user = userEvent.setup();
+    const onArticleClick = vi.fn();
+    const markAsRead = vi.fn();
+    const data = {
+      ...mockData,
+      categories: {
+        ai: {
+          ...mockData.categories.ai,
+          articles: [
+            {
+              ...mockData.categories.ai.articles[0],
+              title: 'Different Top Story',
+              source: 'AI Source',
+              link: 'https://ai.test/top',
+              relevance_score: 99,
+            },
+            {
+              ...mockData.categories.ai.articles[0],
+              title: 'Tesla liefert 358.023 Fahrzeuge in Q1 2026',
+              source: 'Teslamag',
+              link: 'https://teslamag.de/q1-deliveries',
+              description: 'Tesla liefert 358.023 Fahrzeuge in Q1 2026 und wächst gegenüber Vorjahr.',
+              relevance_score: 1,
+            },
+          ],
+        },
+      },
+      morning_tiles: {
+        headlines: [
+          {
+            text: 'Tesla liefert 358.023 Fahrzeuge in Q1 2026',
+            source: 'Teslamag',
+            summary: '6% Wachstum gegenüber Vorjahr.',
+          },
+        ],
+      },
+    } as NewspaperData;
+
+    render(
+      <EditorialFirstScreen
+        {...baseProps()}
+        data={data}
+        onArticleClick={onArticleClick}
+        markAsRead={markAsRead}
+        isRead={() => false}
+      />
+    );
+    const headlineItem = screen
+      .getByText('Tesla liefert 358.023 Fahrzeuge in Q1 2026')
+      .closest('.ed-headline-item') as HTMLElement;
+    await user.click(headlineItem);
+
+    expect(onArticleClick).toHaveBeenCalledWith(
+      expect.objectContaining({ link: 'https://teslamag.de/q1-deliveries' }),
+    );
+    expect(markAsRead).toHaveBeenCalledWith(
+      'https://teslamag.de/q1-deliveries',
+      'Tesla liefert 358.023 Fahrzeuge in Q1 2026',
+    );
+  });
+
+  it('uses an enriched headline URL to open the full source article even when titles differ', async () => {
+    const user = userEvent.setup();
+    const onArticleClick = vi.fn();
+    const data = {
+      ...mockData,
+      categories: {
+        ai: {
+          ...mockData.categories.ai,
+          articles: [
+            {
+              ...mockData.categories.ai.articles[0],
+              title: 'Different Top Story',
+              link: 'https://ai.test/top',
+              relevance_score: 99,
+            },
+            {
+              ...mockData.categories.ai.articles[0],
+              title: 'Aktuell: Tesla-Verkäufe in Q1 2026 höher als vor einem Jahr',
+              source: 'Teslamag',
+              link: 'https://teslamag.de/news/aktuell',
+              description: 'Die Zahl der Auslieferungen stieg auf 358.023 Stück.',
+              relevance_score: 1,
+            },
+          ],
+        },
+      },
+      morning_tiles: {
+        headlines: [
+          {
+            text: 'Tesla liefert 358.023 Fahrzeuge in Q1 2026',
+            source: 'Teslamag',
+            summary: '6% Wachstum gegenüber Vorjahr.',
+            url: 'https://teslamag.de/news/aktuell',
+          },
+        ],
+      },
+    } as NewspaperData;
+
+    render(<EditorialFirstScreen {...baseProps()} data={data} onArticleClick={onArticleClick} />);
+    await user.click(screen.getByText('Tesla liefert 358.023 Fahrzeuge in Q1 2026'));
+
+    expect(onArticleClick).toHaveBeenCalledWith(
+      expect.objectContaining({ title: 'Aktuell: Tesla-Verkäufe in Q1 2026 höher als vor einem Jahr' }),
+    );
   });
 
   it('renders empty-state message when topStory is null', () => {

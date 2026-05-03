@@ -145,11 +145,72 @@
   /* Intentionally ~4px smaller at every stop than .ed-headline — subordinate to first screen */
   font-size: clamp(26px, 2.4vw, 34px);
   line-height: 1.05;
-  letter-spacing: -0.4px;
+  letter-spacing: 0;
   color: var(--ed-ink);
   margin-bottom: 10px;
   text-wrap: balance;
   cursor: pointer;
+}
+
+@media (max-width: 767px) {
+  .ed-category {
+    padding: 24px 16px;
+    margin-bottom: 8px;
+  }
+
+  .ed-cat-head {
+    align-items: flex-start;
+    gap: 8px;
+    flex-direction: column;
+  }
+
+  .ed-cat-head-name {
+    font-size: 20px;
+    letter-spacing: 2px;
+  }
+
+  .ed-cat-grid {
+    display: block;
+  }
+
+  .ed-cat-stack {
+    padding-left: 0;
+    margin-top: 18px;
+  }
+
+  .ed-cat-stack::before {
+    display: none;
+  }
+
+  .ed-cat-lead-img {
+    height: auto;
+    max-height: 280px;
+  }
+
+  .ed-cat-lead-headline {
+    font-size: 28px;
+    line-height: 1.1;
+  }
+
+  .ed-cat-lead-deck,
+  .ed-cat-lead-body {
+    font-size: 15px;
+    line-height: 1.55;
+    text-align: left;
+  }
+
+  .ed-cat-stack-item {
+    min-height: 56px;
+    padding: 14px 0;
+  }
+
+  .ed-cat-stack-h {
+    font-size: 17px;
+  }
+
+  .ed-cat-stack-d {
+    font-size: 13px;
+  }
 }
 
 .ed-cat-lead-headline:hover {

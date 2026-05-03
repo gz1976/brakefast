@@ -28,6 +28,7 @@ describe('useActiveSection', () => {
     observeMock.mockClear();
     disconnectMock.mockClear();
     vi.stubGlobal('IntersectionObserver', MockIntersectionObserver);
+    vi.stubGlobal('scrollTo', vi.fn());
   });
 
   afterEach(() => {
@@ -91,16 +92,32 @@ describe('useActiveSection', () => {
     expect(disconnectMock).toHaveBeenCalledTimes(1);
   });
 
-  it('scrollTo calls scrollIntoView on element', () => {
+  it('scrollTo scrolls window to element with nav offset and sets activeId', () => {
     const el = document.createElement('div');
     el.id = 'scroll-target';
-    el.scrollIntoView = vi.fn();
+    vi.spyOn(el, 'getBoundingClientRect').mockReturnValue({
+      top: 500,
+      left: 0,
+      bottom: 600,
+      right: 100,
+      width: 100,
+      height: 100,
+      x: 0,
+      y: 500,
+      toJSON: () => ({}),
+    } as DOMRect);
     document.body.appendChild(el);
 
     const { result } = renderHook(() => useActiveSection(['scroll-target']));
-    result.current.scrollTo('scroll-target');
+    act(() => {
+      result.current.scrollTo('scroll-target');
+    });
 
-    expect(el.scrollIntoView).toHaveBeenCalledWith({ behavior: 'smooth', block: 'start' });
+    expect(result.current.activeId).toBe('scroll-target');
+    expect(window.scrollTo).toHaveBeenCalledWith({
+      top: 484,
+      behavior: 'smooth',
+    });
 
     el.remove();
   });

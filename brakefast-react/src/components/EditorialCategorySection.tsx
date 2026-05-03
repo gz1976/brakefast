@@ -46,7 +46,7 @@ function LeadImage({ article, categoryId }: { article: Article; categoryId: stri
 
 /**
  * Editorial newsprint-themed category section (Phase 5).
- * Renders one lead article (left 2/3 column with image) and up to 3 stacked
+ * Renders one lead article (left 2/3 column with image) and up to 4 stacked
  * secondary headlines (right 1/3 column, no images — D-04).
  *
  * Click delegation: onArticleClick is called with the article; read-tracking is
@@ -67,9 +67,9 @@ export function EditorialCategorySection({
   // Early-return on empty data — mirrors CategorySection.tsx:49 early-return idiom
   if (!articles?.length) return null;
 
-  // D-05 resolved: 1 lead + up to 3 stacked items (4 total per section)
+  // D-05 resolved: 1 lead + up to 4 stacked items (5 total per section)
   const lead = articles[0];
-  const stacked = articles.slice(1, 4);
+  const stacked = articles.slice(1, 5);
 
   // D-06 dateline format: AUSGABE #{edition} • {de-AT date}
   const formattedDate = generatedDate

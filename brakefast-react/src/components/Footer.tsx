@@ -22,7 +22,7 @@ export function Footer({ generated, editionNumber, clearAll, readCount, onToast 
     clearTimeout(timerRef.current);
     setConfirming(false);
     clearAll();
-    onToast?.('Lesehistorie geloescht');
+    onToast?.('Lesehistorie gelöscht');
   };
 
   const dateObj = generated ? new Date(generated) : null;
@@ -57,9 +57,9 @@ export function Footer({ generated, editionNumber, clearAll, readCount, onToast 
         <button
           className="footer-clear-history"
           onClick={handleClear}
-          aria-label="Alle gelesenen Artikel zuruecksetzen"
+          aria-label="Alle gelesenen Artikel zurücksetzen"
         >
-          {confirming ? 'Wirklich loeschen?' : 'Lesehistorie loeschen'}
+          {confirming ? 'Wirklich löschen?' : 'Lesehistorie löschen'}
         </button>
       )}
     </footer>

@@ -54,10 +54,13 @@ export function BrakeFastApp({
 
   const activeCategories = useMemo(() =>
     CATEGORY_DISPLAY
-      .map(cfg => ({
-        ...cfg,
-        articles: data.categories[cfg.key]?.articles || [],
-      }))
+      .map(cfg => {
+        const sourceArticles = data.categories[cfg.key]?.articles || [];
+        return {
+          ...cfg,
+          articles: sourceArticles,
+        };
+      })
       .filter(cfg => cfg.articles.length > 0),
     [data]
   );

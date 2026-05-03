@@ -19,47 +19,62 @@ export function DetailModal({ title, text, html, source, url, image, onClose }: 
   useFocusTrap(containerRef, onClose);
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content" ref={containerRef} onClick={(e) => e.stopPropagation()}>
-        <button className="modal-close" onClick={onClose}>✕</button>
+    <div className="ed-modal-overlay modal-overlay" onClick={onClose}>
+      <div
+        className="ed-modal-panel ed-detail-modal-panel modal-content"
+        ref={containerRef}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="ed-modal-header">
+          <button
+            className="ed-modal-close"
+            onClick={(event) => {
+              event.stopPropagation();
+              onClose();
+            }}
+            aria-label="Schließen"
+          >
+            <span aria-hidden="true">✕</span>
+            <span>Schließen</span>
+          </button>
+          {source && <div className="ed-modal-meta modal-source">{source}</div>}
+        </div>
+
+        <div className="ed-modal-rule" />
 
         {image && !imgFailed && (
           <img
-            className={`modal-image${/\.svg[./]|logo|icon|flag/i.test(image) ? ' modal-image-logo' : ''}`}
+            className={`ed-modal-image modal-image${/\.svg[./]|logo|icon|flag/i.test(image) ? ' modal-image-logo' : ''}`}
             src={image}
             alt={title}
             onError={() => setImgFailed(true)}
           />
         )}
 
-        <div className="modal-body">
-          {source && (
-            <div className="modal-meta-top">
-              <span className="modal-source">{source}</span>
-            </div>
-          )}
-
-          <h2 className="modal-title">{title}</h2>
+        <div className="ed-modal-content modal-body">
+          <div className="ed-modal-kicker">Detail</div>
+          <h2 className="ed-modal-title modal-title">{title}</h2>
+          <div className="ed-modal-divider" />
 
           {text && (
             html
-              ? <div className="modal-text" dangerouslySetInnerHTML={{ __html: sanitizeHtml(text) }} />
-              : <div className="modal-text">{text}</div>
+              ? <div className="ed-modal-body modal-text" dangerouslySetInnerHTML={{ __html: sanitizeHtml(text) }} />
+              : <div className="ed-modal-body modal-text">{text}</div>
           )}
 
           {!text && (
-            <div className="modal-text modal-text-empty">Keine weiteren Details verfügbar.</div>
+            <div className="ed-modal-body modal-text modal-text-empty">Keine weiteren Details verfügbar.</div>
           )}
 
-          {url && (
-            <div className="modal-links">
+          {url?.trim() && (
+            <div className="ed-modal-footer modal-links">
               <a
-                className="modal-source-link"
+                className="ed-modal-link modal-source-link"
                 href={url}
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                Weiterlesen →
+                Original öffnen →
               </a>
             </div>
           )}
