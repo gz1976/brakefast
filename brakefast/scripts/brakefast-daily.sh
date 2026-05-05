@@ -144,6 +144,12 @@ if [ -f "$ENGINE_SCRIPT" ] && [ -f "$RAW_FILE" ]; then
   else
     log "WARN: Article enrichment failed (continuing with raw feed data)"
     log_step_summary "enrichment" "\"status\": \"failed\""
+    # Drop stale enriched-articles.json from a previous run so curate.py
+    # falls back to today's raw-articles.json instead of yesterday's leftovers.
+    if [ -f "$ENRICHED_FILE" ] && [ "$ENRICHED_FILE" -ot "$RAW_FILE" ]; then
+      log "Removing stale enriched-articles.json (older than today's raw feed)"
+      rm -f "$ENRICHED_FILE"
+    fi
   fi
 else
   log "Step 1.5: Skipped (script or raw input not found)"

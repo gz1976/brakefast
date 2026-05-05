@@ -793,8 +793,16 @@ def load_articles_from_file(path):
 
 
 def load_article_pool():
-    """Prefer enriched briefings, fall back to raw feed articles."""
+    """Prefer enriched briefings, fall back to raw feed articles.
+
+    If enriched-articles.json is older than raw-articles.json, treat it as
+    stale (e.g. enrichment crashed today, leaving yesterday's file behind)
+    and use the raw feed instead.
+    """
     if os.path.exists(ENRICHED_FILE):
+        if os.path.exists(RAW_FILE) and os.path.getmtime(ENRICHED_FILE) < os.path.getmtime(RAW_FILE):
+            print(f"WARN: {ENRICHED_FILE} is older than {RAW_FILE}; using raw feed", file=sys.stderr)
+            return load_articles_from_file(RAW_FILE), RAW_FILE
         return load_articles_from_file(ENRICHED_FILE), ENRICHED_FILE
     return load_articles_from_file(RAW_FILE), RAW_FILE
 
