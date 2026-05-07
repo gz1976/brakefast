@@ -132,18 +132,28 @@ else
 fi
 
 # Step 1.5: Enrich article briefings
-log "Step 1.5: Enriching article briefings..."
+# Wall-clock cap so a stuck briefing extraction (e.g. upstream HTTP that hangs
+# instead of erroring) cannot block the rest of the pipeline indefinitely.
+ENRICHMENT_TIMEOUT_SEC="${BRAKEFAST_ENRICHMENT_TIMEOUT_SEC:-900}"
+log "Step 1.5: Enriching article briefings (timeout ${ENRICHMENT_TIMEOUT_SEC}s)..."
 CURATED_FILE="${BRAKEFAST_DIR}/output/curated-articles.json"
 ENRICHED_FILE="${BRAKEFAST_DIR}/output/enriched-articles.json"
 RAW_FILE="${BRAKEFAST_DIR}/output/raw-articles.json"
 ENGINE_SCRIPT="${SCRIPT_DIR}/article_briefing_engine.py"
 if [ -f "$ENGINE_SCRIPT" ] && [ -f "$RAW_FILE" ]; then
-  if python3 "$ENGINE_SCRIPT" "$RAW_FILE" "$ENRICHED_FILE" 2>&1 | tee -a "$LOG_FILE"; then
+  if timeout --signal=TERM --kill-after=30 "$ENRICHMENT_TIMEOUT_SEC" \
+       python3 "$ENGINE_SCRIPT" "$RAW_FILE" "$ENRICHED_FILE" 2>&1 | tee -a "$LOG_FILE"; then
     log "Step 1.5: Enrichment complete"
     log_step_summary "enrichment" "\"status\": \"complete\""
   else
-    log "WARN: Article enrichment failed (continuing with raw feed data)"
-    log_step_summary "enrichment" "\"status\": \"failed\""
+    rc="${PIPESTATUS[0]}"
+    if [ "$rc" = "124" ] || [ "$rc" = "137" ]; then
+      log "WARN: Article enrichment timed out after ${ENRICHMENT_TIMEOUT_SEC}s (continuing with raw feed data)"
+      log_step_summary "enrichment" "\"status\": \"timeout\""
+    else
+      log "WARN: Article enrichment failed (rc=$rc, continuing with raw feed data)"
+      log_step_summary "enrichment" "\"status\": \"failed\""
+    fi
     # Drop stale enriched-articles.json from a previous run so curate.py
     # falls back to today's raw-articles.json instead of yesterday's leftovers.
     if [ -f "$ENRICHED_FILE" ] && [ "$ENRICHED_FILE" -ot "$RAW_FILE" ]; then
@@ -162,9 +172,11 @@ SPEC_FILE="${BRAKEFAST_DIR}/output/curation-spec.json"
 LLM_CURATION=0
 
 # Try LLM curation spec (uses enriched articles as input)
+SPEC_TIMEOUT_SEC="${BRAKEFAST_SPEC_TIMEOUT_SEC:-300}"
 if [ -f "$ENGINE_SCRIPT" ] && [ -f "$ENRICHED_FILE" ]; then
-  log "Step 2a: Generating LLM curation spec..."
-  if python3 "$ENGINE_SCRIPT" --curation-spec "$ENRICHED_FILE" "$SPEC_FILE" 2>&1 | tee -a "$LOG_FILE"; then
+  log "Step 2a: Generating LLM curation spec (timeout ${SPEC_TIMEOUT_SEC}s)..."
+  if timeout --signal=TERM --kill-after=15 "$SPEC_TIMEOUT_SEC" \
+       python3 "$ENGINE_SCRIPT" --curation-spec "$ENRICHED_FILE" "$SPEC_FILE" 2>&1 | tee -a "$LOG_FILE"; then
     if [ -f "$SPEC_FILE" ] && [ -s "$SPEC_FILE" ]; then
       log "Step 2a: LLM curation spec generated"
       LLM_CURATION=1
@@ -172,7 +184,12 @@ if [ -f "$ENGINE_SCRIPT" ] && [ -f "$ENRICHED_FILE" ]; then
       log "WARN: LLM spec file empty or missing"
     fi
   else
-    log "WARN: LLM curation spec generation failed"
+    rc="${PIPESTATUS[0]}"
+    if [ "$rc" = "124" ] || [ "$rc" = "137" ]; then
+      log "WARN: LLM curation spec timed out after ${SPEC_TIMEOUT_SEC}s — falling back to --auto"
+    else
+      log "WARN: LLM curation spec generation failed (rc=$rc)"
+    fi
   fi
 fi
 
