@@ -637,6 +637,188 @@ def fetch_podcast_of_day(recent_tips):
 # ============================================================================
 # Voitsberg local events from meinbezirk.at RSS
 # ============================================================================
+GERMAN_MONTHS = {
+    "januar": 1, "februar": 2, "märz": 3, "maerz": 3, "april": 4,
+    "mai": 5, "juni": 6, "juli": 7, "august": 8, "september": 9,
+    "oktober": 10, "november": 11, "dezember": 12,
+}
+
+GERMAN_WEEKDAY_SHORT = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"]
+
+
+def _format_event_date_de(dt):
+    """Format a datetime as 'Mi, 13.05. 16:00' for the 'date' display field."""
+    wd = GERMAN_WEEKDAY_SHORT[dt.weekday()]
+    return f"{wd}, {dt.strftime('%d.%m.')} {dt.strftime('%H:%M')}"
+
+
+def _parse_german_event_datetime(text, today=None):
+    """Parse German date strings into a naive local datetime.
+
+    Recognised forms (case-insensitive):
+        '13. Mai 2026 um 16:00'
+        '17. Mai 2026, 07:00'
+        '13. Mai 2026'                    -> 00:00
+        'Am Samstag, dem 16. Mai'         -> assume current/next year, 00:00
+        'am 16. Mai'                      -> assume current/next year, 00:00
+        'am 16.05.'                       -> assume current/next year, 00:00
+        'am 16.05.2026'                   -> explicit year
+    Returns datetime or None.
+    Year rollover: when no year given AND parsed month < today.month, use today.year + 1.
+    """
+    if not text:
+        return None
+    if today is None:
+        today = datetime.now()
+    s = text.strip()
+
+    # Form 1: "13. Mai 2026 um 16:00" or "13. Mai 2026, 16:00" or "13. Mai 2026"
+    m = re.search(
+        r"(\d{1,2})\.\s*([A-Za-zäöüÄÖÜ]+)\s+(\d{4})(?:\s*(?:um|,)\s*(\d{1,2}):(\d{2}))?",
+        s,
+    )
+    if m:
+        day = int(m.group(1)); month_name = m.group(2).lower()
+        year = int(m.group(3))
+        hour = int(m.group(4)) if m.group(4) else 0
+        minute = int(m.group(5)) if m.group(5) else 0
+        month = GERMAN_MONTHS.get(month_name)
+        if month:
+            try:
+                return datetime(year, month, day, hour, minute)
+            except ValueError:
+                return None
+
+    # Form 2: "am 16.05.2026" or "am 16.05." (no year)
+    m = re.search(r"\b(?:am\s+)?(\d{1,2})\.(\d{1,2})\.(\d{4})?", s)
+    if m:
+        day = int(m.group(1)); month = int(m.group(2))
+        year = int(m.group(3)) if m.group(3) else today.year
+        if not m.group(3) and month < today.month:
+            year = today.year + 1
+        try:
+            return datetime(year, month, day)
+        except ValueError:
+            return None
+
+    # Form 3: "am 16. Mai" / "Am Samstag, dem 16. Mai" (no year)
+    m = re.search(r"(\d{1,2})\.\s*([A-Za-zäöüÄÖÜ]+)\b", s)
+    if m:
+        day = int(m.group(1)); month_name = m.group(2).lower()
+        month = GERMAN_MONTHS.get(month_name)
+        if month:
+            year = today.year
+            if month < today.month:
+                year = today.year + 1
+            try:
+                return datetime(year, month, day)
+            except ValueError:
+                return None
+    return None
+
+
+def fetch_event_calendar(max_items=4):
+    """Scrape upcoming events from meinbezirk.at/event/voitsberg/list.
+
+    Returns list of dicts shaped like LocalEvent, filtered to events
+    today-or-later, sorted ascending by event datetime.
+    Returns [] on any network/parse failure.
+    """
+    url = "https://www.meinbezirk.at/event/voitsberg/list"
+    try:
+        html = _http_get_text(url)
+    except Exception:
+        return []
+    if not html:
+        return []
+
+    today = datetime.now()
+    today_date = today.date()
+
+    # Each event card carries a `<ul class="content-card-date-location">`.
+    # Cards live inside an outer container; we capture the surrounding
+    # block by widening the regex around each ul match, then pull title
+    # + url + image from that block.
+    card_pattern = re.compile(
+        r'<ul[^>]*class="[^"]*content-card-date-location[^"]*"[^>]*>(.*?)</ul>',
+        re.DOTALL | re.IGNORECASE,
+    )
+
+    events = []
+    for m in card_pattern.finditer(html):
+        ul_inner = m.group(1)
+        # Extract <li> texts from the ul.
+        li_texts = [
+            _strip_html(li).strip()
+            for li in re.findall(r"<li[^>]*>(.*?)</li>", ul_inner, flags=re.DOTALL | re.IGNORECASE)
+        ]
+        if not li_texts:
+            continue
+        date_str = li_texts[0]
+        # li_texts[1] is typically venue/Ort, li_texts[2] is the city.
+        venue = li_texts[1] if len(li_texts) > 1 else ""
+        city = li_texts[2] if len(li_texts) > 2 else ""
+        location = ", ".join(p for p in (venue, city) if p) or "Bezirk Voitsberg"
+
+        event_dt = _parse_german_event_datetime(date_str, today=today)
+        if not event_dt or event_dt.date() < today_date:
+            continue
+
+        # Look back ~2KB before the ul for the surrounding card's title + link + image.
+        ctx_start = max(0, m.start() - 2000)
+        context_block = html[ctx_start:m.start()]
+
+        title = ""
+        url_evt = ""
+        # Pick the LAST <a> in the context block (closest to the ul).
+        a_matches = list(re.finditer(
+            r'<a[^>]*href="([^"]+)"[^>]*>(.*?)</a>',
+            context_block, flags=re.DOTALL | re.IGNORECASE,
+        ))
+        if a_matches:
+            last = a_matches[-1]
+            url_evt = last.group(1).strip()
+            title = _strip_html(last.group(2)).strip()
+            # If that link looks like a nav/category (no real title),
+            # try the longest text candidate instead.
+            if not title or len(title) < 4:
+                best = max(a_matches, key=lambda mm: len(_strip_html(mm.group(2))))
+                title = _strip_html(best.group(2)).strip()
+                url_evt = best.group(1).strip()
+
+        if not title:
+            title = date_str  # last-resort fallback so the card isn't blank
+
+        # Make URL absolute.
+        if url_evt.startswith("/"):
+            url_evt = "https://www.meinbezirk.at" + url_evt
+
+        # Image (optional).
+        img_match = re.search(
+            r'<img[^>]+src="([^"]+)"', context_block, flags=re.IGNORECASE,
+        )
+        image = img_match.group(1) if img_match else None
+        if image and image.startswith("/"):
+            image = "https://www.meinbezirk.at" + image
+
+        events.append({
+            "title": title,
+            "summary": "",
+            "location": location,
+            "date": _format_event_date_de(event_dt),
+            "source": "MeinBezirk",
+            "url": url_evt,
+            "image": image,
+            "_event_dt": event_dt,
+        })
+
+    events.sort(key=lambda e: e["_event_dt"])
+    return [
+        {k: v for k, v in e.items() if not k.startswith("_") and v is not None or k in ("summary",)}
+        for e in events[:max_items]
+    ]
+
+
 EVENT_KEYWORDS = (
     "vernissage", "ausstellung", "konzert", "theater", "premiere", "aufführung",
     "veranstaltung", "fest", "markt", "flohmarkt", "kirtag", "messe",
@@ -710,6 +892,14 @@ def fetch_local_events(max_items=4, max_age_days=7):
         img_match = re.search(r'<img[^>]+src="([^"]+)"', desc_raw or "", flags=re.I)
         image = img_match.group(1) if img_match else None
         desc_text = _strip_html(desc_raw)
+        event_dt = _parse_german_event_datetime(desc_text, today=datetime.now())
+        # Drop retrospective news pieces: no future event date AND article > 1 day old.
+        if not event_dt:
+            if pub_dt and (now - pub_dt) > timedelta(days=1):
+                continue
+        else:
+            if event_dt.date() < datetime.now().date():
+                continue
         s = _score_event(title, desc_text, categories)
         if s < 2:
             continue
@@ -721,14 +911,17 @@ def fetch_local_events(max_items=4, max_age_days=7):
             "title": title,
             "summary": summary,
             "location": location,
-            "date": pub_dt.strftime("%d.%m.%Y") if pub_dt else "",
+            "date": _format_event_date_de(event_dt) if event_dt else (pub_dt.strftime("%d.%m.%Y") if pub_dt else ""),
             "source": "MeinBezirk",
             "url": link,
             "image": image,
             "_score": s,
             "_pub": pub_dt or datetime.min.replace(tzinfo=timezone.utc),
+            "_event_dt": event_dt,
         })
-    candidates.sort(key=lambda e: (e["_score"], e["_pub"]), reverse=True)
+    candidates.sort(key=lambda e: (
+        e["_event_dt"] or e["_pub"].replace(tzinfo=None) if e["_pub"] else datetime.max,
+    ))
     return [{k: v for k, v in e.items() if not k.startswith("_")}
             for e in candidates[:max_items]]
 
@@ -1292,7 +1485,10 @@ def build_curated(spec, source_articles):
     # Real Voitsberg events from meinbezirk RSS (no LLM involvement).
     # Only populate if spec didn't provide events itself.
     if not morning_tiles.get("events"):
-        morning_tiles["events"] = fetch_local_events()
+        events = fetch_event_calendar()  # primary: real event calendar (HTML scrape)
+        if not events:
+            events = fetch_local_events()  # fallback: enriched RSS with date parsing
+        morning_tiles["events"] = events
 
     # Build categories from spec
     categories = {}
