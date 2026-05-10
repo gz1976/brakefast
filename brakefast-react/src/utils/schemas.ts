@@ -82,7 +82,7 @@ const MarketsSchema = z.object({
 
 const CalendarEventSchema = z.object({
   time: z.string(),
-  title: z.string(),
+  title: z.string().optional(),
 }).passthrough();
 
 const DayInfoSchema = z.object({
