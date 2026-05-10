@@ -764,46 +764,57 @@ def fetch_event_calendar(max_items=4):
         if not event_dt or event_dt.date() < today_date:
             continue
 
-        # Look back ~2KB before the ul for the surrounding card's title + link + image.
-        ctx_start = max(0, m.start() - 2000)
-        context_block = html[ctx_start:m.start()]
+        # Title + URL live AFTER the ul, in the next <h3 class="content-card-headline">…<a href=…>TITLE</a></h3>.
+        # Description (optional) is in the next <div class="content-card-text">…<p…>TEXT</p>.
+        # Image (optional) is in a <figure>/<img> BEFORE the ul.
+        after = html[m.end(): m.end() + 4000]
+        before = html[max(0, m.start() - 4000): m.start()]
 
         title = ""
         url_evt = ""
-        # Pick the LAST <a> in the context block (closest to the ul).
-        a_matches = list(re.finditer(
-            r'<a[^>]*href="([^"]+)"[^>]*>(.*?)</a>',
-            context_block, flags=re.DOTALL | re.IGNORECASE,
-        ))
-        if a_matches:
-            last = a_matches[-1]
-            url_evt = last.group(1).strip()
-            title = _strip_html(last.group(2)).strip()
-            # If that link looks like a nav/category (no real title),
-            # try the longest text candidate instead.
-            if not title or len(title) < 4:
-                best = max(a_matches, key=lambda mm: len(_strip_html(mm.group(2))))
-                title = _strip_html(best.group(2)).strip()
-                url_evt = best.group(1).strip()
+        h_match = re.search(
+            r'<h[1-6][^>]*class="[^"]*content-card-headline[^"]*"[^>]*>\s*'
+            r'<a[^>]+href="([^"]+)"[^>]*>(.*?)</a>',
+            after, flags=re.DOTALL | re.IGNORECASE,
+        )
+        if h_match:
+            url_evt = h_match.group(1).strip()
+            title = _strip_html(h_match.group(2)).strip()
+
+        # Description (used as summary).
+        summary = ""
+        desc_match = re.search(
+            r'<div[^>]*class="[^"]*content-card-text[^"]*"[^>]*>(.*?)</div>',
+            after, flags=re.DOTALL | re.IGNORECASE,
+        )
+        if desc_match:
+            summary = _strip_html(desc_match.group(1)).strip()
+            if len(summary) > 280:
+                summary = summary[:277].rsplit(" ", 1)[0] + "…"
 
         if not title:
-            title = date_str  # last-resort fallback so the card isn't blank
+            continue  # skip cards we cannot identify rather than emitting a date-string title
 
         # Make URL absolute.
         if url_evt.startswith("/"):
             url_evt = "https://www.meinbezirk.at" + url_evt
 
-        # Image (optional).
-        img_match = re.search(
-            r'<img[^>]+src="([^"]+)"', context_block, flags=re.IGNORECASE,
-        )
-        image = img_match.group(1) if img_match else None
+        # Image: take the LAST real <img> in the preceding card block; skip data: placeholders.
+        image = None
+        for img_m in re.finditer(r'<img[^>]+>', before, flags=re.IGNORECASE):
+            tag = img_m.group(0)
+            # Prefer data-src (lazy-loaded real URL) over src (often a tracking pixel).
+            for attr in ("data-src", "data-original", "data-lazy-src", "src"):
+                a = re.search(rf'\b{attr}="([^"]+)"', tag, flags=re.IGNORECASE)
+                if a and not a.group(1).startswith("data:"):
+                    image = a.group(1)
+                    break
         if image and image.startswith("/"):
             image = "https://www.meinbezirk.at" + image
 
         events.append({
             "title": title,
-            "summary": "",
+            "summary": summary,
             "location": location,
             "date": _format_event_date_de(event_dt),
             "source": "MeinBezirk",
@@ -811,6 +822,17 @@ def fetch_event_calendar(max_items=4):
             "image": image,
             "_event_dt": event_dt,
         })
+
+    # The page renders the same event multiple times (main grid + sidebar/related).
+    # Dedupe by (url, event_dt); when duplicates exist, keep the entry with the most data
+    # (summary + image + location length is a good proxy).
+    deduped = {}
+    for e in events:
+        key = (e["url"], e["_event_dt"])
+        score = (1 if e["summary"] else 0, 1 if e["image"] else 0, len(e["location"]))
+        if key not in deduped or score > deduped[key][0]:
+            deduped[key] = (score, e)
+    events = [v[1] for v in deduped.values()]
 
     events.sort(key=lambda e: e["_event_dt"])
     return [
