@@ -33,12 +33,14 @@ function LeadImage({ article, categoryId }: { article: Article; categoryId: stri
       />
     );
   }
+  const source = article.source || '';
   return (
     <div
       className="ed-cat-lead-img ed-cat-lead-img-placeholder"
       style={{ background: getCategoryGradient(categoryId) }}
       aria-hidden="true"
     >
+      {source && <span className="ed-cat-lead-img-source">{source}</span>}
       <span className="ed-cat-lead-img-icon">{getCategoryIcon(categoryId)}</span>
     </div>
   );

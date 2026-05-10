@@ -16,7 +16,10 @@ BAD_IMAGE_PATTERNS = (
     r"icon[-_]?\d",
     r"pixel\.gif",
     r"spacer\.gif",
-    r"1x1",
+    # Tracking-pixel "1x1" must sit immediately before the file extension —
+    # otherwise legitimate asset names with size hints (e.g. Google's
+    # "Group_Icons_1x1.max-1440x810.png") get rejected as fake.
+    r"(?:^|[/_-])1x1\.(?:gif|png|jpe?g|webp)(?:[?#]|$)",
     r"blank\.(gif|png|jpg)",
     r"by-4\.0\.png",
     r"arxiv-logo",

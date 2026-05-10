@@ -327,12 +327,14 @@ function TopStoryVisual({ article }: { article: Article }) {
       />
     );
   }
+  const source = article.source || '';
   return (
     <div
       className="ed-lead-image ed-lead-image-placeholder"
       style={{ background: getCategoryGradient(article.category || 'tech') }}
       aria-hidden="true"
     >
+      {source && <span className="ed-lead-image-source">{source}</span>}
       <span className="ed-lead-image-icon">{getCategoryIcon(article.category || 'tech')}</span>
     </div>
   );

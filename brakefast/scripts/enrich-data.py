@@ -66,34 +66,103 @@ def run(cmd, timeout=10):
         return ""
 
 
+CHROME_UA = (
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
+    "AppleWebKit/537.36 (KHTML, like Gecko) "
+    "Chrome/131.0.0.0 Safari/537.36"
+)
+
+
+def _extract_jsonld_image(html_text):
+    """Find an image URL inside any application/ld+json schema.org block."""
+    try:
+        import json as _json
+    except ImportError:
+        return None
+    for match in re.finditer(
+        r'<script[^>]*type=["\']application/ld\+json["\'][^>]*>(.+?)</script>',
+        html_text, re.DOTALL | re.IGNORECASE,
+    ):
+        try:
+            data = _json.loads(match.group(1).strip())
+        except Exception:
+            continue
+        candidates = data if isinstance(data, list) else [data]
+        for entry in candidates:
+            if not isinstance(entry, dict):
+                continue
+            img = entry.get("image")
+            if isinstance(img, str):
+                return img
+            if isinstance(img, dict):
+                url_val = img.get("url") or img.get("contentUrl")
+                if isinstance(url_val, str):
+                    return url_val
+            if isinstance(img, list) and img:
+                first = img[0]
+                if isinstance(first, str):
+                    return first
+                if isinstance(first, dict):
+                    url_val = first.get("url") or first.get("contentUrl")
+                    if isinstance(url_val, str):
+                        return url_val
+    return None
+
+
 def fetch_og_image(url, timeout=8):
-    """Fetch Open Graph image from an article URL."""
+    """Fetch a representative image from an article URL.
+
+    Tries og:image, twitter:image, then schema.org JSON-LD image. Uses a
+    realistic Chrome user-agent + Accept headers and pulls a larger HTML
+    window than before so meta tags emitted late in <head> (common with
+    SPAs) still get caught.
+    """
     if not url or not url.startswith("http"):
         return None
     try:
-        cmd = 'curl -s -L --max-time %d -H "User-Agent: Mozilla/5.0" "%s" | head -c 50000' % (timeout, url)
-        raw = run(cmd, timeout=timeout+2)
+        cmd = (
+            'curl -s -L --max-time %d '
+            '-H "User-Agent: %s" '
+            '-H "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8" '
+            '-H "Accept-Language: de-AT,de;q=0.9,en;q=0.8" '
+            '"%s" | head -c 200000'
+        ) % (timeout, CHROME_UA, url)
+        raw = run(cmd, timeout=timeout + 2)
         if not raw:
             return None
-        pat1 = re.compile(r'<meta[^>]*property=.og:image.[^>]*content=.([^"\x27> ]+)', re.IGNORECASE)
-        pat2 = re.compile(r'<meta[^>]*content=.([^"\x27> ]+).[^>]*property=.og:image', re.IGNORECASE)
-        match = pat1.search(raw) or pat2.search(raw)
-        if match:
-            img_url = match.group(1).strip()
-            if len(img_url) > 20 and not any(bad in img_url.lower() for bad in ["logo", "icon", "favicon", "avatar", "1x1", "spacer"]):
-                return img_url
+        patterns = [
+            re.compile(r'<meta[^>]*property=["\']og:image["\'][^>]*content=["\']([^"\']+)', re.IGNORECASE),
+            re.compile(r'<meta[^>]*content=["\']([^"\']+)["\'][^>]*property=["\']og:image["\']', re.IGNORECASE),
+            re.compile(r'<meta[^>]*name=["\']twitter:image(?::src)?["\'][^>]*content=["\']([^"\']+)', re.IGNORECASE),
+            re.compile(r'<meta[^>]*content=["\']([^"\']+)["\'][^>]*name=["\']twitter:image(?::src)?["\']', re.IGNORECASE),
+        ]
+        for pat in patterns:
+            m = pat.search(raw)
+            if m and not is_bad_image(m.group(1).strip()):
+                return m.group(1).strip()
+        jsonld_img = _extract_jsonld_image(raw)
+        if jsonld_img and not is_bad_image(jsonld_img):
+            return jsonld_img
         return None
     except Exception as e:
         print("  WARN: OG image fetch failed for %s: %s" % (url, e), file=sys.stderr)
         return None
 
 
-# Bad image patterns (same as frontend)
-BAD_IMAGE_PATTERNS = [
+# Bad image patterns (kept in sync with brakefast-react/src/utils/imageUtils.ts).
+# Substring matches first; precise regex matches second to avoid false positives
+# (e.g. "1x1" as a substring would otherwise reject Google asset names like
+# "Group_Icons_1x1.max-1440x810.png").
+BAD_IMAGE_SUBSTRINGS = [
     "wikia.nocookie", "chatgpt", "screenshot", "placeholder", "avatar",
-    "favicon", "pixel.gif", "spacer.gif", "1x1", "blank.", "arxiv-logo",
+    "favicon", "pixel.gif", "spacer.gif", "blank.", "arxiv-logo",
     "logo", "gravatar.com", "feedburner", "/embed/",
-    "upload.wikimedia", "wikipedia.org"
+    "upload.wikimedia", "wikipedia.org",
+]
+# Regex patterns: tracking-pixel-shaped URLs only. "1x1" must sit immediately
+# before a file extension (no real-size suffix between), preceded by /, _, or -.
+BAD_IMAGE_REGEXES = [
+    re.compile(r"(?i)(?:^|[/_-])1x1\.(?:gif|png|jpe?g|webp)(?:[?#]|$)"),
 ]
 
 
@@ -101,8 +170,12 @@ def is_bad_image(url):
     """Check if image URL is bad/fake."""
     if not url or len(url) < 20:
         return True
-    for pattern in BAD_IMAGE_PATTERNS:
-        if pattern.lower() in url.lower():
+    lowered = url.lower()
+    for sub in BAD_IMAGE_SUBSTRINGS:
+        if sub in lowered:
+            return True
+    for rx in BAD_IMAGE_REGEXES:
+        if rx.search(url):
             return True
     return False
 

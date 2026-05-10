@@ -15,7 +15,9 @@ const BAD_IMAGE_PATTERNS = [
   /icon[-_]?\d/i,
   /pixel\.gif/i,
   /spacer\.gif/i,
-  /1x1/i,
+  // Tracking-pixel "1x1" must sit immediately before extension (no real-size
+  // suffix between). Avoids false positives like "Group_Icons_1x1.max-1440x810.png".
+  /(?:^|[/_-])1x1\.(?:gif|png|jpe?g|webp)(?:[?#]|$)/i,
   /blank\.(gif|png|jpg)/i,
   /by-4\.0\.png/i,
   /arxiv-logo/i,
