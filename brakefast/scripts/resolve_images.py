@@ -158,56 +158,51 @@ class ImageProviderClient:
             print(f"  WARN: Unsupported image provider {provider.provider or provider.name}", file=sys.stderr)
             return None
 
-        try:
-            import requests
-        except ImportError:
-            print("  ERROR: requests library not installed. Run: pip3 install requests", file=sys.stderr)
-            return None
+        import json as _json
+        import urllib.request as _urlreq
+        import urllib.error as _urlerr
 
         endpoint = f"{provider.base_url}/{provider.model}"
-        headers = {"Authorization": f"Bearer {provider.api_key}", **provider.headers}
-        payload = {
+        headers = {
+            "Authorization": f"Bearer {provider.api_key}",
+            "Content-Type": "application/json",
+            **provider.headers,
+        }
+        payload = _json.dumps({
             "inputs": prompt,
             "parameters": {
                 "width": IMAGE_WIDTH,
                 "height": IMAGE_HEIGHT,
             },
-        }
+        }).encode("utf-8")
 
         for attempt in range(MAX_RETRIES + 1):
+            request = _urlreq.Request(endpoint, data=payload, headers=headers, method="POST")
             try:
-                response = requests.post(endpoint, headers=headers, json=payload, timeout=60)
+                with _urlreq.urlopen(request, timeout=60) as response:
+                    body = response.read()
+                    content_type = response.headers.get("Content-Type", "")
+                    if "image" in content_type:
+                        return body
+                    print(f"  WARN: Unexpected content type: {content_type}", file=sys.stderr)
+                    return None
+            except _urlerr.HTTPError as exc:
+                body = exc.read()[:240].decode("utf-8", errors="ignore")
+                if exc.code == 503 and attempt < MAX_RETRIES:
+                    wait = RETRY_DELAY * (attempt + 1)
+                    print(f"  Provider loading, waiting {wait}s... (attempt {attempt + 1}/{MAX_RETRIES + 1})", file=sys.stderr)
+                    time.sleep(wait)
+                    continue
+                if exc.code in (402, 429):
+                    self.state.block(provider, status_code=exc.code, reason=body)
+                print(f"  ERROR: {provider.name} returned {exc.code}: {body[:200]}", file=sys.stderr)
+                return None
             except Exception as exc:
                 print(f"  ERROR: Image provider request failed: {exc}", file=sys.stderr)
                 if attempt < MAX_RETRIES:
                     time.sleep(RETRY_DELAY)
                     continue
                 return None
-
-            if response.status_code == 200:
-                content_type = response.headers.get("content-type", "")
-                if "image" in content_type:
-                    return response.content
-                print(f"  WARN: Unexpected content type: {content_type}", file=sys.stderr)
-                return None
-
-            if response.status_code == 503 and attempt < MAX_RETRIES:
-                wait = RETRY_DELAY * (attempt + 1)
-                print(f"  Provider loading, waiting {wait}s... (attempt {attempt + 1}/{MAX_RETRIES + 1})", file=sys.stderr)
-                time.sleep(wait)
-                continue
-
-            if response.status_code in (402, 429):
-                self.state.block(
-                    provider,
-                    status_code=response.status_code,
-                    reason=response.text[:240],
-                )
-                print(f"  ERROR: {provider.name} returned {response.status_code}: {response.text[:200]}", file=sys.stderr)
-                return None
-
-            print(f"  ERROR: {provider.name} returned {response.status_code}: {response.text[:200]}", file=sys.stderr)
-            return None
         return None
 
 
