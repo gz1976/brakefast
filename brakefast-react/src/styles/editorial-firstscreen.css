@@ -638,8 +638,23 @@
   gap: 8px;
   flex: 1;
   min-height: 0;
-  overflow: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-right: 6px;
   transition: filter 200ms ease;
+  /* Dezenter Scrollbar im Newspaper-Stil */
+  scrollbar-width: thin;
+  scrollbar-color: var(--ed-rule) transparent;
+}
+.ed-cal-list::-webkit-scrollbar {
+  width: 5px;
+}
+.ed-cal-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+.ed-cal-list::-webkit-scrollbar-thumb {
+  background: var(--ed-rule);
+  border-radius: 2px;
 }
 .ed-cal-list-blurred {
   filter: blur(6px);

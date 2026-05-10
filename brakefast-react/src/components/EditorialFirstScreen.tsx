@@ -696,7 +696,7 @@ export function EditorialFirstScreen({
           </div>
           <div className={`ed-cal-list${!calendarRevealed ? ' ed-cal-list-blurred' : ''}`}>
             {dayEvents.length > 0 ? (
-              dayEvents.slice(0, 5).map((ev, i) => (
+              dayEvents.map((ev, i) => (
                 <div key={i} className="ed-cal-item">
                   <div className="ed-cal-time">{ev.time}</div>
                   <div className="ed-cal-title">{eventDisplayLabel(ev)}</div>
