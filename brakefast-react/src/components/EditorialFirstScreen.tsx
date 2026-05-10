@@ -650,8 +650,13 @@ export function EditorialFirstScreen({
             <div className="ed-today-date">{weekday}</div>
             <div className="ed-today-sub">
               {editionDate.toLocaleDateString('de-AT', { day: 'numeric', month: 'long' })} · KW {calWeek}
-              {dayInfo?.namenstag ? ` · Namenstag ${dayInfo.namenstag}` : ''}
             </div>
+            {dayInfo?.namenstag && (
+              <div className="ed-today-namenstag">
+                <span className="ed-today-namenstag-label">Namenstag</span>
+                <span className="ed-today-namenstag-val">{dayInfo.namenstag}</span>
+              </div>
+            )}
 
             {dayInfo && (
               <div className="ed-suninfo">
