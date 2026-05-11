@@ -8,6 +8,7 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 BRAKEFAST_DIR="$(dirname "$SCRIPT_DIR")"
 LOG_FILE="${BRAKEFAST_DIR}/output/brakefast.log"
 PUBLISH_ENABLED=1
+mkdir -p "${BRAKEFAST_DIR}/output"
 
 for arg in "$@"; do
   case "$arg" in
@@ -19,6 +20,17 @@ for arg in "$@"; do
       ;;
   esac
 done
+
+LOCK_FILE="${BRAKEFAST_DIR}/output/brakefast-daily.lock"
+exec 9>"$LOCK_FILE"
+if command -v flock >/dev/null 2>&1; then
+  if ! flock -n 9; then
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] WARN: Another BrakeFast pipeline run is already active; skipping duplicate run" | tee -a "$LOG_FILE"
+    exit 75
+  fi
+else
+  echo "[$(date '+%Y-%m-%d %H:%M:%S')] WARN: flock not available; duplicate-run protection disabled" | tee -a "$LOG_FILE"
+fi
 
 # Self-heal Python deps (trafilatura disappears on container recreate)
 if ! python3 -c "import trafilatura" 2>/dev/null; then
@@ -134,12 +146,30 @@ fi
 # Step 1.5: Enrich article briefings
 # Wall-clock cap so a stuck briefing extraction (e.g. upstream HTTP that hangs
 # instead of erroring) cannot block the rest of the pipeline indefinitely.
-ENRICHMENT_TIMEOUT_SEC="${BRAKEFAST_ENRICHMENT_TIMEOUT_SEC:-900}"
+ENRICHMENT_TIMEOUT_SEC="${BRAKEFAST_ENRICHMENT_TIMEOUT_SEC:-420}"
 log "Step 1.5: Enriching article briefings (timeout ${ENRICHMENT_TIMEOUT_SEC}s)..."
 CURATED_FILE="${BRAKEFAST_DIR}/output/curated-articles.json"
 ENRICHED_FILE="${BRAKEFAST_DIR}/output/enriched-articles.json"
 RAW_FILE="${BRAKEFAST_DIR}/output/raw-articles.json"
 ENGINE_SCRIPT="${SCRIPT_DIR}/article_briefing_engine.py"
+SPEC_FILE="${BRAKEFAST_DIR}/output/curation-spec.json"
+FINAL_JSON="${BRAKEFAST_DIR}/output/final-data.json"
+
+remove_if_stale() {
+  local file="$1"
+  if [ -f "$file" ] && [ "$file" -ot "$RAW_FILE" ]; then
+    log "Removing stale $(basename "$file") (older than today's raw feed)"
+    rm -f "$file"
+  fi
+}
+
+if [ -f "$RAW_FILE" ]; then
+  remove_if_stale "$ENRICHED_FILE"
+  remove_if_stale "$CURATED_FILE"
+  remove_if_stale "$SPEC_FILE"
+  remove_if_stale "$FINAL_JSON"
+fi
+
 if [ -f "$ENGINE_SCRIPT" ] && [ -f "$RAW_FILE" ]; then
   if timeout --signal=TERM --kill-after=30 "$ENRICHMENT_TIMEOUT_SEC" \
        python3 "$ENGINE_SCRIPT" "$RAW_FILE" "$ENRICHED_FILE" 2>&1 | tee -a "$LOG_FILE"; then
@@ -154,9 +184,12 @@ if [ -f "$ENGINE_SCRIPT" ] && [ -f "$RAW_FILE" ]; then
       log "WARN: Article enrichment failed (rc=$rc, continuing with raw feed data)"
       log_step_summary "enrichment" "\"status\": \"failed\""
     fi
-    # Drop stale enriched-articles.json from a previous run so curate.py
-    # falls back to today's raw-articles.json instead of yesterday's leftovers.
-    if [ -f "$ENRICHED_FILE" ] && [ "$ENRICHED_FILE" -ot "$RAW_FILE" ]; then
+    # article_briefing_engine.py checkpoints enriched-articles.json after each
+    # article. If the timeout fires mid-run, keep a fresh checkpoint; otherwise
+    # remove stale leftovers so curate.py falls back to today's raw feed.
+    if [ -f "$ENRICHED_FILE" ] && [ ! "$ENRICHED_FILE" -ot "$RAW_FILE" ]; then
+      log "Step 1.5: Using checkpointed enrichment output"
+    elif [ -f "$ENRICHED_FILE" ]; then
       log "Removing stale enriched-articles.json (older than today's raw feed)"
       rm -f "$ENRICHED_FILE"
     fi
@@ -168,7 +201,6 @@ fi
 # Step 2: Curate articles — try LLM spec first, fall back to --auto
 log "Step 2: Curating articles..."
 CURATE_SCRIPT="${SCRIPT_DIR}/curate.py"
-SPEC_FILE="${BRAKEFAST_DIR}/output/curation-spec.json"
 LLM_CURATION=0
 
 # Try LLM curation spec (uses enriched articles as input)
@@ -212,11 +244,17 @@ if [ -f "$CURATE_SCRIPT" ]; then
       log "Step 2: Curation complete (auto)"
       log_step_summary "curation" "\"mode\": \"auto\""
     else
-      log "WARN: curate.py --auto failed; falling back to existing data"
+      log "ERROR: curate.py --auto failed"
+      exit 1
     fi
   fi
 else
   log "WARN: curate.py not found, using existing curated data"
+fi
+
+if [ ! -f "$CURATED_FILE" ] || [ "$CURATED_FILE" -ot "$RAW_FILE" ]; then
+  log "ERROR: curated-articles.json is missing or stale after curation"
+  exit 1
 fi
 
 # Step 3: Resolve images from source, metadata, fallbacks, then optional generators
@@ -262,7 +300,6 @@ fi
 
 if [ -f "$INPUT_JSON" ]; then
   log "Step 5: Using ${DATA_TIER} data tier"
-  FINAL_JSON="${BRAKEFAST_DIR}/output/final-data.json"
   cp "$INPUT_JSON" "$FINAL_JSON"
 
   # Merge calendar events into final JSON before validation.
@@ -335,7 +372,7 @@ log "Step 7: Done"
 # Step 8: Smoke-test published data
 log "Step 8: Smoke-testing published edition..."
 SMOKE_OK=1
-PUBLISHED_JSON="/data/brakefast-public/latest/data.json"
+PUBLISHED_JSON="${BRAKEFAST_PUBLIC_DIR:-/data/brakefast-public}/data.json"
 if [ -f "$PUBLISHED_JSON" ]; then
   SMOKE_RESULT=$(python3 -c "
 import json, sys

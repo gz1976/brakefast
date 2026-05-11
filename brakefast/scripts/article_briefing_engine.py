@@ -389,17 +389,26 @@ class ArticleBriefingEngine:
         self.cache = cache
         self.builder = BriefingBuilder()
 
-    def enrich(self, raw_payload: dict[str, Any]) -> dict[str, Any]:
+    def enrich(self, raw_payload: dict[str, Any], checkpoint_path: Path | None = None) -> dict[str, Any]:
         categories = raw_payload.get("categories", {})
         result_categories: dict[str, Any] = {}
         total_articles = 0
 
         for category_id, category_data in categories.items():
             articles = category_data.get("articles", [])
-            enriched_articles = [
-                self._enrich_article(article, category_id)
-                for article in articles
-            ]
+            enriched_articles = []
+            for idx, article in enumerate(articles):
+                enriched_articles.append(self._enrich_article(article, category_id))
+                if checkpoint_path is not None:
+                    self._write_checkpoint(
+                        raw_payload=raw_payload,
+                        result_categories=result_categories,
+                        current_category_id=category_id,
+                        current_category_data=category_data,
+                        current_articles=enriched_articles,
+                        remaining_articles=articles[idx + 1:],
+                        output_path=checkpoint_path,
+                    )
             enriched_articles = self._deduplicate_articles(enriched_articles)
             total_articles += len(enriched_articles)
             result_categories[category_id] = {
@@ -412,6 +421,46 @@ class ArticleBriefingEngine:
             "totalArticles": total_articles,
             "categories": result_categories,
         }
+
+    def _write_checkpoint(
+        self,
+        *,
+        raw_payload: dict[str, Any],
+        result_categories: dict[str, Any],
+        current_category_id: str,
+        current_category_data: dict[str, Any],
+        current_articles: list[dict[str, Any]],
+        remaining_articles: list[dict[str, Any]],
+        output_path: Path,
+    ) -> None:
+        categories = raw_payload.get("categories", {})
+        checkpoint_categories: dict[str, Any] = {}
+
+        for category_id, category_data in categories.items():
+            if category_id in result_categories:
+                checkpoint_categories[category_id] = result_categories[category_id]
+            elif category_id == current_category_id:
+                checkpoint_categories[category_id] = {
+                    **current_category_data,
+                    "articles": self._deduplicate_articles(current_articles + remaining_articles),
+                }
+            else:
+                checkpoint_categories[category_id] = category_data
+
+        total_articles = 0
+        for category_data in checkpoint_categories.values():
+            if isinstance(category_data, dict):
+                total_articles += len(category_data.get("articles", []))
+
+        payload = {
+            "generated": raw_payload.get("generated"),
+            "totalArticles": total_articles,
+            "categories": checkpoint_categories,
+        }
+        tmp_path = output_path.with_name(f"{output_path.name}.tmp")
+        tmp_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2))
+        tmp_path.replace(output_path)
+        self.cache.save()
 
     def _deduplicate_articles(self, articles: list[dict[str, Any]]) -> list[dict[str, Any]]:
         """Remove duplicate articles by normalized URL, keeping the higher-quality version (D-09)."""
@@ -761,7 +810,7 @@ def main() -> int:
     engine = ArticleBriefingEngine(cache)
     mode = engine.builder.mode_description()
     print(f"Briefing builder mode: {mode}", file=sys.stderr)
-    enriched = engine.enrich(raw_payload)
+    enriched = engine.enrich(raw_payload, checkpoint_path=output_path)
 
     output_path.write_text(json.dumps(enriched, ensure_ascii=False, indent=2))
     cache.save()
