@@ -55,7 +55,7 @@ from urllib.parse import urlencode, urlparse  # noqa: F401  # urlparse preloaded
 
 import requests
 
-__all__ = ["ScraperProxy", "AlterLabProxy", "ScrapeDoProxy", "build_proxy"]
+__all__ = ["ScraperProxy", "AlterLabProxy", "ScrapeDoProxy", "build_proxy", "match_domain"]
 
 logger = logging.getLogger("brakefast.scraper_proxy")
 
@@ -406,3 +406,84 @@ def build_proxy(
         )
     logger.warning("Unknown scraper proxy provider: %r — proxy disabled", provider)
     return None
+
+
+def match_domain(url: str, allowlist: dict[str, str]) -> tuple[str, str] | None:
+    """Segment-anchored allowlist matcher for routing dispatch.
+
+    Given a URL and a `{canonical_domain: provider_name}` allowlist,
+    returns `(canonical_domain, provider_name)` if the URL's hostname
+    matches a canonical domain on a **segment boundary**, else `None`.
+
+    Segment-anchored means we walk the hostname's dot-separated suffixes
+    and require an exact full-segment join match. This is NOT
+    `str.endswith` — `endswith` would happily match the adversarial
+    host `derstandard.at.evil.com` against `derstandard.at`, which
+    would let an attacker route their own URLs through our paid scrape
+    credits (threat T-04.02-01 in the plan threat model).
+
+    Examples (these are the seven cases pinned by the `__main__`
+    self-test below):
+      - `https://www.derstandard.at/foo` + `{"derstandard.at": "scrapedo"}`
+        → `("derstandard.at", "scrapedo")` — `www` strips, then segment
+        join `derstandard.at` hits the allowlist.
+      - `https://derstandard.at.evil.com/x` + same allowlist → `None`
+        — hostname is `derstandard.at.evil.com`; segment suffixes are
+        `derstandard.at.evil.com`, `at.evil.com`, `evil.com`, `com`.
+        None of them is `derstandard.at`. Adversarial host rejected.
+      - `https://not-derstandard.at/foo` → `None` — `not-derstandard.at`
+        is a single segment that does not equal `derstandard.at`.
+
+    Returns `None` for URLs with no hostname (e.g. relative paths,
+    `mailto:`, malformed input).
+    """
+    if not url:
+        return None
+    try:
+        host = urlparse(url).hostname
+    except (ValueError, TypeError):
+        return None
+    if not host:
+        return None
+    host = host.lower()
+    parts = host.split(".")
+    # Walk from longest suffix (full host) to shortest. Longest-first
+    # ensures a more specific entry wins if a shorter one is also in
+    # the allowlist.
+    for i in range(len(parts)):
+        candidate = ".".join(parts[i:])
+        if candidate in allowlist:
+            return (candidate, allowlist[candidate])
+    return None
+
+
+if __name__ == "__main__":
+    # Pure-logic self-test for `match_domain` — see RESEARCH.md Q3 / Q12.
+    # No network. No provider construction. Just the matcher's seven
+    # canonical cases, including the adversarial host case (T-04.02-01).
+    allowlist = {
+        "derstandard.at": "scrapedo",
+        "nzz.ch": "scrapedo",
+        "kleinezeitung.at": "scrapedo",
+        "heise.de": "alterlab",
+    }
+    cases: list[tuple[str, tuple[str, str] | None]] = [
+        ("https://www.derstandard.at/story/123",    ("derstandard.at", "scrapedo")),
+        ("https://apa.derstandard.at/news",         ("derstandard.at", "scrapedo")),
+        ("https://derstandard.at/foo",              ("derstandard.at", "scrapedo")),
+        ("https://www.heise.de/news",               ("heise.de", "alterlab")),
+        ("https://derstandard.at.evil.com/exploit", None),
+        ("https://not-derstandard.at/foo",          None),
+        ("https://example.com/foo",                 None),
+    ]
+    failures: list[str] = []
+    for url, expected in cases:
+        got = match_domain(url, allowlist)
+        if got != expected:
+            failures.append(f"  url={url!r} expected={expected!r} got={got!r}")
+    if failures:
+        print("MATCHER SELF-TEST FAILED:")
+        for row in failures:
+            print(row)
+        raise SystemExit(1)
+    print("matcher self-test OK (7 cases)")
