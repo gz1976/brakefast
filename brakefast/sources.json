@@ -121,14 +121,14 @@
         "alterlab": {
           "keyFile": "etc/Secrets/alterlab.key",
           "country": "at",
-          "maxCreditsPerRun": 500,
-          "perRequestTimeout": 30
+          "maxCreditsPerRun": 1500,
+          "perRequestTimeout": 60
         }
       },
       "domains": {
-        "derstandard.at": "scrapedo",
-        "nzz.ch": "scrapedo",
-        "kleinezeitung.at": "scrapedo",
+        "derstandard.at": "alterlab",
+        "nzz.ch": "alterlab",
+        "kleinezeitung.at": "alterlab",
         "heise.de": "alterlab"
       }
     }
