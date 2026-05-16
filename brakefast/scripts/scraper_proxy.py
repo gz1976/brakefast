@@ -48,16 +48,38 @@ cheapest total-cost route for DataDome targets.
 
 from __future__ import annotations
 
+import json
 import logging
+import os
 from abc import ABC, abstractmethod
+from datetime import datetime, timezone
+from pathlib import Path
 from typing import Any
 from urllib.parse import urlencode, urlparse  # noqa: F401  # urlparse preloaded for match_domain (Task 2)
 
 import requests
 
-__all__ = ["ScraperProxy", "AlterLabProxy", "ScrapeDoProxy", "build_proxy", "match_domain"]
+__all__ = [
+    "ScraperProxy",
+    "AlterLabProxy",
+    "ScrapeDoProxy",
+    "build_proxy",
+    "match_domain",
+    "dispatch_fetch",
+    "reset_stats_for_test",
+    "STATS_GLOBAL",
+    "PROXIES",
+    "ALLOWLIST",
+]
 
 logger = logging.getLogger("brakefast.scraper_proxy")
+
+# Paths for module-init config loading. SOURCES_JSON sits one level
+# above this scripts/ directory at brakefast/sources.json (Plan 03's
+# `settings.proxy` block).
+MODULE_DIR = Path(__file__).resolve().parent
+BRAKEFAST_DIR = MODULE_DIR.parent
+SOURCES_JSON = BRAKEFAST_DIR / "sources.json"
 
 
 class ScraperProxy(ABC):
@@ -455,6 +477,310 @@ def match_domain(url: str, allowlist: dict[str, str]) -> tuple[str, str] | None:
         if candidate in allowlist:
             return (candidate, allowlist[candidate])
     return None
+
+
+# ---------------------------------------------------------------------------
+# Phase 04.02 Plan 02 — Dispatcher layer.
+#
+# Wires Plan 01's provider classes and Plan 03's `settings.proxy` config block
+# into a single `dispatch_fetch(url) -> str | None` entry point that
+# article_extractors.fetch_html consults before falling through to urllib.
+#
+# Module-init contract:
+#   - Read brakefast/sources.json's settings.proxy block once.
+#   - Build STATS_GLOBAL with per-provider counters (Plan 04 writer reads it).
+#   - Build PROXIES dict of live provider instances (or None when key missing
+#     → provider starts in block_mode_triggered = True, missing_key reason).
+#   - Build ALLOWLIST as a flat {domain: provider_name} map.
+#
+# Per-call contract (dispatch_fetch):
+#   - Non-allowlisted URL → return None (caller does urllib).
+#   - Allowlisted URL, provider in block_mode → raise RuntimeError.
+#   - Allowlisted URL, provider.fetch() raises → record telemetry, re-raise.
+#   - Successful fetch → tally credits, trip block_mode if credits_exhausted,
+#     return HTML.
+#
+# NO automatic cross-provider failover. NO silent urllib fallback for
+# allowlisted-but-failed fetches. The caller's existing try/except Exception
+# at article_briefing_engine.py:515 / resolve_images.py:251 absorbs the
+# RuntimeError and drops the article — that is the intended behavior per
+# spec §"Failure Handling".
+# ---------------------------------------------------------------------------
+
+
+def _utc_iso() -> str:
+    """Current UTC time formatted as `YYYY-MM-DDTHH:MM:SSZ`."""
+    return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+def _load_proxy_config() -> dict[str, Any]:
+    """Read `brakefast/sources.json` and return the `settings.proxy` block.
+
+    Returns `{"providers": {}, "domains": {}}` if the file or key is absent
+    OR if the file is unreadable / malformed. The pipeline keeps running
+    even if `sources.json` is broken — the consequence is that no domains
+    get allowlisted and every URL falls through to urllib (the legacy path).
+    """
+    try:
+        with open(SOURCES_JSON, "r", encoding="utf-8") as fh:
+            data = json.load(fh)
+    except Exception as exc:  # noqa: BLE001 — broad on purpose
+        logger.warning(
+            "scraper_proxy: failed to read %s (%s); proxy disabled, urllib only",
+            SOURCES_JSON, exc,
+        )
+        return {"providers": {}, "domains": {}}
+    settings = data.get("settings") or {}
+    proxy = settings.get("proxy") or {}
+    if not isinstance(proxy, dict):
+        logger.warning("scraper_proxy: settings.proxy is not a dict; proxy disabled")
+        return {"providers": {}, "domains": {}}
+    # Defensive normalisation — guarantee both keys exist as dicts.
+    proxy.setdefault("providers", {})
+    proxy.setdefault("domains", {})
+    if not isinstance(proxy["providers"], dict):
+        proxy["providers"] = {}
+    if not isinstance(proxy["domains"], dict):
+        proxy["domains"] = {}
+    return proxy
+
+
+def _default_credit_limit(provider_name: str) -> int:
+    """Hardcoded fallback credit caps per D-07 if config omits the field."""
+    if provider_name == "scrapedo":
+        return 1000
+    if provider_name == "alterlab":
+        return 500
+    return 1000
+
+
+def _init_stats(providers_cfg: dict[str, Any]) -> dict[str, Any]:
+    """Build the initial STATS_GLOBAL structure.
+
+    Shape per RESEARCH.md Q5: a `run_id` (UTC iso8601), a `providers` dict
+    keyed by provider name with credit counters + block-mode flags +
+    per-domain breakdown (lazily filled), and a flat `failures` list.
+    """
+    stats: dict[str, Any] = {
+        "run_id": _utc_iso(),
+        "providers": {},
+        "failures": [],
+    }
+    for name, cfg in providers_cfg.items():
+        cfg = cfg if isinstance(cfg, dict) else {}
+        limit = cfg.get("maxCreditsPerRun")
+        try:
+            limit = int(limit)
+        except (TypeError, ValueError):
+            limit = _default_credit_limit(name)
+        stats["providers"][name] = {
+            "credits_used": 0,
+            "credits_limit": limit,
+            "block_mode_triggered": False,
+            "block_mode_reason": None,
+            "by_domain": {},
+        }
+    return stats
+
+
+def _build_providers(providers_cfg: dict[str, Any]) -> dict[str, ScraperProxy | None]:
+    """Construct provider instances from `settings.proxy.providers`.
+
+    Per D-05 (allowlist in sources.json only) and Q-OPEN-A (env vars are the
+    source-of-truth for keys; `keyFile` in config is documentation):
+
+      - scrapedo: read SCRAPEDO_KEY from env. Empty → mark block_mode_triggered
+        = True with reason "missing_key" and store None.
+      - alterlab: same pattern with ALTERLAB_KEY, force_tier pinned to 3
+        per CONTEXT D-03 (paid tier).
+      - Unknown providers in config: skipped with a warning.
+
+    Returns the mapping the dispatcher consults at call time.
+    """
+    out: dict[str, ScraperProxy | None] = {}
+    for name, cfg in providers_cfg.items():
+        cfg = cfg if isinstance(cfg, dict) else {}
+        if name == "scrapedo":
+            key = os.environ.get("SCRAPEDO_KEY", "")
+            if not key:
+                _mark_missing_key("scrapedo")
+                out["scrapedo"] = None
+                continue
+            out["scrapedo"] = build_proxy(
+                "scrapedo",
+                key,
+                country=cfg.get("country", "at"),
+                render=bool(cfg.get("render", True)),
+                super_proxy=bool(cfg.get("super", True)),
+                timeout=int(cfg.get("perRequestTimeout", 30)),
+            )
+        elif name == "alterlab":
+            key = os.environ.get("ALTERLAB_KEY", "")
+            if not key:
+                _mark_missing_key("alterlab")
+                out["alterlab"] = None
+                continue
+            out["alterlab"] = build_proxy(
+                "alterlab",
+                key,
+                country=cfg.get("country", "at"),
+                force_tier=3,  # CONTEXT D-03: paid tier 3 (Stealth) for heise.de pilot
+                max_credits=int(cfg.get("maxCreditsPerRun", 500)),
+                timeout=int(cfg.get("perRequestTimeout", 30)),
+            )
+        else:
+            logger.warning(
+                "scraper_proxy: unknown provider %r in config; ignored", name,
+            )
+            out[name] = None
+    return out
+
+
+def _mark_missing_key(provider_name: str) -> None:
+    """Helper: flip a provider's stats block into missing_key block_mode."""
+    p = STATS_GLOBAL["providers"].setdefault(
+        provider_name,
+        {
+            "credits_used": 0,
+            "credits_limit": _default_credit_limit(provider_name),
+            "block_mode_triggered": False,
+            "block_mode_reason": None,
+            "by_domain": {},
+        },
+    )
+    p["block_mode_triggered"] = True
+    p["block_mode_reason"] = "missing_key"
+
+
+def _classify(exc: Exception) -> str:
+    """Map an exception into a short telemetry-friendly classification string.
+
+    Telemetry consumers grep substrings like `http_5` for any 5xx error and
+    `auth_error` for missing-key cascades. Keep the strings stable across
+    releases — Plan 04's writer surfaces them verbatim into the JSON
+    sidecar and the log.
+    """
+    s = str(exc)
+    sl = s.lower()
+    if "502" in s:
+        return "http_502"
+    if "503" in s:
+        return "http_503"
+    if "504" in s:
+        return "http_504"
+    if "forbidden" in sl or "401" in s or "403" in s:
+        return "auth_error"
+    if "timeout" in sl or "timed out" in sl:
+        return "timeout"
+    return "runtime_error"
+
+
+def dispatch_fetch(url: str) -> str | None:
+    """Route `url` through the allowlist → provider mapping.
+
+    Returns:
+      None       — url not in allowlist (caller should fall back to urllib).
+      str (html) — allowlisted url, provider returned non-empty HTML.
+    Raises:
+      RuntimeError — provider in block_mode (missing key / credits exhausted)
+                     OR provider.fetch() raised. The caller's existing
+                     try/except Exception (article_briefing_engine.py:515,
+                     resolve_images.py:251) catches and drops the article.
+                     NO silent urllib fallback for allowlisted domains.
+    """
+    match = match_domain(url, ALLOWLIST)
+    if match is None:
+        return None
+    domain, provider_name = match
+
+    p_stats = STATS_GLOBAL["providers"].setdefault(
+        provider_name,
+        {
+            "credits_used": 0,
+            "credits_limit": _default_credit_limit(provider_name),
+            "block_mode_triggered": False,
+            "block_mode_reason": None,
+            "by_domain": {},
+        },
+    )
+    d_stats = p_stats["by_domain"].setdefault(
+        domain,
+        {"attempts": 0, "successes": 0, "failures": 0, "credits": 0},
+    )
+    d_stats["attempts"] += 1
+
+    if p_stats["block_mode_triggered"]:
+        d_stats["failures"] += 1
+        reason = p_stats["block_mode_reason"] or "unknown"
+        STATS_GLOBAL["failures"].append({
+            "provider": provider_name,
+            "domain": domain,
+            "url": url,
+            "status": f"block_mode_{reason}",
+            "ts": _utc_iso(),
+        })
+        raise RuntimeError(
+            f"scraper_proxy: provider {provider_name} blocked ({reason})"
+        )
+
+    provider = PROXIES.get(provider_name)
+    if provider is None:
+        # Defensive: key vanished after init OR config named a provider that
+        # _build_providers didn't construct. Symmetric to block-mode.
+        d_stats["failures"] += 1
+        STATS_GLOBAL["failures"].append({
+            "provider": provider_name,
+            "domain": domain,
+            "url": url,
+            "status": "missing_provider",
+            "ts": _utc_iso(),
+        })
+        raise RuntimeError(
+            f"scraper_proxy: provider {provider_name} unavailable"
+        )
+
+    try:
+        html = provider.fetch(url)
+    except Exception as exc:  # noqa: BLE001 — record + re-raise
+        d_stats["failures"] += 1
+        STATS_GLOBAL["failures"].append({
+            "provider": provider_name,
+            "domain": domain,
+            "url": url,
+            "status": _classify(exc),
+            "ts": _utc_iso(),
+        })
+        raise
+    credits = provider.last_credits or 0
+    p_stats["credits_used"] += credits
+    d_stats["credits"] += credits
+    d_stats["successes"] += 1
+    if p_stats["credits_used"] >= p_stats["credits_limit"]:
+        p_stats["block_mode_triggered"] = True
+        p_stats["block_mode_reason"] = "credits_exhausted"
+    return html
+
+
+def reset_stats_for_test() -> None:
+    """Re-initialise STATS_GLOBAL counters from the cached config.
+
+    Does NOT rebuild PROXIES — keeps the requests.Session objects alive so
+    smoke tests don't drop their TCP pool between runs. Plan 05's smoke
+    script calls this between assertions to keep counters interpretable.
+    """
+    global STATS_GLOBAL
+    STATS_GLOBAL = _init_stats(_PROXY_CONFIG.get("providers", {}))
+
+
+# Module-init: load config, build stats, build providers, build allowlist.
+# This runs at import time so importers (article_extractors, Plan 04 writer,
+# Plan 05 smoke) see a consistent module state without any setup call.
+_PROXY_CONFIG = _load_proxy_config()
+STATS_GLOBAL: dict[str, Any] = _init_stats(_PROXY_CONFIG.get("providers", {}))
+PROXIES: dict[str, ScraperProxy | None] = _build_providers(
+    _PROXY_CONFIG.get("providers", {})
+)
+ALLOWLIST: dict[str, str] = dict(_PROXY_CONFIG.get("domains", {}))
 
 
 if __name__ == "__main__":
