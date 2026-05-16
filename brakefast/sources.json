@@ -107,6 +107,30 @@
       "preferLang": "de",
       "requireImage": true,
       "blacklistUrlPatterns": ["github.com/", "gitlab.com/", "npmjs.com/"]
+    },
+    "proxy": {
+      "providers": {
+        "scrapedo": {
+          "keyFile": "etc/Secrets/scrapedo.key",
+          "country": "at",
+          "render": true,
+          "super": true,
+          "maxCreditsPerRun": 1000,
+          "perRequestTimeout": 30
+        },
+        "alterlab": {
+          "keyFile": "etc/Secrets/alterlab.key",
+          "country": "at",
+          "maxCreditsPerRun": 500,
+          "perRequestTimeout": 30
+        }
+      },
+      "domains": {
+        "derstandard.at": "scrapedo",
+        "nzz.ch": "scrapedo",
+        "kleinezeitung.at": "scrapedo",
+        "heise.de": "alterlab"
+      }
     }
   }
 }
