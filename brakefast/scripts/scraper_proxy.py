@@ -51,8 +51,10 @@ from __future__ import annotations
 import json
 import logging
 import os
+import time
 from abc import ABC, abstractmethod
 from datetime import datetime, timezone
+from logging.handlers import RotatingFileHandler
 from pathlib import Path
 from typing import Any
 from urllib.parse import urlencode, urlparse  # noqa: F401  # urlparse preloaded for match_domain (Task 2)
@@ -67,19 +69,74 @@ __all__ = [
     "match_domain",
     "dispatch_fetch",
     "reset_stats_for_test",
+    "flush_stats",
     "STATS_GLOBAL",
     "PROXIES",
     "ALLOWLIST",
+    "LOG_DIR",
 ]
-
-logger = logging.getLogger("brakefast.scraper_proxy")
 
 # Paths for module-init config loading. SOURCES_JSON sits one level
 # above this scripts/ directory at brakefast/sources.json (Plan 03's
-# `settings.proxy` block).
+# `settings.proxy` block). LOG_DIR (Plan 04 / D-02) lives alongside
+# output/ at brakefast/logs/ — deliberately OUTSIDE the nginx-served
+# output dir (T-04.02-21).
 MODULE_DIR = Path(__file__).resolve().parent
 BRAKEFAST_DIR = MODULE_DIR.parent
 SOURCES_JSON = BRAKEFAST_DIR / "sources.json"
+LOG_DIR = BRAKEFAST_DIR / "logs"
+LOG_DIR.mkdir(parents=True, exist_ok=True)
+
+logger = logging.getLogger("brakefast.scraper_proxy")
+
+# Attach a RotatingFileHandler exactly once per process (D-02: 10 MB max,
+# 3 backups → ~40 MB cap total). Idempotency guard: re-importing the
+# module in the same process must not produce duplicate log lines.
+# Formatter pins the spec §Logging line shape so consumers can grep
+# `provider=X domain=Y status=Z` reliably across rotations.
+if not any(isinstance(h, RotatingFileHandler) for h in logger.handlers):
+    _scraper_log_handler = RotatingFileHandler(
+        LOG_DIR / "scraper-proxy.log",
+        maxBytes=10 * 1024 * 1024,
+        backupCount=3,
+        encoding="utf-8",
+    )
+    _scraper_log_handler.setFormatter(
+        logging.Formatter(
+            fmt="[%(asctime)s] %(message)s",
+            datefmt="%Y-%m-%dT%H:%M:%SZ",
+        )
+    )
+    logger.addHandler(_scraper_log_handler)
+    logger.setLevel(logging.INFO)
+    # Don't double-log to the root logger that article_briefing_engine
+    # configures for enrichment — the rotating file is the only sink for
+    # scraper-proxy events.
+    logger.propagate = False
+
+
+def _log_call(
+    provider: str,
+    domain: str,
+    status: str | int,
+    credits: int,
+    ms: int,
+    url: str,
+) -> None:
+    """Emit one structured log line per fetch attempt.
+
+    Format (after the asctime prefix supplied by the handler formatter):
+      provider=<name> domain=<host> status=<code> credits=<n> ms=<n> url=<url>
+
+    Critical: the signature only accepts the seven safe fields (T-04.02-16).
+    API keys, request bodies, and response bodies must never reach this
+    function — reviewers grep for `_log_call(` invocations and reject any
+    that look like they're forwarding a payload or secret.
+    """
+    logger.info(
+        "provider=%s domain=%s status=%s credits=%s ms=%d url=%s",
+        provider, domain, status, credits, ms, url,
+    )
 
 
 class ScraperProxy(ABC):
@@ -719,6 +776,7 @@ def dispatch_fetch(url: str) -> str | None:
             "status": f"block_mode_{reason}",
             "ts": _utc_iso(),
         })
+        _log_call(provider_name, domain, f"block_mode_{reason}", 0, 0, url)
         raise RuntimeError(
             f"scraper_proxy: provider {provider_name} blocked ({reason})"
         )
@@ -735,22 +793,28 @@ def dispatch_fetch(url: str) -> str | None:
             "status": "missing_provider",
             "ts": _utc_iso(),
         })
+        _log_call(provider_name, domain, "missing_provider", 0, 0, url)
         raise RuntimeError(
             f"scraper_proxy: provider {provider_name} unavailable"
         )
 
+    t0 = time.monotonic()
     try:
         html = provider.fetch(url)
     except Exception as exc:  # noqa: BLE001 — record + re-raise
+        ms = int((time.monotonic() - t0) * 1000)
+        status = _classify(exc)
         d_stats["failures"] += 1
         STATS_GLOBAL["failures"].append({
             "provider": provider_name,
             "domain": domain,
             "url": url,
-            "status": _classify(exc),
+            "status": status,
             "ts": _utc_iso(),
         })
+        _log_call(provider_name, domain, status, 0, ms, url)
         raise
+    ms = int((time.monotonic() - t0) * 1000)
     credits = provider.last_credits or 0
     p_stats["credits_used"] += credits
     d_stats["credits"] += credits
@@ -758,6 +822,7 @@ def dispatch_fetch(url: str) -> str | None:
     if p_stats["credits_used"] >= p_stats["credits_limit"]:
         p_stats["block_mode_triggered"] = True
         p_stats["block_mode_reason"] = "credits_exhausted"
+    _log_call(provider_name, domain, "200", credits, ms, url)
     return html
 
 

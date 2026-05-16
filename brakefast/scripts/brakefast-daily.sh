@@ -9,6 +9,7 @@ BRAKEFAST_DIR="$(dirname "$SCRIPT_DIR")"
 LOG_FILE="${BRAKEFAST_DIR}/output/brakefast.log"
 PUBLISH_ENABLED=1
 mkdir -p "${BRAKEFAST_DIR}/output"
+mkdir -p "${BRAKEFAST_DIR}/logs"
 
 for arg in "$@"; do
   case "$arg" in
