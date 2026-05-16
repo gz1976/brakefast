@@ -816,6 +816,19 @@ def main() -> int:
     cache.save()
 
     print(f"Enriched articles written to {output_path}", file=sys.stderr)
+
+    # Phase 04.02: persist scraper telemetry (per-run + monthly digest).
+    # Lazy import keeps article_briefing_engine importable when scraper_proxy
+    # is unavailable (e.g., partial rollback of Phase 04.02). Telemetry
+    # failure must never crash the pipeline — flush_stats wraps its own
+    # body in try/except, this outer guard catches an ImportError or any
+    # unexpected attribute error from a stale module on disk.
+    try:
+        from scraper_proxy import flush_stats
+        flush_stats()
+    except Exception as exc:
+        enrichment_logger.warning("scraper_proxy.flush_stats failed: %s", exc)
+
     return 0
 
 

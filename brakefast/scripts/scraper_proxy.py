@@ -51,8 +51,10 @@ from __future__ import annotations
 import json
 import logging
 import os
+import time
 from abc import ABC, abstractmethod
 from datetime import datetime, timezone
+from logging.handlers import RotatingFileHandler
 from pathlib import Path
 from typing import Any
 from urllib.parse import urlencode, urlparse  # noqa: F401  # urlparse preloaded for match_domain (Task 2)
@@ -67,19 +69,74 @@ __all__ = [
     "match_domain",
     "dispatch_fetch",
     "reset_stats_for_test",
+    "flush_stats",
     "STATS_GLOBAL",
     "PROXIES",
     "ALLOWLIST",
+    "LOG_DIR",
 ]
-
-logger = logging.getLogger("brakefast.scraper_proxy")
 
 # Paths for module-init config loading. SOURCES_JSON sits one level
 # above this scripts/ directory at brakefast/sources.json (Plan 03's
-# `settings.proxy` block).
+# `settings.proxy` block). LOG_DIR (Plan 04 / D-02) lives alongside
+# output/ at brakefast/logs/ — deliberately OUTSIDE the nginx-served
+# output dir (T-04.02-21).
 MODULE_DIR = Path(__file__).resolve().parent
 BRAKEFAST_DIR = MODULE_DIR.parent
 SOURCES_JSON = BRAKEFAST_DIR / "sources.json"
+LOG_DIR = BRAKEFAST_DIR / "logs"
+LOG_DIR.mkdir(parents=True, exist_ok=True)
+
+logger = logging.getLogger("brakefast.scraper_proxy")
+
+# Attach a RotatingFileHandler exactly once per process (D-02: 10 MB max,
+# 3 backups → ~40 MB cap total). Idempotency guard: re-importing the
+# module in the same process must not produce duplicate log lines.
+# Formatter pins the spec §Logging line shape so consumers can grep
+# `provider=X domain=Y status=Z` reliably across rotations.
+if not any(isinstance(h, RotatingFileHandler) for h in logger.handlers):
+    _scraper_log_handler = RotatingFileHandler(
+        LOG_DIR / "scraper-proxy.log",
+        maxBytes=10 * 1024 * 1024,
+        backupCount=3,
+        encoding="utf-8",
+    )
+    _scraper_log_handler.setFormatter(
+        logging.Formatter(
+            fmt="[%(asctime)s] %(message)s",
+            datefmt="%Y-%m-%dT%H:%M:%SZ",
+        )
+    )
+    logger.addHandler(_scraper_log_handler)
+    logger.setLevel(logging.INFO)
+    # Don't double-log to the root logger that article_briefing_engine
+    # configures for enrichment — the rotating file is the only sink for
+    # scraper-proxy events.
+    logger.propagate = False
+
+
+def _log_call(
+    provider: str,
+    domain: str,
+    status: str | int,
+    credits: int,
+    ms: int,
+    url: str,
+) -> None:
+    """Emit one structured log line per fetch attempt.
+
+    Format (after the asctime prefix supplied by the handler formatter):
+      provider=<name> domain=<host> status=<code> credits=<n> ms=<n> url=<url>
+
+    Critical: the signature only accepts the seven safe fields (T-04.02-16).
+    API keys, request bodies, and response bodies must never reach this
+    function — reviewers grep for `_log_call(` invocations and reject any
+    that look like they're forwarding a payload or secret.
+    """
+    logger.info(
+        "provider=%s domain=%s status=%s credits=%s ms=%d url=%s",
+        provider, domain, status, credits, ms, url,
+    )
 
 
 class ScraperProxy(ABC):
@@ -719,6 +776,7 @@ def dispatch_fetch(url: str) -> str | None:
             "status": f"block_mode_{reason}",
             "ts": _utc_iso(),
         })
+        _log_call(provider_name, domain, f"block_mode_{reason}", 0, 0, url)
         raise RuntimeError(
             f"scraper_proxy: provider {provider_name} blocked ({reason})"
         )
@@ -735,22 +793,28 @@ def dispatch_fetch(url: str) -> str | None:
             "status": "missing_provider",
             "ts": _utc_iso(),
         })
+        _log_call(provider_name, domain, "missing_provider", 0, 0, url)
         raise RuntimeError(
             f"scraper_proxy: provider {provider_name} unavailable"
         )
 
+    t0 = time.monotonic()
     try:
         html = provider.fetch(url)
     except Exception as exc:  # noqa: BLE001 — record + re-raise
+        ms = int((time.monotonic() - t0) * 1000)
+        status = _classify(exc)
         d_stats["failures"] += 1
         STATS_GLOBAL["failures"].append({
             "provider": provider_name,
             "domain": domain,
             "url": url,
-            "status": _classify(exc),
+            "status": status,
             "ts": _utc_iso(),
         })
+        _log_call(provider_name, domain, status, 0, ms, url)
         raise
+    ms = int((time.monotonic() - t0) * 1000)
     credits = provider.last_credits or 0
     p_stats["credits_used"] += credits
     d_stats["credits"] += credits
@@ -758,6 +822,7 @@ def dispatch_fetch(url: str) -> str | None:
     if p_stats["credits_used"] >= p_stats["credits_limit"]:
         p_stats["block_mode_triggered"] = True
         p_stats["block_mode_reason"] = "credits_exhausted"
+    _log_call(provider_name, domain, "200", credits, ms, url)
     return html
 
 
@@ -770,6 +835,221 @@ def reset_stats_for_test() -> None:
     """
     global STATS_GLOBAL
     STATS_GLOBAL = _init_stats(_PROXY_CONFIG.get("providers", {}))
+
+
+# ---------------------------------------------------------------------------
+# Phase 04.02 Plan 04 — D-01 hybrid telemetry writer.
+#
+# `flush_stats()` is the explicit drain called from
+# `article_briefing_engine.py:main()` at end-of-run (Q-OPEN-C — mirrors the
+# Phase 4.1 pattern; NOT atexit). It produces two artifacts:
+#
+#   - brakefast/output/scrape-stats.json          (ephemeral per-run snapshot,
+#                                                  overwritten each run)
+#   - brakefast/output/scrape-stats-monthly.json  (persistent merged digest,
+#                                                  archived to scrape-stats-
+#                                                  monthly-YYYY-MM.json on
+#                                                  month rollover)
+#
+# Telemetry failures are caught and logged via `logger.error` — they MUST
+# NOT crash the pipeline. The edition.json deliverable comes first.
+# ---------------------------------------------------------------------------
+
+OUTPUT_DIR = BRAKEFAST_DIR / "output"
+
+
+def _update_monthly_digest(
+    snapshot: dict[str, Any],
+    monthly_path: Path,
+    archive_dir: Path,
+) -> dict[str, Any]:
+    """Read-merge-write the monthly digest with rollover archiving.
+
+    Algorithm per RESEARCH.md Q5:
+      1. Compute `current_month` (UTC, YYYY-MM).
+      2. Load existing digest if present, else start an empty digest for
+         the current month.
+      3. **Rollover:** if the stored month differs from current, archive
+         the existing digest verbatim to
+         `archive_dir / f"scrape-stats-monthly-{stored_month}.json"`
+         and reset the in-memory digest before merging.
+      4. Merge per-(provider, domain) counts from the snapshot:
+         attempts / successes / failures / credits accumulate;
+         total_credits and total_failures roll up at the provider level.
+      5. Stamp `last_updated` with the current UTC iso and return the
+         digest. Caller writes it.
+
+    Returns the digest that the caller should serialise back to
+    `monthly_path`.
+    """
+    current_month = datetime.now(timezone.utc).strftime("%Y-%m")
+    if monthly_path.exists():
+        try:
+            digest = json.loads(monthly_path.read_text(encoding="utf-8"))
+            if not isinstance(digest, dict):
+                raise ValueError("monthly digest root is not a JSON object")
+        except Exception as exc:  # noqa: BLE001 — corrupt → start fresh
+            logger.warning(
+                "scrape-stats-monthly.json unreadable (%s); starting a fresh "
+                "digest for %s", exc, current_month,
+            )
+            digest = {
+                "month": current_month,
+                "providers": {},
+                "last_updated": None,
+            }
+    else:
+        digest = {
+            "month": current_month,
+            "providers": {},
+            "last_updated": None,
+        }
+
+    # Rollover-and-reset before merging anything from the current run.
+    if digest.get("month") != current_month:
+        stored_month = digest.get("month") or "unknown"
+        archive_path = archive_dir / f"scrape-stats-monthly-{stored_month}.json"
+        try:
+            archive_path.write_text(
+                json.dumps(digest, indent=2, ensure_ascii=False),
+                encoding="utf-8",
+            )
+            logger.info(
+                "scrape-stats-monthly: archived %s → %s",
+                stored_month, archive_path.name,
+            )
+        except Exception as exc:  # noqa: BLE001 — log + continue
+            logger.error(
+                "scrape-stats-monthly: failed to archive prior digest %s: %s",
+                stored_month, exc,
+            )
+        digest = {
+            "month": current_month,
+            "providers": {},
+            "last_updated": None,
+        }
+
+    # Defensive: ensure the providers key is a dict in case the stored
+    # digest was hand-edited to something unexpected.
+    if not isinstance(digest.get("providers"), dict):
+        digest["providers"] = {}
+
+    for provider, p_stats in snapshot.get("providers", {}).items():
+        if not isinstance(p_stats, dict):
+            continue
+        d_p = digest["providers"].setdefault(
+            provider,
+            {"by_domain": {}, "total_credits": 0, "total_failures": 0},
+        )
+        if not isinstance(d_p.get("by_domain"), dict):
+            d_p["by_domain"] = {}
+        for domain, d_stats in p_stats.get("by_domain", {}).items():
+            if not isinstance(d_stats, dict):
+                continue
+            d_d = d_p["by_domain"].setdefault(
+                domain,
+                {"attempts": 0, "successes": 0, "failures": 0, "credits": 0},
+            )
+            for k in ("attempts", "successes", "failures", "credits"):
+                try:
+                    d_d[k] = int(d_d.get(k, 0)) + int(d_stats.get(k, 0))
+                except (TypeError, ValueError):
+                    # Skip individual corrupt counters rather than aborting
+                    # the whole merge — informational digest only.
+                    pass
+        try:
+            d_p["total_credits"] = int(d_p.get("total_credits", 0)) + int(
+                p_stats.get("credits_used", 0)
+            )
+        except (TypeError, ValueError):
+            pass
+        try:
+            d_p["total_failures"] = int(d_p.get("total_failures", 0)) + sum(
+                int(d.get("failures", 0))
+                for d in p_stats.get("by_domain", {}).values()
+                if isinstance(d, dict)
+            )
+        except (TypeError, ValueError):
+            pass
+
+    digest["last_updated"] = _utc_iso()
+    return digest
+
+
+def flush_stats(output_dir: Path | None = None) -> None:
+    """Persist the current run's scraper telemetry (D-01 hybrid model).
+
+    Writes two files to `output_dir` (default `BRAKEFAST_DIR/output`):
+
+      1. ``scrape-stats.json`` — ephemeral, overwritten each run.
+         Contains the live `STATS_GLOBAL` snapshot with a derived
+         ``credits_remaining_estimate = credits_limit - credits_used``
+         field computed at write time (RESEARCH.md Q5 — not stored,
+         computed each flush).
+      2. ``scrape-stats-monthly.json`` — persistent merged digest with
+         per-(provider, domain) attempts/successes/failures/credits.
+         On month rollover, the prior digest is archived to
+         ``scrape-stats-monthly-YYYY-MM.json`` and reset.
+
+    Side-effect-free except for those two writes (plus one archive write
+    on month change). Calling this twice in the same run will double-count
+    the monthly digest — Plan 04 Task 3 enforces a single end-of-main
+    call to avoid that; no per-run sentinel is added here because the
+    cost (extra disk read + per-run id state) outweighs the marginal
+    safety on a personal-tool pipeline.
+
+    Telemetry failures NEVER crash the caller: the whole body is wrapped
+    in a top-level try/except that logs and returns.
+    """
+    try:
+        out = output_dir or OUTPUT_DIR
+        out.mkdir(parents=True, exist_ok=True)
+
+        # 1. Per-run snapshot with derived credits_remaining_estimate.
+        snapshot: dict[str, Any] = {
+            "run_id": STATS_GLOBAL.get("run_id"),
+            "providers": {},
+            "failures": list(STATS_GLOBAL.get("failures", [])),
+        }
+        for name, p_stats in STATS_GLOBAL.get("providers", {}).items():
+            if not isinstance(p_stats, dict):
+                continue
+            try:
+                credits_used = int(p_stats.get("credits_used", 0))
+                credits_limit = int(p_stats.get("credits_limit", 0))
+            except (TypeError, ValueError):
+                credits_used, credits_limit = 0, 0
+            snapshot["providers"][name] = {
+                "credits_used": credits_used,
+                "credits_limit": credits_limit,
+                "credits_remaining_estimate": max(credits_limit - credits_used, 0),
+                "block_mode_triggered": bool(p_stats.get("block_mode_triggered")),
+                "block_mode_reason": p_stats.get("block_mode_reason"),
+                "by_domain": {
+                    d: dict(v) for d, v in p_stats.get("by_domain", {}).items()
+                    if isinstance(v, dict)
+                },
+            }
+        (out / "scrape-stats.json").write_text(
+            json.dumps(snapshot, indent=2, ensure_ascii=False),
+            encoding="utf-8",
+        )
+
+        # 2. Monthly digest read-merge-write with rollover archive.
+        monthly_path = out / "scrape-stats-monthly.json"
+        digest = _update_monthly_digest(snapshot, monthly_path, out)
+        monthly_path.write_text(
+            json.dumps(digest, indent=2, ensure_ascii=False),
+            encoding="utf-8",
+        )
+
+        logger.info(
+            "flush_stats: wrote %s and %s",
+            (out / "scrape-stats.json").name,
+            monthly_path.name,
+        )
+    except Exception as exc:  # noqa: BLE001 — telemetry must not crash pipeline
+        logger.error("flush_stats failed: %s", exc)
 
 
 # Module-init: load config, build stats, build providers, build allowlist.
