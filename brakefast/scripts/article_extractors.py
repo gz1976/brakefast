@@ -86,6 +86,26 @@ ARXIV_ABSTRACT_RE = re.compile(
 def fetch_html(url: str, timeout: int = DEFAULT_TIMEOUT, max_bytes: int = MAX_HTML_BYTES) -> str:
     if not url:
         return ""
+
+    # Phase 04.02: domain-allowlisted proxy dispatch (per D-05/D-06).
+    # Returns None for non-allowlisted hosts → fall through to urllib.
+    # Returns html string for allowlisted hosts.
+    # Raises RuntimeError on proxy failure / block_mode → caller's
+    # try/except (article_briefing_engine.py:515, resolve_images.py:251)
+    # drops the article. Do NOT wrap in try/except here — swallowing the
+    # RuntimeError would re-introduce the empty-body confabulation trap
+    # that spec §"Failure Handling" explicitly rejects.
+    try:
+        from scraper_proxy import dispatch_fetch
+    except ImportError:
+        dispatch_fetch = None  # defensive: phase pre-deploy / module missing
+    if dispatch_fetch is not None:
+        proxy_html = dispatch_fetch(url)
+        if proxy_html is not None:
+            # Respect the existing byte cap — DataDome-bypass HTML can
+            # exceed 700 KB on hard-fetched pages.
+            return proxy_html[:max_bytes]
+
     request = urllib.request.Request(url, headers={
         "User-Agent": USER_AGENT,
         "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
