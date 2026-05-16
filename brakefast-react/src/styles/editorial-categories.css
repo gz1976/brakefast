@@ -2,9 +2,10 @@
    BrakeFast — Editorial Newsprint Category Sections
    Drop-in stylesheet for EditorialCategorySection.tsx (Phase 5).
 
-   Ports the eight category sections to the newsprint theme while
-   the `?editorial=1` feature flag is on. Legacy dark-theme
-   CategorySection/TechHub remain byte-identical (ROLL-01 / D-01).
+   Ports the eight category sections to the newsprint theme.
+   Phase 6 (2026-05-16): the `?editorial=1` feature flag was removed;
+   this is now the only category-section style rendered. Legacy dark-theme
+   CategorySection/TechHub still exist in src/components/ but are unreachable.
 
    Every class name prefixed with `.ed-` per the Phase 4
    namespace convention (CONTEXT D-09). Palette tokens reuse the
