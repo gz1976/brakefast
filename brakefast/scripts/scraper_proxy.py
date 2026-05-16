@@ -837,6 +837,221 @@ def reset_stats_for_test() -> None:
     STATS_GLOBAL = _init_stats(_PROXY_CONFIG.get("providers", {}))
 
 
+# ---------------------------------------------------------------------------
+# Phase 04.02 Plan 04 — D-01 hybrid telemetry writer.
+#
+# `flush_stats()` is the explicit drain called from
+# `article_briefing_engine.py:main()` at end-of-run (Q-OPEN-C — mirrors the
+# Phase 4.1 pattern; NOT atexit). It produces two artifacts:
+#
+#   - brakefast/output/scrape-stats.json          (ephemeral per-run snapshot,
+#                                                  overwritten each run)
+#   - brakefast/output/scrape-stats-monthly.json  (persistent merged digest,
+#                                                  archived to scrape-stats-
+#                                                  monthly-YYYY-MM.json on
+#                                                  month rollover)
+#
+# Telemetry failures are caught and logged via `logger.error` — they MUST
+# NOT crash the pipeline. The edition.json deliverable comes first.
+# ---------------------------------------------------------------------------
+
+OUTPUT_DIR = BRAKEFAST_DIR / "output"
+
+
+def _update_monthly_digest(
+    snapshot: dict[str, Any],
+    monthly_path: Path,
+    archive_dir: Path,
+) -> dict[str, Any]:
+    """Read-merge-write the monthly digest with rollover archiving.
+
+    Algorithm per RESEARCH.md Q5:
+      1. Compute `current_month` (UTC, YYYY-MM).
+      2. Load existing digest if present, else start an empty digest for
+         the current month.
+      3. **Rollover:** if the stored month differs from current, archive
+         the existing digest verbatim to
+         `archive_dir / f"scrape-stats-monthly-{stored_month}.json"`
+         and reset the in-memory digest before merging.
+      4. Merge per-(provider, domain) counts from the snapshot:
+         attempts / successes / failures / credits accumulate;
+         total_credits and total_failures roll up at the provider level.
+      5. Stamp `last_updated` with the current UTC iso and return the
+         digest. Caller writes it.
+
+    Returns the digest that the caller should serialise back to
+    `monthly_path`.
+    """
+    current_month = datetime.now(timezone.utc).strftime("%Y-%m")
+    if monthly_path.exists():
+        try:
+            digest = json.loads(monthly_path.read_text(encoding="utf-8"))
+            if not isinstance(digest, dict):
+                raise ValueError("monthly digest root is not a JSON object")
+        except Exception as exc:  # noqa: BLE001 — corrupt → start fresh
+            logger.warning(
+                "scrape-stats-monthly.json unreadable (%s); starting a fresh "
+                "digest for %s", exc, current_month,
+            )
+            digest = {
+                "month": current_month,
+                "providers": {},
+                "last_updated": None,
+            }
+    else:
+        digest = {
+            "month": current_month,
+            "providers": {},
+            "last_updated": None,
+        }
+
+    # Rollover-and-reset before merging anything from the current run.
+    if digest.get("month") != current_month:
+        stored_month = digest.get("month") or "unknown"
+        archive_path = archive_dir / f"scrape-stats-monthly-{stored_month}.json"
+        try:
+            archive_path.write_text(
+                json.dumps(digest, indent=2, ensure_ascii=False),
+                encoding="utf-8",
+            )
+            logger.info(
+                "scrape-stats-monthly: archived %s → %s",
+                stored_month, archive_path.name,
+            )
+        except Exception as exc:  # noqa: BLE001 — log + continue
+            logger.error(
+                "scrape-stats-monthly: failed to archive prior digest %s: %s",
+                stored_month, exc,
+            )
+        digest = {
+            "month": current_month,
+            "providers": {},
+            "last_updated": None,
+        }
+
+    # Defensive: ensure the providers key is a dict in case the stored
+    # digest was hand-edited to something unexpected.
+    if not isinstance(digest.get("providers"), dict):
+        digest["providers"] = {}
+
+    for provider, p_stats in snapshot.get("providers", {}).items():
+        if not isinstance(p_stats, dict):
+            continue
+        d_p = digest["providers"].setdefault(
+            provider,
+            {"by_domain": {}, "total_credits": 0, "total_failures": 0},
+        )
+        if not isinstance(d_p.get("by_domain"), dict):
+            d_p["by_domain"] = {}
+        for domain, d_stats in p_stats.get("by_domain", {}).items():
+            if not isinstance(d_stats, dict):
+                continue
+            d_d = d_p["by_domain"].setdefault(
+                domain,
+                {"attempts": 0, "successes": 0, "failures": 0, "credits": 0},
+            )
+            for k in ("attempts", "successes", "failures", "credits"):
+                try:
+                    d_d[k] = int(d_d.get(k, 0)) + int(d_stats.get(k, 0))
+                except (TypeError, ValueError):
+                    # Skip individual corrupt counters rather than aborting
+                    # the whole merge — informational digest only.
+                    pass
+        try:
+            d_p["total_credits"] = int(d_p.get("total_credits", 0)) + int(
+                p_stats.get("credits_used", 0)
+            )
+        except (TypeError, ValueError):
+            pass
+        try:
+            d_p["total_failures"] = int(d_p.get("total_failures", 0)) + sum(
+                int(d.get("failures", 0))
+                for d in p_stats.get("by_domain", {}).values()
+                if isinstance(d, dict)
+            )
+        except (TypeError, ValueError):
+            pass
+
+    digest["last_updated"] = _utc_iso()
+    return digest
+
+
+def flush_stats(output_dir: Path | None = None) -> None:
+    """Persist the current run's scraper telemetry (D-01 hybrid model).
+
+    Writes two files to `output_dir` (default `BRAKEFAST_DIR/output`):
+
+      1. ``scrape-stats.json`` — ephemeral, overwritten each run.
+         Contains the live `STATS_GLOBAL` snapshot with a derived
+         ``credits_remaining_estimate = credits_limit - credits_used``
+         field computed at write time (RESEARCH.md Q5 — not stored,
+         computed each flush).
+      2. ``scrape-stats-monthly.json`` — persistent merged digest with
+         per-(provider, domain) attempts/successes/failures/credits.
+         On month rollover, the prior digest is archived to
+         ``scrape-stats-monthly-YYYY-MM.json`` and reset.
+
+    Side-effect-free except for those two writes (plus one archive write
+    on month change). Calling this twice in the same run will double-count
+    the monthly digest — Plan 04 Task 3 enforces a single end-of-main
+    call to avoid that; no per-run sentinel is added here because the
+    cost (extra disk read + per-run id state) outweighs the marginal
+    safety on a personal-tool pipeline.
+
+    Telemetry failures NEVER crash the caller: the whole body is wrapped
+    in a top-level try/except that logs and returns.
+    """
+    try:
+        out = output_dir or OUTPUT_DIR
+        out.mkdir(parents=True, exist_ok=True)
+
+        # 1. Per-run snapshot with derived credits_remaining_estimate.
+        snapshot: dict[str, Any] = {
+            "run_id": STATS_GLOBAL.get("run_id"),
+            "providers": {},
+            "failures": list(STATS_GLOBAL.get("failures", [])),
+        }
+        for name, p_stats in STATS_GLOBAL.get("providers", {}).items():
+            if not isinstance(p_stats, dict):
+                continue
+            try:
+                credits_used = int(p_stats.get("credits_used", 0))
+                credits_limit = int(p_stats.get("credits_limit", 0))
+            except (TypeError, ValueError):
+                credits_used, credits_limit = 0, 0
+            snapshot["providers"][name] = {
+                "credits_used": credits_used,
+                "credits_limit": credits_limit,
+                "credits_remaining_estimate": max(credits_limit - credits_used, 0),
+                "block_mode_triggered": bool(p_stats.get("block_mode_triggered")),
+                "block_mode_reason": p_stats.get("block_mode_reason"),
+                "by_domain": {
+                    d: dict(v) for d, v in p_stats.get("by_domain", {}).items()
+                    if isinstance(v, dict)
+                },
+            }
+        (out / "scrape-stats.json").write_text(
+            json.dumps(snapshot, indent=2, ensure_ascii=False),
+            encoding="utf-8",
+        )
+
+        # 2. Monthly digest read-merge-write with rollover archive.
+        monthly_path = out / "scrape-stats-monthly.json"
+        digest = _update_monthly_digest(snapshot, monthly_path, out)
+        monthly_path.write_text(
+            json.dumps(digest, indent=2, ensure_ascii=False),
+            encoding="utf-8",
+        )
+
+        logger.info(
+            "flush_stats: wrote %s and %s",
+            (out / "scrape-stats.json").name,
+            monthly_path.name,
+        )
+    except Exception as exc:  # noqa: BLE001 — telemetry must not crash pipeline
+        logger.error("flush_stats failed: %s", exc)
+
+
 # Module-init: load config, build stats, build providers, build allowlist.
 # This runs at import time so importers (article_extractors, Plan 04 writer,
 # Plan 05 smoke) see a consistent module state without any setup call.
