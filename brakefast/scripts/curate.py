@@ -53,6 +53,16 @@ CATEGORY_META = {
     "local":    {"name": "Steiermark & Lokal",     "emoji": "\U0001f3d4", "css_class": "category-header--local"},
 }
 
+# Target article count per category. When an LLM spec (or the auto spec)
+# under-fills a category, build_curated backfills from the source pool up to
+# these quotas so the edition does not silently shrink below the smoke-test
+# floor. Mirrors the roadmap target (ai/security/tech/ev/world 6, knapp 4,
+# local 6 → 40 main + ki_modelle/dev_digest).
+CATEGORY_QUOTA = {
+    "ai": 6, "security": 6, "tech": 6, "ev": 6,
+    "world": 6, "knapp": 4, "local": 6,
+}
+
 POLLEN_SEASONAL = {
     1:  {"level": "niedrig",     "types": ["Hasel", "Erle"],            "description": "Geringe Belastung durch Fr\u00fchbl\u00fcher"},
     2:  {"level": "niedrig-mittel", "types": ["Hasel", "Erle"],         "description": "Fr\u00fchbl\u00fcher werden aktiv"},
@@ -1512,6 +1522,28 @@ def build_curated(spec, source_articles):
             events = fetch_local_events()  # fallback: enriched RSS with date parsing
         morning_tiles["events"] = events
 
+    # Pre-bucket the source pool by raw category so we can backfill a
+    # category when the LLM spec under-fills it. Without this, a sparse
+    # spec produces a short edition — the recurring "too few articles" bug.
+    pool_by_cat = {}
+    for idx, art in enumerate(source_articles):
+        raw_cat = (art.get("_raw_category") or art.get("category") or "").lower()
+        pool_by_cat.setdefault(raw_cat, []).append(idx)
+
+    used_indices = set()
+    seen_links = set()
+
+    def _norm_link(a):
+        raw = (a.get("link") or a.get("canonical_url") or a.get("source_url")
+               or a.get("url") or "")
+        return raw.split("?")[0].rstrip("/").lower()
+
+    def _pool_score(idx):
+        a = source_articles[idx]
+        body_len = len(a.get("summary") or a.get("description") or "")
+        has_image = 1 if (a.get("image") or a.get("best_image")) else 0
+        return (has_image, a.get("trust", 5), body_len)
+
     # Build categories from spec
     categories = {}
     preferred_articles = []
@@ -1520,15 +1552,47 @@ def build_curated(spec, source_articles):
 
     for cat_key, cat_meta in CATEGORY_META.items():
         cat_spec = spec.get("categories", {}).get(cat_key, [])
+        # Tolerate dict-shaped category specs ({"articles": [...]}).
+        if isinstance(cat_spec, dict):
+            cat_spec = cat_spec.get("articles", [])
         articles = []
         for item in cat_spec:
             # Item can reference article pool by index or contain full article data
             if "index" in item and isinstance(item["index"], int):
                 idx = item["index"]
                 if 0 <= idx < len(source_articles):
-                    articles.append(build_article_payload(item, source_articles[idx]))
+                    payload = build_article_payload(item, source_articles[idx])
+                    used_indices.add(idx)
+                else:
+                    payload = build_article_payload(item, {})
             else:
-                articles.append(build_article_payload(item, {}))
+                payload = build_article_payload(item, {})
+            link = _norm_link(payload)
+            if link and link in seen_links:
+                continue
+            if link:
+                seen_links.add(link)
+            articles.append(payload)
+
+        # Backfill from the source pool when the spec under-fills this
+        # category, so a sparse LLM response still yields a full edition.
+        quota = CATEGORY_QUOTA.get(cat_key, 0)
+        if len(articles) < quota:
+            candidates = sorted(
+                (i for i in pool_by_cat.get(cat_key, []) if i not in used_indices),
+                key=_pool_score, reverse=True,
+            )
+            for idx in candidates:
+                if len(articles) >= quota:
+                    break
+                payload = build_article_payload({}, source_articles[idx])
+                link = _norm_link(payload)
+                if link and link in seen_links:
+                    continue
+                used_indices.add(idx)
+                if link:
+                    seen_links.add(link)
+                articles.append(payload)
 
         total_articles += len(articles)
         for a in articles:
@@ -1544,6 +1608,10 @@ def build_curated(spec, source_articles):
 
     ki_modelle = build_detail_section(spec.get("ki_modelle", {}), source_articles, preferred_articles=preferred_articles)
     dev_digest = build_detail_section(spec.get("dev_digest", {}), source_articles, preferred_articles=preferred_articles)
+    # Detail-section digest items are real content the reader sees, so they
+    # count toward totalArticles (the smoke test's >= 25 gate). They were
+    # previously omitted, undercounting the edition.
+    total_articles += len(ki_modelle) + len(dev_digest)
 
     # Assemble final JSON
     result = {
@@ -1879,8 +1947,7 @@ def build_auto_spec(source_articles):
     Articles are scored language-agnostically; recency + content length are the
     primary signals. German and English are treated as equivalent.
     """
-    per_cat = {"ai": 5, "security": 5, "tech": 5, "ev": 5, "world": 5,
-               "knapp": 5, "local": 5}
+    per_cat = dict(CATEGORY_QUOTA)
     by_cat = {k: [] for k in per_cat}
     for i, a in enumerate(source_articles):
         c = (a.get("_raw_category") or a.get("category") or "").lower()

@@ -147,7 +147,7 @@ fi
 # Step 1.5: Enrich article briefings
 # Wall-clock cap so a stuck briefing extraction (e.g. upstream HTTP that hangs
 # instead of erroring) cannot block the rest of the pipeline indefinitely.
-ENRICHMENT_TIMEOUT_SEC="${BRAKEFAST_ENRICHMENT_TIMEOUT_SEC:-420}"
+ENRICHMENT_TIMEOUT_SEC="${BRAKEFAST_ENRICHMENT_TIMEOUT_SEC:-720}"
 log "Step 1.5: Enriching article briefings (timeout ${ENRICHMENT_TIMEOUT_SEC}s)..."
 CURATED_FILE="${BRAKEFAST_DIR}/output/curated-articles.json"
 ENRICHED_FILE="${BRAKEFAST_DIR}/output/enriched-articles.json"

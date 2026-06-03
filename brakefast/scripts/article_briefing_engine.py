@@ -148,7 +148,7 @@ class BriefingBuilder:
             ],
             temperature=0.2,
             response_format={"type": "json_object"},
-            timeout=40,
+            timeout=30,
         )
         if response is None:
             enrichment_logger.warning("LLM returned None for '%s'. Last error: %s",

@@ -261,7 +261,10 @@ def _best_candidate_url(item: dict[str, Any], category: str) -> str:
             if score > best_score:
                 best_score = score
                 best_url = url
-        if best_score >= 0.5 and best_url:
+        # Feed-sourced images score 0.48; admit them rather than leaving the
+        # article image-less. Logo/low-confidence candidates stay below 0.45
+        # after their penalties.
+        if best_score >= 0.45 and best_url:
             return best_url
 
     if title:

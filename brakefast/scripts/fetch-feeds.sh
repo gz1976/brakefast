@@ -13,6 +13,10 @@ OUTPUT_FILE="${OUTPUT_DIR}/raw-articles.json"
 # shellcheck disable=SC1091
 source "${SCRIPT_DIR}/load-brakefast-env.sh"
 
+# Export the scripts dir so the embedded Python can import sibling modules
+# (scraper_proxy) regardless of the cron's working directory.
+export BRAKEFAST_SCRIPTS_DIR="$SCRIPT_DIR"
+
 mkdir -p "$OUTPUT_DIR"
 
 if [ ! -f "$SOURCES_FILE" ]; then
@@ -32,21 +36,66 @@ import re
 import time
 import html as html_mod
 
-def fetch_feed(url, timeout=15):
-    """Fetch RSS/Atom feed via curl."""
-    try:
-        result = subprocess.run(
-            ["curl", "-sL", "--max-time", str(timeout),
-             "-H", "User-Agent: BrakeFast/1.0 (Personal News Aggregator)",
-             url],
-            capture_output=True, text=True, timeout=timeout+5
-        )
-        if result.returncode != 0:
-            return None
-        return result.stdout
-    except Exception as e:
-        print(f"  WARN: Failed to fetch {url}: {e}", file=sys.stderr)
+# Make sibling modules importable regardless of the cron's working directory.
+_scripts_dir = os.environ.get("BRAKEFAST_SCRIPTS_DIR", "")
+if _scripts_dir and _scripts_dir not in sys.path:
+    sys.path.insert(0, _scripts_dir)
+
+# Domain-allowlisted scrape proxy (Phase 04.02). Feeds on anti-bot-walled
+# domains (heise.de, derstandard.at, nzz.ch, kleinezeitung.at) get blocked
+# when fetched with plain curl from the VPS IP, so route those through the
+# proxy first. Non-allowlisted feeds return None → plain curl.
+try:
+    from scraper_proxy import dispatch_fetch as _proxy_dispatch_fetch
+except Exception as _exc:  # noqa: BLE001 — proxy is best-effort at fetch stage
+    _proxy_dispatch_fetch = None
+    print(f"  INFO: scraper_proxy unavailable ({_exc}); using direct curl only", file=sys.stderr)
+
+# Browser-like UA. A non-browser UA from a datacenter IP is exactly what
+# WAFs (Cloudflare, DataDome) block, which silently kills feeds.
+BROWSER_UA = (
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
+    "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+)
+
+def _curl_fetch(url, timeout, byte_range=None):
+    """Single curl attempt. Returns stdout on success, None on failure."""
+    cmd = ["curl", "-sL", "--max-time", str(timeout)]
+    if byte_range:
+        cmd += ["-r", byte_range]
+    cmd += ["-H", f"User-Agent: {BROWSER_UA}", url]
+    result = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout + 5)
+    if result.returncode != 0 or not result.stdout:
         return None
+    return result.stdout
+
+def fetch_feed(url, timeout=15, retries=2):
+    """Fetch RSS/Atom feed: proxy for walled domains, else curl with retry.
+
+    A single transient failure (429/502/timeout) must not drop a source for
+    the whole day, so direct fetches are retried with a short backoff.
+    """
+    # 1. Proxy path for allowlisted (walled) domains.
+    if _proxy_dispatch_fetch is not None:
+        try:
+            proxy_html = _proxy_dispatch_fetch(url)
+            if proxy_html:
+                return proxy_html
+            # None → not allowlisted; fall through to direct curl.
+        except Exception as e:  # block_mode / credits / fetch error → try direct
+            print(f"  WARN: proxy fetch failed for {url}: {e}; falling back to curl", file=sys.stderr)
+
+    # 2. Direct curl with retry/backoff.
+    for attempt in range(1, retries + 1):
+        try:
+            out = _curl_fetch(url, timeout)
+            if out:
+                return out
+        except Exception as e:
+            print(f"  WARN: curl attempt {attempt}/{retries} failed for {url}: {e}", file=sys.stderr)
+        if attempt < retries:
+            time.sleep(1.5 * attempt)
+    return None
 
 def clean_html(text):
     """Strip HTML tags and decode entities."""
@@ -193,7 +242,7 @@ def fetch_og_image(url, timeout=8):
         result = subprocess.run(
             ["curl", "-sL", "--max-time", str(timeout),
              "-r", "0-32767",
-             "-H", "User-Agent: BrakeFast/1.0 (Personal News Aggregator)",
+             "-H", f"User-Agent: {BROWSER_UA}",
              url],
             capture_output=True, text=True, timeout=timeout+5
         )
@@ -343,7 +392,7 @@ def extract_article_text(url, max_sentences=5, timeout=10):
         result = subprocess.run(
             ["curl", "-sL", "--max-time", str(timeout),
              "-r", "0-65535",
-             "-H", "User-Agent: BrakeFast/1.0 (Personal News Aggregator)",
+             "-H", f"User-Agent: {BROWSER_UA}",
              url],
             capture_output=True, text=True, timeout=timeout+5
         )
