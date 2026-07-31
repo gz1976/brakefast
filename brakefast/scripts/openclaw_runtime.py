@@ -14,8 +14,12 @@ BRAKEFAST_DIR = SCRIPT_DIR.parent
 CONFIG_DIR = BRAKEFAST_DIR / "config"
 OUTPUT_DIR = BRAKEFAST_DIR / "output"
 OPENCLAW_CONFIG_CANDIDATES = (
-    Path("/data/.openclaw/openclaw.json"),
+    Path("/data/.openclaw/openclaw.json"),          # im Container
     Path.home() / ".openclaw" / "openclaw.json",
+    # Auf dem Host: der Model-Desk-Generator laeuft dort, weil /docker/model-desk
+    # nicht in den Container gemountet ist und dessen Zertifikatsspeicher
+    # kaputt ist (CERTIFICATE_VERIFY_FAILED gegen openrouter.ai).
+    Path("/docker/openclaw-xfcd/data/.openclaw/openclaw.json"),
 )
 
 
