@@ -148,7 +148,7 @@ class BriefingBuilder:
             ],
             temperature=0.2,
             response_format={"type": "json_object"},
-            timeout=30,
+            timeout=40,
         )
         if response is None:
             enrichment_logger.warning("LLM returned None for '%s'. Last error: %s",
@@ -682,7 +682,12 @@ Heute ist {today_str}. Erstelle eine Kurations-Spezifikation als JSON.
 VERFUEGBARE ARTIKEL (Index, Kategorie, Titel, Quelle):
 {article_list}
 
-AUFGABE — Erzeuge exakt dieses JSON-Format:
+DENKE ZUERST KURZ STRUKTURIERT NACH (nicht im JSON ausgeben, nur fuer dich):
+1. Was sind die 3-5 wichtigsten Stories des Tages ueber alle Kategorien hinweg?
+2. Welche Artikel decken dieselbe Story aus verschiedenen Quellen ab? (Duplikate identifizieren)
+3. Welche Artikel sind reines PR/Marketing, Listicles, oder thematisch falsch einsortiert?
+
+AUFGABE — Erzeuge dann exakt dieses JSON-Format:
 {{
   "editorial": "3-4 Saetze tagesaktueller Aufmacher, der die Top-Themen buendelt. Deutsch, persoenlich.",
   "categories": {{
@@ -711,16 +716,34 @@ AUFGABE — Erzeuge exakt dieses JSON-Format:
   }}
 }}
 
-REGELN:
-- Pro Kategorie genau 5 Artikel auswaehlen (per Index-Nummer aus der Liste oben).
-- Deutsche Quellen bevorzugen. Englische Titel mit headline_de uebersetzen.
-- Fuer Top-Story (erster Artikel in "ai"): den relevantesten Artikel mit Bild waehlen.
-- ki_modelle: 2-3 neue KI-Modelle/Tools aus den AI-Artikeln extrahieren.
-- dev_digest: 2-3 Dev-Tools/Plattform-News aus Tech/Security extrahieren.
-- history: 3 Ereignisse die HEUTE ({now.strftime('%d. %B')}) passiert sind. Verschiedene Epochen.
-- quote: Ein deutsches Zitat (nicht Alan Kay, nicht englisch).
-- bauernregel: Passend zum Monat {now.strftime('%B')}.
-- Antworte NUR mit dem JSON, kein weiterer Text."""
+KURATIONS-REGELN (in dieser Reihenfolge anwenden):
+
+A. DEDUPLIZIERUNG: Wenn 2+ Artikel dieselbe Story abdecken: nur den besten waehlen.
+   Praeferenz: deutsche Quelle > englische Quelle, mit Bild > ohne Bild, taggenau > Aggregator.
+
+B. QUALITAETSFILTER (skippen, nicht auswaehlen):
+   - Reines PR / Produkt-Marketing ohne Substanz
+   - Listicles wie "100 Dinge die...", "Top 10 ...", "X Trends fuer ..."
+   - Clickbait-Titel ("Sie werden nicht glauben...", "Das aendert alles")
+   - Thematisch falsch einsortiert (z.B. Security-Story landete in AI)
+
+C. AUSWAHL pro Kategorie: bis zu 5 Artikel, sortiert nach Relevanz absteigend
+   (wichtigste = erster Eintrag). Wenn nach Filterung <5 uebrig: weniger ist OK, NICHT mit Filler auffuellen.
+   Top-Position pro Kategorie muss substanziell und aktuell sein.
+
+D. AUSWAHL fuer "ai"-Kategorie speziell: an Position [0] gehoert der wichtigste echte AI-Artikel des Tages
+   (Modell-Release, Research-Durchbruch, signifikantes Produkt-Update). NICHT Filler, NICHT misskategorisiert.
+
+E. HEADLINE_DE: kurz, aktiv, praezise. KEINE Marketing-Floskeln. KEINE wortwoertliche
+   Uebersetzung wenn das Deutsche unnatuerlich klingt — frei aber treu uebertragen.
+
+F. SONST: Deutsche Quellen bevorzugen. ki_modelle: 2-3 neue Modelle/Tools aus AI-Artikeln.
+   dev_digest: 2-3 Dev-Tools/Plattform-News aus Tech/Security.
+   history: 3 Ereignisse von HEUTE ({now.strftime('%d. %B')}), verschiedene Epochen.
+   quote: deutsches Zitat (nicht Alan Kay, nicht englisch).
+   bauernregel: passend zu {now.strftime('%B')}.
+
+Antworte NUR mit dem JSON, kein Reasoning-Text, kein Markdown-Wrapper."""
 
     client = OpenClawChatClient()
     if not client.enabled:
@@ -735,7 +758,7 @@ REGELN:
         ],
         temperature=0.3,
         response_format={"type": "json_object"},
-        timeout=90,
+        timeout=150,
     )
 
     if response is None:
