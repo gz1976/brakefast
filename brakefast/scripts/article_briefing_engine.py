@@ -6,8 +6,11 @@ from __future__ import annotations
 import hashlib
 import json
 import logging
+import os
 import re
 import sys
+import threading
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
 from typing import Any
@@ -23,6 +26,30 @@ DEFAULT_INPUT = OUTPUT_DIR / "raw-articles.json"
 DEFAULT_OUTPUT = OUTPUT_DIR / "enriched-articles.json"
 DEFAULT_CACHE = OUTPUT_DIR / "article-briefing-cache.json"
 CACHE_VERSION = 7
+
+DEFAULT_ENRICHMENT_WORKERS = 5
+MAX_ENRICHMENT_WORKERS = 16
+# Checkpoint nach je N Fertigstellungen statt nach jedem Artikel: ein voller
+# json.dumps ueber ~100 Artikel aus 5 Threads waere Verschwendung. Bis zu N-1
+# Artikel Arbeitsverlust bei hartem SIGKILL ist vertretbar, seit der Lauf ins
+# Zeitbudget passt.
+CHECKPOINT_EVERY = 5
+
+
+def _enrichment_workers() -> int:
+    """Groesse des Worker-Pools aus BRAKEFAST_ENRICHMENT_WORKERS.
+
+    Die Arbeit pro Artikel ist I/O-gebunden (ein HTTP-Fetch plus ein LLM-Call),
+    die Threads warten also fast durchgehend — die 2 Kerne des VPS sind kein
+    Limit. `=1` stellt exakt das alte sequenzielle Verhalten wieder her und ist
+    damit der Rueckfall-Schalter auf dem Server, ohne Code-Aenderung.
+    """
+    raw = os.environ.get("BRAKEFAST_ENRICHMENT_WORKERS", "")
+    try:
+        workers = int(raw)
+    except (TypeError, ValueError):
+        return DEFAULT_ENRICHMENT_WORKERS
+    return max(1, min(workers, MAX_ENRICHMENT_WORKERS))
 
 enrichment_logger = logging.getLogger("brakefast.enrichment")
 enrichment_logger.setLevel(logging.DEBUG)
@@ -43,6 +70,10 @@ CATEGORY_RELEVANCE = {
 class ArticleCache:
     def __init__(self, cache_path: Path) -> None:
         self.cache_path = cache_path
+        # save() serialisiert _data, waehrend Worker-Threads set() aufrufen.
+        # Ohne Lock: RuntimeError "dictionary changed size during iteration"
+        # mitten im Lauf.
+        self._lock = threading.Lock()
         self._data: dict[str, dict[str, Any]] = {}
         if cache_path.exists():
             try:
@@ -56,15 +87,19 @@ class ArticleCache:
     def get(self, url: str) -> dict[str, Any] | None:
         if not url:
             return None
-        return self._data.get(self._make_key(url))
+        with self._lock:
+            return self._data.get(self._make_key(url))
 
     def set(self, url: str, payload: dict[str, Any]) -> None:
         if not url:
             return
-        self._data[self._make_key(url)] = payload
+        with self._lock:
+            self._data[self._make_key(url)] = payload
 
     def save(self) -> None:
-        self.cache_path.write_text(json.dumps(self._data, ensure_ascii=False, indent=2))
+        with self._lock:
+            serialized = json.dumps(self._data, ensure_ascii=False, indent=2)
+        self.cache_path.write_text(serialized)
 
 
 class BriefingBuilder:
@@ -390,25 +425,66 @@ class ArticleBriefingEngine:
         self.builder = BriefingBuilder()
 
     def enrich(self, raw_payload: dict[str, Any], checkpoint_path: Path | None = None) -> dict[str, Any]:
-        categories = raw_payload.get("categories", {})
-        result_categories: dict[str, Any] = {}
-        total_articles = 0
+        """Reichert alle Artikel ueber einen begrenzten Thread-Pool an.
 
+        Die Arbeitsliste wird ueber ALLE Kategorien flachgezogen. Das ist der
+        eigentliche Fix: ein Pool je Kategorie wuerde die Kategorien weiterhin
+        serialisieren, ein Timeout mitten im Lauf haette also erneut alles nach
+        `security` verhungern lassen (Befund 31.07.: tech/ev/world/knapp/local
+        bekamen 0 von 72 Artikeln).
+
+        Die Reihenfolge bleibt erhalten, weil die Ergebnisse in eine vorbelegte
+        Slot-Tabelle geschrieben werden — die Kuratierung liest Kategorien und
+        Artikel positionsbezogen, Fertigstellungs-Reihenfolge darf nicht
+        durchschlagen.
+        """
+        categories = raw_payload.get("categories", {})
+
+        work: list[tuple[str, int, dict[str, Any]]] = []
+        slots: dict[str, list[dict[str, Any] | None]] = {}
         for category_id, category_data in categories.items():
             articles = category_data.get("articles", [])
-            enriched_articles = []
-            for idx, article in enumerate(articles):
-                enriched_articles.append(self._enrich_article(article, category_id))
-                if checkpoint_path is not None:
-                    self._write_checkpoint(
-                        raw_payload=raw_payload,
-                        result_categories=result_categories,
-                        current_category_id=category_id,
-                        current_category_data=category_data,
-                        current_articles=enriched_articles,
-                        remaining_articles=articles[idx + 1:],
-                        output_path=checkpoint_path,
-                    )
+            slots[category_id] = [None] * len(articles)
+            for position, article in enumerate(articles):
+                work.append((category_id, position, article))
+
+        workers = _enrichment_workers()
+        checkpoint_lock = threading.Lock()
+        completed = 0
+
+        if work:
+            with ThreadPoolExecutor(max_workers=workers) as pool:
+                futures = {
+                    pool.submit(self._enrich_article, article, category_id): (category_id, position, article)
+                    for category_id, position, article in work
+                }
+                for future in as_completed(futures):
+                    category_id, position, article = futures[future]
+                    try:
+                        slots[category_id][position] = future.result()
+                    except Exception as exc:  # noqa: BLE001 - ein Artikel darf den Lauf nie kippen
+                        # Der alte Code fing nur extract_article_payload ab; jeder
+                        # andere Raise riss den kompletten Durchlauf mit.
+                        enrichment_logger.error(
+                            "Anreicherung fehlgeschlagen fuer %r (%s): %s",
+                            article.get("title"), category_id, exc,
+                        )
+                        slots[category_id][position] = article
+                    completed += 1
+                    if checkpoint_path is not None and completed % CHECKPOINT_EVERY == 0:
+                        with checkpoint_lock:
+                            self._write_checkpoint(
+                                raw_payload=raw_payload, slots=slots, output_path=checkpoint_path,
+                            )
+
+        if checkpoint_path is not None:
+            with checkpoint_lock:
+                self._write_checkpoint(raw_payload=raw_payload, slots=slots, output_path=checkpoint_path)
+
+        result_categories: dict[str, Any] = {}
+        total_articles = 0
+        for category_id, category_data in categories.items():
+            enriched_articles = self._resolve_slots(category_id, category_data, slots)
             enriched_articles = self._deduplicate_articles(enriched_articles)
             total_articles += len(enriched_articles)
             result_categories[category_id] = {
@@ -422,30 +498,42 @@ class ArticleBriefingEngine:
             "categories": result_categories,
         }
 
+    @staticmethod
+    def _resolve_slots(
+        category_id: str,
+        category_data: dict[str, Any],
+        slots: dict[str, list[dict[str, Any] | None]],
+    ) -> list[dict[str, Any]]:
+        """Slot-Werte in Eingabereihenfolge, noch nicht gefuellte als Rohartikel."""
+        raw_articles = category_data.get("articles", [])
+        filled = slots.get(category_id) or []
+        return [
+            filled[position] if position < len(filled) and filled[position] is not None else article
+            for position, article in enumerate(raw_articles)
+        ]
+
     def _write_checkpoint(
         self,
         *,
         raw_payload: dict[str, Any],
-        result_categories: dict[str, Any],
-        current_category_id: str,
-        current_category_data: dict[str, Any],
-        current_articles: list[dict[str, Any]],
-        remaining_articles: list[dict[str, Any]],
+        slots: dict[str, list[dict[str, Any] | None]],
         output_path: Path,
     ) -> None:
+        """Zwischenstand schreiben — brakefast-daily.sh liest genau diese Datei beim Timeout.
+
+        Aufrufer muss den Checkpoint-Lock halten: zwei Threads wuerden sonst
+        denselben .tmp-Pfad beschreiben und .replace() koennte eine halb
+        geschriebene Datei veroeffentlichen.
+        """
         categories = raw_payload.get("categories", {})
         checkpoint_categories: dict[str, Any] = {}
 
         for category_id, category_data in categories.items():
-            if category_id in result_categories:
-                checkpoint_categories[category_id] = result_categories[category_id]
-            elif category_id == current_category_id:
-                checkpoint_categories[category_id] = {
-                    **current_category_data,
-                    "articles": self._deduplicate_articles(current_articles + remaining_articles),
-                }
-            else:
-                checkpoint_categories[category_id] = category_data
+            articles = self._resolve_slots(category_id, category_data, slots)
+            checkpoint_categories[category_id] = {
+                **category_data,
+                "articles": self._deduplicate_articles(articles),
+            }
 
         total_articles = 0
         for category_data in checkpoint_categories.values():

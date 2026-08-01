@@ -51,6 +51,7 @@ from __future__ import annotations
 import json
 import logging
 import os
+import threading
 import time
 from abc import ABC, abstractmethod
 from datetime import datetime, timezone
@@ -75,6 +76,13 @@ __all__ = [
     "ALLOWLIST",
     "LOG_DIR",
 ]
+
+# Seit die Anreicherung parallel laeuft (article_briefing_engine._enrichment_workers),
+# rufen mehrere Threads dispatch_fetch() gleichzeitig auf. Die Zaehler in
+# STATS_GLOBAL werden mit `+=` fortgeschrieben — ohne Sperre gehen Updates
+# verloren. Bewusst NUR fuer kurze Zaehler-Regionen; ueber den Netzwerk-Aufruf
+# provider.fetch() darf die Sperre nie gehalten werden.
+_STATS_LOCK = threading.Lock()
 
 # Paths for module-init config loading. SOURCES_JSON sits one level
 # above this scripts/ directory at brakefast/sources.json (Plan 03's
@@ -723,18 +731,19 @@ def _build_providers(providers_cfg: dict[str, Any]) -> dict[str, ScraperProxy | 
 
 def _mark_missing_key(provider_name: str) -> None:
     """Helper: flip a provider's stats block into missing_key block_mode."""
-    p = STATS_GLOBAL["providers"].setdefault(
-        provider_name,
-        {
-            "credits_used": 0,
-            "credits_limit": _default_credit_limit(provider_name),
-            "block_mode_triggered": False,
-            "block_mode_reason": None,
-            "by_domain": {},
-        },
-    )
-    p["block_mode_triggered"] = True
-    p["block_mode_reason"] = "missing_key"
+    with _STATS_LOCK:
+        p = STATS_GLOBAL["providers"].setdefault(
+            provider_name,
+            {
+                "credits_used": 0,
+                "credits_limit": _default_credit_limit(provider_name),
+                "block_mode_triggered": False,
+                "block_mode_reason": None,
+                "by_domain": {},
+            },
+        )
+        p["block_mode_triggered"] = True
+        p["block_mode_reason"] = "missing_key"
 
 
 def _classify(exc: Exception) -> str:
@@ -778,32 +787,40 @@ def dispatch_fetch(url: str) -> str | None:
         return None
     domain, provider_name = match
 
-    p_stats = STATS_GLOBAL["providers"].setdefault(
-        provider_name,
-        {
-            "credits_used": 0,
-            "credits_limit": _default_credit_limit(provider_name),
-            "block_mode_triggered": False,
-            "block_mode_reason": None,
-            "by_domain": {},
-        },
-    )
-    d_stats = p_stats["by_domain"].setdefault(
-        domain,
-        {"attempts": 0, "successes": 0, "failures": 0, "credits": 0},
-    )
-    d_stats["attempts"] += 1
-
-    if p_stats["block_mode_triggered"]:
-        d_stats["failures"] += 1
+    # ACHTUNG: Die Sperre schuetzt nur die kurzen Zaehler-Regionen. Sie darf
+    # NIEMALS ueber provider.fetch() unten gehalten werden — das wuerde jeden
+    # Proxy-Abruf serialisieren und die Nebenlaeufigkeit der Anreicherung
+    # stillschweigend wieder aufheben. Der Retry in AlterLabProxy.fetch()
+    # schlaeft bis zu 6s; unter einer Sperre waere das fatal.
+    with _STATS_LOCK:
+        p_stats = STATS_GLOBAL["providers"].setdefault(
+            provider_name,
+            {
+                "credits_used": 0,
+                "credits_limit": _default_credit_limit(provider_name),
+                "block_mode_triggered": False,
+                "block_mode_reason": None,
+                "by_domain": {},
+            },
+        )
+        d_stats = p_stats["by_domain"].setdefault(
+            domain,
+            {"attempts": 0, "successes": 0, "failures": 0, "credits": 0},
+        )
+        d_stats["attempts"] += 1
+        block_triggered = p_stats["block_mode_triggered"]
         reason = p_stats["block_mode_reason"] or "unknown"
-        STATS_GLOBAL["failures"].append({
-            "provider": provider_name,
-            "domain": domain,
-            "url": url,
-            "status": f"block_mode_{reason}",
-            "ts": _utc_iso(),
-        })
+
+    if block_triggered:
+        with _STATS_LOCK:
+            d_stats["failures"] += 1
+            STATS_GLOBAL["failures"].append({
+                "provider": provider_name,
+                "domain": domain,
+                "url": url,
+                "status": f"block_mode_{reason}",
+                "ts": _utc_iso(),
+            })
         _log_call(provider_name, domain, f"block_mode_{reason}", 0, 0, url)
         raise RuntimeError(
             f"scraper_proxy: provider {provider_name} blocked ({reason})"
@@ -813,14 +830,15 @@ def dispatch_fetch(url: str) -> str | None:
     if provider is None:
         # Defensive: key vanished after init OR config named a provider that
         # _build_providers didn't construct. Symmetric to block-mode.
-        d_stats["failures"] += 1
-        STATS_GLOBAL["failures"].append({
-            "provider": provider_name,
-            "domain": domain,
-            "url": url,
-            "status": "missing_provider",
-            "ts": _utc_iso(),
-        })
+        with _STATS_LOCK:
+            d_stats["failures"] += 1
+            STATS_GLOBAL["failures"].append({
+                "provider": provider_name,
+                "domain": domain,
+                "url": url,
+                "status": "missing_provider",
+                "ts": _utc_iso(),
+            })
         _log_call(provider_name, domain, "missing_provider", 0, 0, url)
         raise RuntimeError(
             f"scraper_proxy: provider {provider_name} unavailable"
@@ -828,28 +846,30 @@ def dispatch_fetch(url: str) -> str | None:
 
     t0 = time.monotonic()
     try:
-        html = provider.fetch(url)
+        html = provider.fetch(url)  # ungesperrt — siehe Hinweis oben
     except Exception as exc:  # noqa: BLE001 — record + re-raise
         ms = int((time.monotonic() - t0) * 1000)
         status = _classify(exc)
-        d_stats["failures"] += 1
-        STATS_GLOBAL["failures"].append({
-            "provider": provider_name,
-            "domain": domain,
-            "url": url,
-            "status": status,
-            "ts": _utc_iso(),
-        })
+        with _STATS_LOCK:
+            d_stats["failures"] += 1
+            STATS_GLOBAL["failures"].append({
+                "provider": provider_name,
+                "domain": domain,
+                "url": url,
+                "status": status,
+                "ts": _utc_iso(),
+            })
         _log_call(provider_name, domain, status, 0, ms, url)
         raise
     ms = int((time.monotonic() - t0) * 1000)
     credits = provider.last_credits or 0
-    p_stats["credits_used"] += credits
-    d_stats["credits"] += credits
-    d_stats["successes"] += 1
-    if p_stats["credits_used"] >= p_stats["credits_limit"]:
-        p_stats["block_mode_triggered"] = True
-        p_stats["block_mode_reason"] = "credits_exhausted"
+    with _STATS_LOCK:
+        p_stats["credits_used"] += credits
+        d_stats["credits"] += credits
+        d_stats["successes"] += 1
+        if p_stats["credits_used"] >= p_stats["credits_limit"]:
+            p_stats["block_mode_triggered"] = True
+            p_stats["block_mode_reason"] = "credits_exhausted"
     _log_call(provider_name, domain, "200", credits, ms, url)
     return html
 
@@ -1034,12 +1054,24 @@ def flush_stats(output_dir: Path | None = None) -> None:
         out.mkdir(parents=True, exist_ok=True)
 
         # 1. Per-run snapshot with derived credits_remaining_estimate.
+        # Konsistente Momentaufnahme ziehen, solange noch Worker laufen koennen.
+        with _STATS_LOCK:
+            run_id = STATS_GLOBAL.get("run_id")
+            failures = list(STATS_GLOBAL.get("failures", []))
+            providers_snapshot = {
+                name: {
+                    **p,
+                    "by_domain": {d: dict(v) for d, v in p.get("by_domain", {}).items() if isinstance(v, dict)},
+                }
+                for name, p in STATS_GLOBAL.get("providers", {}).items()
+                if isinstance(p, dict)
+            }
         snapshot: dict[str, Any] = {
-            "run_id": STATS_GLOBAL.get("run_id"),
+            "run_id": run_id,
             "providers": {},
-            "failures": list(STATS_GLOBAL.get("failures", [])),
+            "failures": failures,
         }
-        for name, p_stats in STATS_GLOBAL.get("providers", {}).items():
+        for name, p_stats in providers_snapshot.items():
             if not isinstance(p_stats, dict):
                 continue
             try:
