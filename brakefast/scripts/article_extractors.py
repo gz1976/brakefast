@@ -83,6 +83,36 @@ ARXIV_ABSTRACT_RE = re.compile(
 )
 
 
+def _decode_response(raw: bytes, response) -> str:
+    """Decode HTML bytes honouring the declared charset.
+
+    The old `.decode("utf-8", errors="ignore")` silently dropped every non-UTF-8
+    byte, so latin-1 German pages lost all umlauts (ü/ä/ö/ß) without any error —
+    the long-standing "garbled/missing body text" cause. Priority: HTTP header
+    charset, then <meta charset>/XML declaration, then utf-8, then latin-1.
+    """
+    if not raw:
+        return ""
+    charset = None
+    try:
+        charset = response.headers.get_content_charset()
+    except Exception:
+        charset = None
+    if not charset:
+        m = re.search(rb"charset=[\"']?([\w.-]+)", raw[:2048], re.IGNORECASE)
+        if m:
+            charset = m.group(1).decode("ascii", "ignore").strip()
+    if charset:
+        try:
+            return raw.decode(charset, errors="replace")
+        except LookupError:
+            pass  # unknown charset name → fall through
+    try:
+        return raw.decode("utf-8")
+    except UnicodeDecodeError:
+        return raw.decode("latin-1", errors="replace")
+
+
 def fetch_html(url: str, timeout: int = DEFAULT_TIMEOUT, max_bytes: int = MAX_HTML_BYTES) -> str:
     if not url:
         return ""
@@ -112,7 +142,7 @@ def fetch_html(url: str, timeout: int = DEFAULT_TIMEOUT, max_bytes: int = MAX_HT
         "Accept-Language": "de-AT,de;q=0.9,en;q=0.8",
     })
     with urllib.request.urlopen(request, timeout=timeout) as response:
-        return response.read(max_bytes).decode("utf-8", errors="ignore")
+        return _decode_response(response.read(max_bytes), response)
 
 
 def normalize_whitespace(text: str) -> str:
