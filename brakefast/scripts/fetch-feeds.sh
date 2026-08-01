@@ -58,16 +58,73 @@ BROWSER_UA = (
     "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
 )
 
+_XML_DECL_RE = re.compile(rb"""<\?xml[^>]*encoding=["']([\w.-]+)["']""", re.IGNORECASE)
+_META_CHARSET_RE = re.compile(rb"""charset=["']?([\w.-]+)""", re.IGNORECASE)
+
+
+def _decode_body(raw):
+    """Decode feed bytes honouring the declared charset.
+
+    golem.de ships correctly-declared ISO-8859-1. Forcing utf-8 (subprocess
+    text=True) raised UnicodeDecodeError, which fetch_feed swallowed as a
+    transient curl failure — silently killing the source for the whole day.
+    """
+    if not raw:
+        return ""
+    head = raw[:1024]
+    match = _XML_DECL_RE.search(head) or _META_CHARSET_RE.search(head)
+    if match:
+        declared = match.group(1).decode("ascii", "ignore").strip()
+        try:
+            return raw.decode(declared)
+        except (LookupError, UnicodeDecodeError):
+            pass  # declared charset wrong or unknown → fall through
+    try:
+        return raw.decode("utf-8")
+    except UnicodeDecodeError:
+        # latin-1 maps every byte, so this cannot raise.
+        return raw.decode("latin-1")
+
+
+_PRE_WRAPPED_RE = re.compile(
+    r"<pre[^>]*>(.*?)</pre>", re.DOTALL | re.IGNORECASE)
+
+
+def _unwrap_rendered_xml(text):
+    """Unwrap XML that a rendering proxy returned as a browser view of it.
+
+    AlterLab fetches with render_js=True. Pointed at an RSS URL the browser does
+    not hand back the raw document but its *rendering* of it:
+    `<html>…<pre>&lt;?xml version="1.0"…</pre></html>`. Feeding that to the XML
+    parser fails with "mismatched tag", so the source looks dead while the proxy
+    call actually succeeded (and cost a credit).
+    """
+    if not text:
+        return text
+    stripped = text.lstrip()
+    if stripped.startswith("<?xml") or stripped.startswith("<rss") or stripped.startswith("<feed"):
+        return text  # already raw
+    match = _PRE_WRAPPED_RE.search(text)
+    if not match:
+        return text
+    inner = html_mod.unescape(match.group(1)).strip()
+    if "<" in inner:
+        inner = inner[inner.find("<"):]
+    if inner.startswith(("<?xml", "<rss", "<feed", "<rdf:RDF")):
+        return inner
+    return text
+
+
 def _curl_fetch(url, timeout, byte_range=None):
-    """Single curl attempt. Returns stdout on success, None on failure."""
+    """Single curl attempt. Returns decoded body on success, None on failure."""
     cmd = ["curl", "-sL", "--max-time", str(timeout)]
     if byte_range:
         cmd += ["-r", byte_range]
     cmd += ["-H", f"User-Agent: {BROWSER_UA}", url]
-    result = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout + 5)
+    result = subprocess.run(cmd, capture_output=True, timeout=timeout + 5)
     if result.returncode != 0 or not result.stdout:
         return None
-    return result.stdout
+    return _decode_body(result.stdout)
 
 def fetch_feed(url, timeout=15, retries=2):
     """Fetch RSS/Atom feed: proxy for walled domains, else curl with retry.
@@ -80,7 +137,7 @@ def fetch_feed(url, timeout=15, retries=2):
         try:
             proxy_html = _proxy_dispatch_fetch(url)
             if proxy_html:
-                return proxy_html
+                return _unwrap_rendered_xml(proxy_html)
             # None → not allowlisted; fall through to direct curl.
         except Exception as e:  # block_mode / credits / fetch error → try direct
             print(f"  WARN: proxy fetch failed for {url}: {e}; falling back to curl", file=sys.stderr)
@@ -244,20 +301,21 @@ def fetch_og_image(url, timeout=8):
              "-r", "0-32767",
              "-H", f"User-Agent: {BROWSER_UA}",
              url],
-            capture_output=True, text=True, timeout=timeout+5
+            capture_output=True, timeout=timeout+5
         )
         if result.returncode != 0 or not result.stdout:
             return None
+        html_text = _decode_body(result.stdout)
         # Extract og:image
         match = re.search(
             r'<meta\s+(?:property|name)=["\']og:image["\']\s+content=["\']([^"\']+)["\']',
-            result.stdout, re.IGNORECASE
+            html_text, re.IGNORECASE
         )
         if not match:
             # Try reversed attribute order
             match = re.search(
                 r'<meta\s+content=["\']([^"\']+)["\']\s+(?:property|name)=["\']og:image["\']',
-                result.stdout, re.IGNORECASE
+                html_text, re.IGNORECASE
             )
         if match:
             return validate_image_url(match.group(1))
@@ -394,11 +452,11 @@ def extract_article_text(url, max_sentences=5, timeout=10):
              "-r", "0-65535",
              "-H", f"User-Agent: {BROWSER_UA}",
              url],
-            capture_output=True, text=True, timeout=timeout+5
+            capture_output=True, timeout=timeout+5
         )
         if result.returncode != 0 or not result.stdout:
             return None
-        html_text = result.stdout
+        html_text = _decode_body(result.stdout)
 
         # Try to narrow to article/main content first
         content_html = html_text
