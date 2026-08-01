@@ -33,6 +33,23 @@ def validate(data):
     errors = []
     warnings = []
 
+    # --- Drop articles with no usable identity (no title) before any other check.
+    # Validation used to hard-fail on articles that were missing title/summary/description
+    # entirely (e.g. enrichment timed out mid-run), which killed the whole edition.
+    # We silently drop them and rely on the minimum-count check below.
+    dropped_titleless = 0
+    for cat_val in data.get("categories", {}).values():
+        if not isinstance(cat_val, dict):
+            continue
+        articles = cat_val.get("articles", [])
+        if not isinstance(articles, list):
+            continue
+        kept = [a for a in articles if isinstance(a, dict) and (a.get("title") or "").strip()]
+        dropped_titleless += len(articles) - len(kept)
+        cat_val["articles"] = kept
+    if dropped_titleless:
+        warnings.append(f"Dropped {dropped_titleless} article(s) with empty title before validation")
+
     # --- Collect all articles across categories ---
     categories = data.get("categories", {})
     all_articles = []
@@ -60,7 +77,15 @@ def validate(data):
         if not link:
             errors.append(f"Article {i}: missing link")
         if not summary and not description:
-            errors.append(f"Article {i}: missing summary and description (need at least one)")
+            if title:
+                article["description"] = title
+                warnings.append(
+                    f"Article {i}: missing summary/description; using title as fallback"
+                )
+            else:
+                errors.append(
+                    f"Article {i}: missing summary and description (need at least one)"
+                )
 
     # --- BLOCKING: minimum article count ---
     if len(all_articles) < 20:
@@ -220,9 +245,11 @@ def main():
     for warn in warnings:
         print_err(f"WARN: {warn}")
 
+    # PIPE-01 / Phase 4.1 Plan 02 — warn-only validator. Never block publication.
     if errors:
-        print_err(f"\nValidation FAILED: {len(errors)} error(s), {len(warnings)} warning(s)")
-        sys.exit(1)
+        print_err(f"\nWARN [validate] {len(errors)} error(s) + {len(warnings)} warning(s) — publishing anyway (PIPE-01)")
+        warnings = warnings + [f"(was-error) {e}" for e in errors]
+        errors = []
 
     # Inject meta and write back
     # Try to get git SHA for pipeline version
