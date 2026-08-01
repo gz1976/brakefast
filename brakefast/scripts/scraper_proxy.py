@@ -159,6 +159,13 @@ class ScraperProxy(ABC):
         ...
 
 
+# Transiente Proxy-Fehler (AlterLab-seitig, vor dem Scrape) — gefahrlos
+# wiederholbar, da keine Credits verbraucht. Siehe fetch()-Retry unten.
+_PROXY_MAX_ATTEMPTS = 3
+_PROXY_RETRY_BACKOFF_S = 2
+_PROXY_RETRYABLE = frozenset({429, 500, 502, 503, 504})
+
+
 class AlterLabProxy(ScraperProxy):
     """AlterLab REST API client.
 
@@ -248,8 +255,29 @@ class AlterLabProxy(ScraperProxy):
                 "fail_fast": True,
             },
         }
-        resp = self._session.post(self.API_URL, json=payload, timeout=self._timeout)
-        if resp.status_code != 200:
+        resp = None
+        for _attempt in range(1, _PROXY_MAX_ATTEMPTS + 1):
+            try:
+                resp = self._session.post(
+                    self.API_URL, json=payload, timeout=self._timeout
+                )
+            except requests.RequestException as exc:
+                if _attempt < _PROXY_MAX_ATTEMPTS:
+                    time.sleep(_PROXY_RETRY_BACKOFF_S * _attempt)
+                    continue
+                raise RuntimeError(f"AlterLab request failed: {exc}") from exc
+            if resp.status_code == 200:
+                break
+            # Transienter AlterLab-Fehler (5xx / Rate-Limit): schlaegt vor dem
+            # Scrape fehl → keine Credits verbraucht → gefahrlos wiederholbar.
+            if resp.status_code in _PROXY_RETRYABLE and _attempt < _PROXY_MAX_ATTEMPTS:
+                logger.warning(
+                    "AlterLab HTTP %s (Versuch %d/%d) — Retry in %ds",
+                    resp.status_code, _attempt, _PROXY_MAX_ATTEMPTS,
+                    _PROXY_RETRY_BACKOFF_S * _attempt,
+                )
+                time.sleep(_PROXY_RETRY_BACKOFF_S * _attempt)
+                continue
             raise RuntimeError(
                 f"AlterLab returned HTTP {resp.status_code}: {resp.text[:200]}"
             )
