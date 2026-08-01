@@ -3,97 +3,288 @@
     {
       "id": "ai",
       "name": "AI & Machine Learning",
-      "emoji": "\ud83e\udd16",
+      "emoji": "🤖",
       "css_class": "category-header--ai",
       "preferLang": "de",
       "feeds": [
-        {"url": "https://www.heise.de/thema/Kuenstliche-Intelligenz/rss", "name": "Heise KI", "maxItems": 4, "lang": "de", "trust": 9},
-        {"url": "https://t3n.de/tag/kuenstliche-intelligenz/feed/", "name": "t3n KI", "maxItems": 3, "lang": "de", "trust": 8},
-        {"url": "https://www.golem.de/specials/ki/rss.html", "name": "Golem KI", "maxItems": 3, "lang": "de", "trust": 8},
-        {"url": "https://feeds.arstechnica.com/arstechnica/technology-lab", "name": "Ars Technica", "maxItems": 3, "lang": "en", "trust": 8},
-        {"url": "https://openai.com/blog/rss.xml", "name": "OpenAI Blog", "maxItems": 3, "lang": "en", "trust": 9},
-        {"url": "https://deepmind.google/blog/rss.xml", "name": "Google DeepMind", "maxItems": 3, "lang": "en", "trust": 9},
-        {"url": "https://blog.google/technology/ai/rss/", "name": "Google AI Blog", "maxItems": 3, "lang": "en", "trust": 8}
+        {
+          "url": "https://www.heise.de/developer/rss/news-atom.xml",
+          "name": "Heise KI",
+          "maxItems": 4,
+          "lang": "de",
+          "trust": 9
+        },
+        {
+          "url": "https://t3n.de/rss.xml",
+          "name": "t3n KI",
+          "maxItems": 3,
+          "lang": "de",
+          "trust": 8
+        },
+        {
+          "url": "https://rss.golem.de/rss.php?ms=ki&feed=RSS2.0",
+          "name": "Golem KI",
+          "maxItems": 3,
+          "lang": "de",
+          "trust": 8
+        },
+        {
+          "url": "https://feeds.arstechnica.com/arstechnica/technology-lab",
+          "name": "Ars Technica",
+          "maxItems": 3,
+          "lang": "en",
+          "trust": 8
+        },
+        {
+          "url": "https://openai.com/blog/rss.xml",
+          "name": "OpenAI Blog",
+          "maxItems": 3,
+          "lang": "en",
+          "trust": 9
+        },
+        {
+          "url": "https://deepmind.google/blog/rss.xml",
+          "name": "Google DeepMind",
+          "maxItems": 3,
+          "lang": "en",
+          "trust": 9
+        },
+        {
+          "url": "https://blog.google/technology/ai/rss/",
+          "name": "Google AI Blog",
+          "maxItems": 3,
+          "lang": "en",
+          "trust": 8
+        }
       ]
     },
     {
       "id": "security",
       "name": "Security & Privacy",
-      "emoji": "\ud83d\udd12",
+      "emoji": "🔒",
       "css_class": "category-header--security",
       "preferLang": "de",
       "feeds": [
-        {"url": "https://www.heise.de/security/rss/news-atom.xml", "name": "Heise Security", "maxItems": 4, "lang": "de", "trust": 9},
-        {"url": "https://feeds.feedburner.com/TheHackersNews", "name": "The Hacker News", "maxItems": 4, "lang": "en", "trust": 8},
-        {"url": "https://krebsonsecurity.com/feed/", "name": "Krebs on Security", "maxItems": 3, "lang": "en", "trust": 9},
-        {"url": "https://www.bleepingcomputer.com/feed/", "name": "BleepingComputer", "maxItems": 3, "lang": "en", "trust": 7}
+        {
+          "url": "https://www.heise.de/security/rss/news-atom.xml",
+          "name": "Heise Security",
+          "maxItems": 4,
+          "lang": "de",
+          "trust": 9
+        },
+        {
+          "url": "https://feeds.feedburner.com/TheHackersNews",
+          "name": "The Hacker News",
+          "maxItems": 4,
+          "lang": "en",
+          "trust": 8
+        },
+        {
+          "url": "https://krebsonsecurity.com/feed/",
+          "name": "Krebs on Security",
+          "maxItems": 3,
+          "lang": "en",
+          "trust": 9
+        }
       ]
     },
     {
       "id": "tech",
       "name": "Tech & Dev",
-      "emoji": "\ud83d\udcbb",
+      "emoji": "💻",
       "css_class": "category-header--tech",
       "preferLang": "de",
       "feeds": [
-        {"url": "https://www.heise.de/rss/heise-atom.xml", "name": "Heise Online", "maxItems": 4, "lang": "de", "trust": 9},
-        {"url": "https://www.golem.de/rss.html", "name": "Golem.de", "maxItems": 3, "lang": "de", "trust": 8},
-        {"url": "https://techcrunch.com/feed/", "name": "TechCrunch", "maxItems": 3, "lang": "en", "trust": 7},
-        {"url": "https://github.blog/feed/", "name": "GitHub Blog", "maxItems": 3, "lang": "en", "trust": 8},
-        {"url": "https://www.theverge.com/rss/index.xml", "name": "The Verge", "maxItems": 3, "lang": "en", "trust": 7}
+        {
+          "url": "https://www.heise.de/rss/heise-atom.xml",
+          "name": "Heise Online",
+          "maxItems": 4,
+          "lang": "de",
+          "trust": 9
+        },
+        {
+          "url": "https://rss.golem.de/rss.php?feed=RSS2.0",
+          "name": "Golem.de",
+          "maxItems": 3,
+          "lang": "de",
+          "trust": 8
+        },
+        {
+          "url": "https://techcrunch.com/feed/",
+          "name": "TechCrunch",
+          "maxItems": 3,
+          "lang": "en",
+          "trust": 7
+        },
+        {
+          "url": "https://github.blog/feed/",
+          "name": "GitHub Blog",
+          "maxItems": 3,
+          "lang": "en",
+          "trust": 8
+        },
+        {
+          "url": "https://www.theverge.com/rss/index.xml",
+          "name": "The Verge",
+          "maxItems": 3,
+          "lang": "en",
+          "trust": 7
+        }
       ]
     },
     {
       "id": "ev",
-      "name": "Elektromobilit\u00e4t",
-      "emoji": "\u26a1",
+      "name": "Elektromobilität",
+      "emoji": "⚡",
       "css_class": "category-header--ev",
       "preferLang": "de",
       "feeds": [
-        {"url": "https://teslamag.de/feed", "name": "Teslamag", "maxItems": 4, "lang": "de", "trust": 8},
-        {"url": "https://www.elektroauto-news.net/feed", "name": "Elektroauto News", "maxItems": 4, "lang": "de", "trust": 8},
-        {"url": "https://ecomento.de/feed/", "name": "Ecomento", "maxItems": 3, "lang": "de", "trust": 8},
-        {"url": "https://www.goingelectric.de/feed/", "name": "GoingElectric", "maxItems": 3, "lang": "de", "trust": 7},
-        {"url": "https://electrek.co/feed/", "name": "Electrek", "maxItems": 3, "lang": "en", "trust": 7}
+        {
+          "url": "https://teslamag.de/feed",
+          "name": "Teslamag",
+          "maxItems": 4,
+          "lang": "de",
+          "trust": 8
+        },
+        {
+          "url": "https://www.elektroauto-news.net/feed",
+          "name": "Elektroauto News",
+          "maxItems": 4,
+          "lang": "de",
+          "trust": 8
+        },
+        {
+          "url": "https://ecomento.de/feed/",
+          "name": "Ecomento",
+          "maxItems": 3,
+          "lang": "de",
+          "trust": 8
+        },
+        {
+          "url": "https://www.goingelectric.de/feed/",
+          "name": "GoingElectric",
+          "maxItems": 3,
+          "lang": "de",
+          "trust": 7
+        },
+        {
+          "url": "https://electrek.co/feed/",
+          "name": "Electrek",
+          "maxItems": 3,
+          "lang": "en",
+          "trust": 7
+        }
       ]
     },
     {
       "id": "world",
       "name": "Welt & Politik",
-      "emoji": "\ud83c\udf0d",
+      "emoji": "🌍",
       "css_class": "category-header--world",
       "preferLang": "de",
       "feeds": [
-        {"url": "https://www.derstandard.at/rss", "name": "Der Standard", "maxItems": 4, "lang": "de", "trust": 9},
-        {"url": "https://rss.orf.at/news.xml", "name": "ORF News", "maxItems": 4, "lang": "de", "trust": 9},
-        {"url": "https://www.tagesschau.de/xml/rss2", "name": "Tagesschau", "maxItems": 3, "lang": "de", "trust": 9},
-        {"url": "https://www.nzz.ch/recent.rss", "name": "NZZ", "maxItems": 3, "lang": "de", "trust": 9}
+        {
+          "url": "https://www.derstandard.at/rss",
+          "name": "Der Standard",
+          "maxItems": 4,
+          "lang": "de",
+          "trust": 9
+        },
+        {
+          "url": "https://rss.orf.at/news.xml",
+          "name": "ORF News",
+          "maxItems": 4,
+          "lang": "de",
+          "trust": 9
+        },
+        {
+          "url": "https://www.tagesschau.de/xml/rss2",
+          "name": "Tagesschau",
+          "maxItems": 3,
+          "lang": "de",
+          "trust": 9
+        },
+        {
+          "url": "https://www.nzz.ch/recent.rss",
+          "name": "NZZ",
+          "maxItems": 3,
+          "lang": "de",
+          "trust": 9
+        }
       ]
     },
     {
       "id": "knapp",
       "name": "KNAPP & Intralogistik",
-      "emoji": "\ud83d\udce6",
+      "emoji": "📦",
       "css_class": "category-header--knapp",
       "preferLang": "de",
       "feeds": [
-        {"url": "https://www.logistik-express.com/feed/", "name": "Logistik-Express", "maxItems": 4, "lang": "de", "trust": 7},
-        {"url": "https://www.logistik-heute.de/rss.xml", "name": "Logistik Heute", "maxItems": 3, "lang": "de", "trust": 8},
-        {"url": "https://www.mm-logistik.vogel.de/rss/news.xml", "name": "MM Logistik", "maxItems": 3, "lang": "de", "trust": 8},
-        {"url": "https://www.supplychaindive.com/feeds/news/", "name": "Supply Chain Dive", "maxItems": 3, "lang": "en", "trust": 7},
-        {"url": "https://www.knapp.com/feed/", "name": "KNAPP AG", "maxItems": 3, "lang": "de", "trust": 6}
+        {
+          "url": "https://www.logistik-express.com/feed/",
+          "name": "Logistik-Express",
+          "maxItems": 4,
+          "lang": "de",
+          "trust": 7
+        },
+        {
+          "url": "https://www.logistik-heute.de/rss.xml",
+          "name": "Logistik Heute",
+          "maxItems": 3,
+          "lang": "de",
+          "trust": 8
+        },
+        {
+          "url": "https://www.mm-logistik.vogel.de/rss/news.xml",
+          "name": "MM Logistik",
+          "maxItems": 3,
+          "lang": "de",
+          "trust": 8
+        },
+        {
+          "url": "https://www.supplychaindive.com/feeds/news/",
+          "name": "Supply Chain Dive",
+          "maxItems": 3,
+          "lang": "en",
+          "trust": 7
+        },
+        {
+          "url": "https://www.knapp.com/feed/",
+          "name": "KNAPP AG",
+          "maxItems": 3,
+          "lang": "de",
+          "trust": 6
+        }
       ]
     },
     {
       "id": "local",
       "name": "Steiermark & Lokal",
-      "emoji": "\ud83c\udfd4\ufe0f",
+      "emoji": "🏔️",
       "css_class": "category-header--local",
       "preferLang": "de",
       "feeds": [
-        {"url": "https://www.kleinezeitung.at/rss/steiermark", "name": "Kleine Zeitung", "maxItems": 5, "lang": "de", "trust": 9},
-        {"url": "https://rss.orf.at/steiermark.xml", "name": "ORF Steiermark", "maxItems": 4, "lang": "de", "trust": 9},
-        {"url": "https://www.meinbezirk.at/voitsberg/rss", "name": "meinbezirk.at Voitsberg", "maxItems": 3, "lang": "de", "trust": 7}
+        {
+          "url": "https://www.kleinezeitung.at/rss/steiermark",
+          "name": "Kleine Zeitung",
+          "maxItems": 5,
+          "lang": "de",
+          "trust": 9
+        },
+        {
+          "url": "https://rss.orf.at/steiermark.xml",
+          "name": "ORF Steiermark",
+          "maxItems": 4,
+          "lang": "de",
+          "trust": 9
+        },
+        {
+          "url": "https://www.meinbezirk.at/voitsberg/rss",
+          "name": "meinbezirk.at Voitsberg",
+          "maxItems": 3,
+          "lang": "de",
+          "trust": 7
+        }
       ]
     }
   ],
@@ -106,7 +297,11 @@
     "topStoryRules": {
       "preferLang": "de",
       "requireImage": true,
-      "blacklistUrlPatterns": ["github.com/", "gitlab.com/", "npmjs.com/"]
+      "blacklistUrlPatterns": [
+        "github.com/",
+        "gitlab.com/",
+        "npmjs.com/"
+      ]
     },
     "proxy": {
       "providers": {
@@ -126,10 +321,7 @@
         }
       },
       "domains": {
-        "derstandard.at": "alterlab",
-        "nzz.ch": "alterlab",
-        "kleinezeitung.at": "alterlab",
-        "heise.de": "alterlab"
+        "logistik-heute.de": "alterlab"
       }
     }
   }
