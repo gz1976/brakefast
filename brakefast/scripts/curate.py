@@ -53,11 +53,12 @@ CATEGORY_META = {
     "local":    {"name": "Steiermark & Lokal",     "emoji": "\U0001f3d4", "css_class": "category-header--local"},
 }
 
-# Target article count per category. When an LLM spec (or the auto spec)
-# under-fills a category, build_curated backfills from the source pool up to
-# these quotas so the edition does not silently shrink below the smoke-test
-# floor. Mirrors the roadmap target (ai/security/tech/ev/world 6, knapp 4,
-# local 6 → 40 main + ki_modelle/dev_digest).
+# Zielanzahl Artikel pro Rubrik (Entscheidung 01.08.2026: 40 statt 35).
+# Wirkt als Untergrenze UND Obergrenze: build_curated fuellt eine unterbesetzte
+# Rubrik aus dem Quellpool auf und kappt eine ueberbesetzte am Ende der
+# Relevanzreihenfolge. Wird hier eine Zahl geaendert, muss Regel C im
+# Auswahl-Prompt (article_briefing_engine.py) mitgezogen werden — dort steht
+# sie als Text und kann nicht importiert werden.
 CATEGORY_QUOTA = {
     "ai": 6, "security": 6, "tech": 6, "ev": 6,
     "world": 6, "knapp": 4, "local": 6,
@@ -1085,6 +1086,14 @@ def build_article_payload(item, source_article):
         "discussion_url": pick("discussion_url"),
     }
 
+    if not article["summary"] and not article["description"]:
+        source_prefix = f"Kurznachricht von {article['source']}" if article["source"] else "Kurznachricht"
+        fallback = f"{source_prefix}: {article['title']}." if article["title"] else source_prefix
+        article["summary"] = fallback
+        article["description"] = fallback
+        article["briefing_blurb"] = fallback
+        article["dek"] = fallback
+
     if base.get("full_text") and not item.get("full_text"):
         article["full_text"] = base.get("full_text")
 
@@ -1522,9 +1531,8 @@ def build_curated(spec, source_articles):
             events = fetch_local_events()  # fallback: enriched RSS with date parsing
         morning_tiles["events"] = events
 
-    # Pre-bucket the source pool by raw category so we can backfill a
-    # category when the LLM spec under-fills it. Without this, a sparse
-    # spec produces a short edition — the recurring "too few articles" bug.
+    # Quellpool nach Rohkategorie vorsortieren, damit eine unterbesetzte Rubrik
+    # aufgefuellt werden kann. Ohne das ergibt eine duenne Spec eine kurze Zeitung.
     pool_by_cat = {}
     for idx, art in enumerate(source_articles):
         raw_cat = (art.get("_raw_category") or art.get("category") or "").lower()
@@ -1552,7 +1560,7 @@ def build_curated(spec, source_articles):
 
     for cat_key, cat_meta in CATEGORY_META.items():
         cat_spec = spec.get("categories", {}).get(cat_key, [])
-        # Tolerate dict-shaped category specs ({"articles": [...]}).
+        # Dict-foermige Category-Spec tolerieren ({"articles": [...]}).
         if isinstance(cat_spec, dict):
             cat_spec = cat_spec.get("articles", [])
         articles = []
@@ -1560,11 +1568,10 @@ def build_curated(spec, source_articles):
             # Item can reference article pool by index or contain full article data
             if "index" in item and isinstance(item["index"], int):
                 idx = item["index"]
-                if 0 <= idx < len(source_articles):
-                    payload = build_article_payload(item, source_articles[idx])
-                    used_indices.add(idx)
-                else:
-                    payload = build_article_payload(item, {})
+                if not (0 <= idx < len(source_articles)):
+                    continue  # halluzinierter Index — verwerfen (Produktionsverhalten)
+                payload = build_article_payload(item, source_articles[idx])
+                used_indices.add(idx)
             else:
                 payload = build_article_payload(item, {})
             link = _norm_link(payload)
@@ -1574,10 +1581,11 @@ def build_curated(spec, source_articles):
                 seen_links.add(link)
             articles.append(payload)
 
-        # Backfill from the source pool when the spec under-fills this
-        # category, so a sparse LLM response still yields a full edition.
         quota = CATEGORY_QUOTA.get(cat_key, 0)
-        if len(articles) < quota:
+
+        # Auffuellen, wenn die Spec die Rubrik unterbesetzt laesst.
+        if quota and len(articles) < quota:
+            _before = len(articles)
             candidates = sorted(
                 (i for i in pool_by_cat.get(cat_key, []) if i not in used_indices),
                 key=_pool_score, reverse=True,
@@ -1593,6 +1601,15 @@ def build_curated(spec, source_articles):
                 if link:
                     seen_links.add(link)
                 articles.append(payload)
+            print(f"[quota-backfill] {cat_key}: {_before} -> {len(articles)} "
+                  f"(Quote {quota}, Pool {len(pool_by_cat.get(cat_key, []))})",
+                  file=sys.stderr)
+
+        # Kappen, wenn die Spec mehr liefert als die Quote. Die Spec ist nach
+        # Relevanz absteigend sortiert — es faellt der schwaechste Eintrag.
+        if quota and len(articles) > quota:
+            print(f"[quota-cap] {cat_key}: {len(articles)} -> {quota}", file=sys.stderr)
+            articles = articles[:quota]
 
         total_articles += len(articles)
         for a in articles:
@@ -1608,10 +1625,6 @@ def build_curated(spec, source_articles):
 
     ki_modelle = build_detail_section(spec.get("ki_modelle", {}), source_articles, preferred_articles=preferred_articles)
     dev_digest = build_detail_section(spec.get("dev_digest", {}), source_articles, preferred_articles=preferred_articles)
-    # Detail-section digest items are real content the reader sees, so they
-    # count toward totalArticles (the smoke test's >= 25 gate). They were
-    # previously omitted, undercounting the edition.
-    total_articles += len(ki_modelle) + len(dev_digest)
 
     # Assemble final JSON
     result = {
@@ -2083,6 +2096,69 @@ def main():
 
     # Build curated JSON
     result = build_curated(spec, source_articles)
+
+    # PIPE-02 / Phase 4.1 Plan 04 — raw-RSS fallback when LLM under-picks
+    MIN_ARTICLES = 20
+    if result.get("totalArticles", 0) < MIN_ARTICLES:
+        _target_to_add = MIN_ARTICLES - result.get("totalArticles", 0)
+        _picked_urls = set()
+        for _cat_val in result.get("categories", {}).values():
+            for _art in _cat_val.get("articles", []):
+                _u = _art.get("link") or _art.get("url") or ""
+                if _u:
+                    _picked_urls.add(_u)
+        _cands = [
+            _a for _a in source_articles
+            if (_a.get("link") or _a.get("url") or "") not in _picked_urls
+            and (_a.get("link") or _a.get("url"))
+            and _a.get("title")
+        ]
+        _cands.sort(key=lambda _a: (
+            -float(_a.get("relevance_score") or 0.0),
+            _a.get("published_at") or "",
+        ))
+        _rescued = 0
+        _rescued_per_cat = {}
+        _existing_cats = set(result.get("categories", {}).keys())
+        _default_cat = "ai" if "ai" in _existing_cats else (next(iter(_existing_cats), None))
+        for _cand in _cands:
+            if _rescued >= _target_to_add:
+                break
+            _cand_cat = _cand.get("category", "")
+            if _cand_cat not in _existing_cats:
+                _cand_cat = _default_cat
+            if not _cand_cat:
+                continue
+            _fb_art = {
+                "title":        _cand.get("title", "").strip(),
+                "link":         _cand.get("link") or _cand.get("url") or "",
+                "source":       _cand.get("source", ""),
+                "summary":      (_cand.get("description") or _cand.get("summary") or "").strip(),
+                "category":     _cand_cat,
+                "published_at": _cand.get("published_at", ""),
+            }
+            for _k in ("image", "relevance_score", "reading_time_minutes", "tags", "description", "headline"):
+                if _cand.get(_k):
+                    _fb_art[_k] = _cand[_k]
+            result["categories"][_cand_cat]["articles"].append(_fb_art)
+            _rescued += 1
+            _rescued_per_cat[_cand_cat] = _rescued_per_cat.get(_cand_cat, 0) + 1
+        if _rescued > 0:
+            _prev_total = result["totalArticles"]
+            result["totalArticles"] = _prev_total + _rescued
+            print(
+                f"[fallback-rss] filled curated set from {_prev_total} to {result['totalArticles']} "
+                f"(rescued {_rescued} from raw pool of {len(source_articles)}; per-cat: {_rescued_per_cat})",
+                file=sys.stderr,
+            )
+            try:
+                # ueber OUTPUT statt hartkodiert — sonst schreibt jeder Testlauf mit
+                # umgebogenem OUTPUT diesen Marker trotzdem ins Produktions-output/.
+                # Identischer Pfad in Produktion, da BASE ebenfalls fest steht.
+                with open(os.path.join(OUTPUT, ".fallback_used"), "w") as _fp:
+                    _fp.write(f"{_rescued}\n")
+            except Exception as _e:
+                print(f"[fallback-rss] WARN: could not write .fallback_used marker: {_e}", file=sys.stderr)
 
     # Write output
     with open(CURATED_FILE, "w") as f:
