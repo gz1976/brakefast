@@ -764,6 +764,8 @@ def generate_curation_spec(enriched_path: Path, spec_output: Path) -> int:
         for a in article_index
     )
 
+    # Die Zielzahlen in Regel C spiegeln CATEGORY_QUOTA in curate.py.
+    # Beide Stellen von Hand synchron halten — es gibt keinen Import.
     instructions = f"""Du bist Otto, der persoenliche Kurator fuer BrakeFast — eine deutschsprachige Morgenzeitung.
 Heute ist {today_str}. Erstelle eine Kurations-Spezifikation als JSON.
 
@@ -815,8 +817,11 @@ B. QUALITAETSFILTER (skippen, nicht auswaehlen):
    - Clickbait-Titel ("Sie werden nicht glauben...", "Das aendert alles")
    - Thematisch falsch einsortiert (z.B. Security-Story landete in AI)
 
-C. AUSWAHL pro Kategorie: bis zu 5 Artikel, sortiert nach Relevanz absteigend
-   (wichtigste = erster Eintrag). Wenn nach Filterung <5 uebrig: weniger ist OK, NICHT mit Filler auffuellen.
+C. AUSWAHL pro Kategorie — Zielzahl: 6 Artikel fuer ai, security, tech, ev, world und
+   local, 4 Artikel fuer knapp. Sortiert nach Relevanz absteigend (wichtigste = erster
+   Eintrag). Wenn nach Filterung weniger als die Zielzahl uebrig ist: weniger ist OK,
+   NICHT mit Filler auffuellen — lieber fuenf starke als sechs mit einem schwachen.
+   Mehr als die Zielzahl wird hinten abgeschnitten, der letzte Eintrag faellt zuerst.
    Top-Position pro Kategorie muss substanziell und aktuell sein.
 
 D. AUSWAHL fuer "ai"-Kategorie speziell: an Position [0] gehoert der wichtigste echte AI-Artikel des Tages
