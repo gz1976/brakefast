@@ -7,6 +7,36 @@ import './styles/editorial-firstscreen.css';
 import './styles/editorial-categories.css';
 
 type AppView = 'brakefast' | 'monitor';
+type AppTheme = 'dark' | 'editorial';
+
+interface AppShellProps {
+  children: React.ReactNode;
+  theme: AppTheme;
+  showSkipLink?: boolean;
+}
+
+function AppShell({ children, theme, showSkipLink = false }: AppShellProps) {
+  return (
+    <div className={`otto-app-shell otto-app-shell--${theme}`}>
+      {showSkipLink && (
+        <a href="#main-content" className="skip-to-content">
+          Zum Inhalt springen
+        </a>
+      )}
+      <nav className="otto-home-bar" aria-label="Übergeordnete Navigation">
+        <a
+          className="otto-home-link"
+          data-otto-home=""
+          href="https://ottobot.net/"
+          aria-label="Zur OTTO-Übersicht"
+        >
+          ← OTTO
+        </a>
+      </nav>
+      {children}
+    </div>
+  );
+}
 
 function App() {
   // URL-Hash basiertes Routing: #monitor oder default
@@ -41,10 +71,10 @@ function App() {
 
   if (view === 'monitor') {
     return (
-      <>
+      <AppShell theme="dark">
         <OttoMonitor />
         {viewSwitcher}
-      </>
+      </AppShell>
     );
   }
 
@@ -65,33 +95,30 @@ function BrakeFastView({ viewSwitcher }: { viewSwitcher: React.ReactNode }) {
 
   if (loading) {
     return (
-      <>
+      <AppShell theme="dark">
         <div className="loading-screen">
           <h1>Brake<span>Fast</span></h1>
           <p>Lade heutige Ausgabe&hellip;</p>
         </div>
         {viewSwitcher}
-      </>
+      </AppShell>
     );
   }
 
   if (error || !data) {
     return (
-      <>
+      <AppShell theme="dark">
         <div className="error-screen">
           <h2>Datenformat ungueltig</h2>
           <p>{error || 'Die Ausgabe konnte nicht verarbeitet werden. Bitte spaeter erneut laden.'}</p>
         </div>
         {viewSwitcher}
-      </>
+      </AppShell>
     );
   }
 
   return (
-    <>
-      <a href="#main-content" className="skip-to-content">
-        Zum Inhalt springen
-      </a>
+    <AppShell theme="editorial" showSkipLink>
       <BrakeFastApp
         data={data}
         archiveEditions={archiveEditions}
@@ -100,7 +127,7 @@ function BrakeFastView({ viewSwitcher }: { viewSwitcher: React.ReactNode }) {
         onGoToEdition={goToEdition}
       />
       {viewSwitcher}
-    </>
+    </AppShell>
   );
 }
 
