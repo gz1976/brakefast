@@ -52,6 +52,83 @@ body {
 
 a { color: inherit; text-decoration: none; }
 
+/* ─── GLOBAL OTTO APP SHELL ─── */
+.otto-app-shell {
+  --otto-home-bar-height: calc(44px + env(safe-area-inset-top));
+  --otto-home-focus: var(--accent);
+  min-height: 100vh;
+  background: var(--bg-primary);
+}
+
+.otto-app-shell--editorial {
+  --otto-home-focus: #8a1a1a;
+  background: #faf7f0;
+}
+
+.otto-home-bar {
+  min-height: var(--otto-home-bar-height);
+  padding: env(safe-area-inset-top) var(--safe-right) 0 var(--safe-left);
+  display: flex;
+  align-items: center;
+  background: var(--bg-primary);
+  box-shadow: inset 0 -1px var(--border);
+}
+
+.otto-app-shell--editorial .otto-home-bar {
+  background: #faf7f0;
+  box-shadow: inset 0 -1px #c8c2ad;
+}
+
+.otto-home-link {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-pill);
+  color: var(--text-secondary);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 1.5px;
+  transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+}
+
+.otto-home-link:hover {
+  color: var(--text-primary);
+  border-color: var(--accent);
+  background: var(--bg-card);
+}
+
+.otto-app-shell--editorial .otto-home-link {
+  color: #3d3a30;
+  border-color: #c8c2ad;
+}
+
+.otto-app-shell--editorial .otto-home-link:hover {
+  color: #15140f;
+  border-color: #8a1a1a;
+  background: #f3efe4;
+}
+
+.otto-home-link:focus-visible {
+  outline: 2px solid var(--otto-home-focus);
+  outline-offset: 3px;
+}
+
+.otto-app-shell > .loading-screen,
+.otto-app-shell > .error-screen {
+  min-height: calc(100vh - var(--otto-home-bar-height));
+}
+
+.otto-app-shell--editorial .ed-firstscreen {
+  height: calc(100vh - var(--otto-home-bar-height));
+  height: calc(100svh - var(--otto-home-bar-height));
+  max-height: calc(100vh - var(--otto-home-bar-height));
+}
+
 .container {
   max-width: 1280px;
   margin: 0 auto;
@@ -2158,7 +2235,13 @@ a { color: inherit; text-decoration: none; }
 
 /* ─── PRINT ─── */
 @media print {
-  .nav-tabs { display: none; }
+  .nav-tabs,
+  .otto-home-bar { display: none; }
+  .otto-app-shell--editorial .ed-firstscreen {
+    height: auto;
+    min-height: 0;
+    max-height: none;
+  }
   body { background: #fff; color: #000; }
 }
 
@@ -2878,6 +2961,12 @@ a { color: inherit; text-decoration: none; }
 }
 
 @media (max-width: 767px) {
+  .otto-app-shell--editorial .ed-firstscreen {
+    height: auto;
+    min-height: calc(100svh - var(--otto-home-bar-height));
+    max-height: none;
+  }
+
   .time-machine-bar {
     padding: 14px 16px 0;
     align-items: stretch;
