@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title">
+  <title id="title">BrakeFast</title>
+  <rect width="64" height="64" fill="#F97316"/>
+  <path fill="#FFFFFF" fill-rule="evenodd" d="M17 10h19c10 0 16 5 16 13 0 5-2 8-6 11 5 2 8 6 8 12 0 10-7 15-18 15H17V10Zm11 9v11h7c4 0 6-2 6-5.5S39 19 35 19h-7Zm0 20v13h8c5 0 7-2 7-6.5S41 39 36 39h-8Z"/>
+</svg>
