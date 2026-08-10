@@ -1,0 +1,14 @@
+{
+  "name": "BrakeFast",
+  "short_name": "BrakeFast",
+  "description": "Deine persoenliche Morgenzeitung",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#F97316",
+  "theme_color": "#F97316",
+  "icons": [
+    { "src": "/brakefast-bold-v2-pwa-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/brakefast-bold-v2-pwa-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/brakefast-bold-v2-pwa-512-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}
