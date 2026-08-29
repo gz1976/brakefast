@@ -1,5 +1,7 @@
 # BrakeFast React
 
+Repo-How-to, VPS-Zugang und Deploy: [../README.md](../README.md).
+
 `brakefast-react` ist die React/TypeScript-Implementierung von **BrakeFast**: einer persönlichen, KI-kuratierten Morgenzeitung für Gerhard. Live unter `https://brakefast.ottobot.net`. Die App rendert sowohl die eigentliche Zeitung als auch einen separaten Monitoring-Bildschirm für Otto/OpenClaw.
 
 Die visuelle Zielrichtung lag historisch in Otto `BRAKEFAST-REDESIGN-SPEC.md` (nicht in diesem Repo). Diese README dokumentiert den aktuellen Implementierungsstand.
