@@ -22,16 +22,16 @@ describe('isValidArticleImage', () => {
     expect(isValidArticleImage('https://static.wikia.nocookie.net/some-image.png')).toBe(false);
   });
 
-  it('returns false for URLs matching screenshot pattern', () => {
-    expect(isValidArticleImage('https://example.com/images/screenshot-2026-03-27.png')).toBe(false);
+  it('allows screenshot URLs because the generic filter was too aggressive', () => {
+    expect(isValidArticleImage('https://example.com/images/screenshot-2026-03-27.png')).toBe(true);
   });
 
   it('returns false for placeholder URLs', () => {
     expect(isValidArticleImage('https://example.com/images/placeholder-image.jpg')).toBe(false);
   });
 
-  it('returns false for wikipedia URLs', () => {
-    expect(isValidArticleImage('https://upload.wikimedia.org/wikipedia/commons/image.jpg')).toBe(false);
+  it('allows non-flag Wikimedia Commons images', () => {
+    expect(isValidArticleImage('https://upload.wikimedia.org/wikipedia/commons/image.jpg')).toBe(true);
   });
 
   it('returns false for favicon URLs', () => {

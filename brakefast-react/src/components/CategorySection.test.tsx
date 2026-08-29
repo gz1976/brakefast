@@ -54,14 +54,15 @@ describe('CategorySection', () => {
     expect(screen.getByText('Lead Title')).toBeInTheDocument();
   });
 
-  it('renders secondary stories (up to 5)', () => {
+  it('renders secondary stories (up to 4)', () => {
     const articles = Array.from({ length: 7 }, (_, i) =>
       createArticle({ title: `Article ${i}`, link: `https://example.com/${i}` }),
     );
     render(<CategorySection {...defaultProps} articles={articles} />);
-    // Lead is Article 0, secondary should be Article 1-5 (5 items)
+    // Lead is Article 0, secondary should be Article 1-4 (4 items)
     expect(screen.getByText('Article 1')).toBeInTheDocument();
-    expect(screen.getByText('Article 5')).toBeInTheDocument();
+    expect(screen.getByText('Article 4')).toBeInTheDocument();
+    expect(screen.queryByText('Article 5')).not.toBeInTheDocument();
     expect(screen.queryByText('Article 6')).not.toBeInTheDocument();
   });
 

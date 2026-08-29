@@ -18,9 +18,9 @@ describe('Masthead', () => {
     expect(screen.getByText('BrakeFast')).toBeInTheDocument();
   });
 
-  it('shows article count', () => {
+  it('does not render the retired article-count chip', () => {
     render(<Masthead {...baseProps} />);
-    expect(screen.getByText('42 Artikel')).toBeInTheDocument();
+    expect(screen.queryByText('42 Artikel')).not.toBeInTheDocument();
   });
 
   it('shows edition number when provided', () => {
@@ -33,9 +33,9 @@ describe('Masthead', () => {
     expect(screen.queryByText(/#\d+/)).not.toBeInTheDocument();
   });
 
-  it('shows reading time when provided', () => {
+  it('does not render the retired reading-time chip', () => {
     render(<Masthead {...baseProps} readingTimeTotal={25} />);
-    expect(screen.getByText(/~\s*25\s*Min/)).toBeInTheDocument();
+    expect(screen.queryByText(/~\s*25\s*Min/)).not.toBeInTheDocument();
   });
 
   it('hides reading time when not provided', () => {

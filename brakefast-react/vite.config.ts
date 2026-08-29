@@ -7,13 +7,13 @@ export default defineConfig({
   server: {
     proxy: {
       '/latest': {
-        target: 'https://ottobot.net',
+        target: 'https://brakefast.ottobot.net',
         changeOrigin: true,
         secure: false,
         timeout: 5000,
       },
       '/legacy': {
-        target: 'https://ottobot.net',
+        target: 'https://brakefast.ottobot.net',
         changeOrigin: true,
         secure: false,
         timeout: 5000,

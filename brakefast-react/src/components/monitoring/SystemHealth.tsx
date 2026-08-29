@@ -8,7 +8,11 @@ interface Props {
 function StatusDot({ status }: { status: string }) {
   const color = status === 'active' || status === 'ok' || status === 'healthy'
     ? '#51cf66'
-    : status === 'warning' ? '#ffd43b' : '#ff6b6b';
+    : status === 'warning' || status === 'warn'
+      ? '#ffd43b'
+      : status === 'unknown' || status === 'disabled'
+        ? '#8a8a9e'
+        : '#ff6b6b';
   return <span className="status-dot-monitor" style={{ background: color }} />;
 }
 

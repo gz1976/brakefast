@@ -64,13 +64,16 @@ describe('useNewspaper', () => {
     expect(result.current.data).toBeNull();
   });
 
-  it('sets error when Zod validation fails on non-object response', async () => {
-    (globalThis.fetch as ReturnType<typeof vi.fn>).mockImplementation(() =>
-      Promise.resolve(new Response('42', { status: 200, headers: { 'Content-Type': 'application/json' } })),
-    );
+  it.each([
+    ['primitive', 42],
+    ['array', []],
+    ['null', null],
+  ])('sets error when Zod validation fails on %s response', async (_label, payload) => {
+    mockFetchReturning(payload);
     const { result } = renderHook(() => useNewspaper());
     await waitFor(() => expect(result.current.loading).toBe(false));
     expect(result.current.error).toBeTruthy();
+    expect(result.current.data).toBeNull();
   });
 
   it('deduplicates articles after validation', async () => {

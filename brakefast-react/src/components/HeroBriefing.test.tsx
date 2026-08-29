@@ -78,9 +78,9 @@ describe('HeroBriefing', () => {
     }).not.toThrow();
   });
 
-  it('renders editorial text when present', () => {
+  it('does not render the retired editorial banner', () => {
     render(<HeroBriefing data={mockData} calendarRevealed={false} />);
-    expect(screen.getByText('Test editorial text')).toBeInTheDocument();
+    expect(screen.queryByText('Test editorial text')).not.toBeInTheDocument();
   });
 
   it('shows "Wetter nicht verfügbar" when weather widget is missing', () => {

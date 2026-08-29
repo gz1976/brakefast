@@ -1,6 +1,6 @@
 # BrakeFast React
 
-`brakefast-react` ist die React/TypeScript-Implementierung von **BrakeFast**: einer persönlichen, KI-kuratierten Morgenzeitung für Gerhard. Live unter `https://ottobot.net`. Die App rendert sowohl die eigentliche Zeitung als auch einen separaten Monitoring-Bildschirm für Otto/OpenClaw.
+`brakefast-react` ist die React/TypeScript-Implementierung von **BrakeFast**: einer persönlichen, KI-kuratierten Morgenzeitung für Gerhard. Live unter `https://brakefast.ottobot.net`. Die App rendert sowohl die eigentliche Zeitung als auch einen separaten Monitoring-Bildschirm für Otto/OpenClaw.
 
 Die visuelle Zielrichtung und das grobe Produktkonzept sind in `../BRAKEFAST-REDESIGN-SPEC.md` beschrieben. Diese README dokumentiert den **tatsächlichen aktuellen Implementierungsstand**.
 
@@ -223,9 +223,9 @@ npm run test:coverage # Tests mit Coverage-Report
 # Build
 npm run build
 
-# Upload und Deploy auf Server
-rsync -avz --delete -e "ssh -o ControlPath=$HOME/.ssh/sockets/otto-vps" dist/ gerhard@clogzoehrer.ddns.net:/tmp/brakefast-dist/
-ssh -o ControlPath=~/.ssh/sockets/otto-vps gerhard@clogzoehrer.ddns.net "sudo rsync -av --delete /tmp/brakefast-dist/ /docker/brakefast/react/dist/"
+# Erst Dry-run prüfen, dann nach datiertem Backup deployen
+rsync -anvi --delete --rsync-path='sudo rsync' -e ssh dist/ otto-vps:/docker/brakefast/react/dist/
+rsync -avi --delete --rsync-path='sudo rsync' -e ssh dist/ otto-vps:/docker/brakefast/react/dist/
 ```
 
-Die React-App wird als statische Dateien unter `/docker/brakefast/react/dist/` auf dem VPS serviert. nginx liefert sie unter `ottobot.net` aus.
+Die React-App wird als statische Dateien unter `/docker/brakefast/react/dist/` auf dem VPS serviert. nginx liefert sie unter `brakefast.ottobot.net` aus.

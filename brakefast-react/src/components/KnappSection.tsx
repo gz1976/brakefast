@@ -145,9 +145,8 @@ function buildKnappArticle(signal: KnappSignal, index: number): Article {
 }
 
 export function KnappSection({ data, onArticleClick, isRead }: Props) {
-  const signals = data.signals || [];
-
   const leadAndSecondary = useMemo(() => {
+    const signals = data.signals || [];
     const signalArticles = signals.slice(0, 4).map((signal, index) => buildKnappArticle(signal, index));
     const leadSummarySource = signalArticles
       .slice(0, 3)
@@ -183,7 +182,7 @@ export function KnappSection({ data, onArticleClick, isRead }: Props) {
       lead,
       secondary: signalArticles,
     };
-  }, [data.headline, signals]);
+  }, [data.headline, data.signals]);
 
   if (!leadAndSecondary.lead.title && leadAndSecondary.secondary.length === 0) {
     return null;

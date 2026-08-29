@@ -115,23 +115,22 @@ const defaultProps = () => ({
 // ─── Tests ───
 
 describe('BrakeFastApp', () => {
-  it('renders masthead with edition number and article count', () => {
+  it('renders the editorial masthead with edition number', () => {
     render(<BrakeFastApp {...defaultProps()} />);
 
-    expect(screen.getByText(/Ausgabe #42/)).toBeInTheDocument();
-    expect(screen.getByText('6 Artikel')).toBeInTheDocument();
+    expect(screen.getByText('BrakeFast')).toBeInTheDocument();
+    expect(screen.getByText(/No\. 42/)).toBeInTheDocument();
   });
 
-  it('renders section dividers for available categories', () => {
+  it('renders editorial sections for available categories', () => {
     const { container } = render(<BrakeFastApp {...defaultProps()} />);
 
-    // Use the section-divider-label class to avoid matching nav pills and category badges
-    const dividerLabels = Array.from(
-      container.querySelectorAll('.section-divider-label'),
+    const sectionLabels = Array.from(
+      container.querySelectorAll('.ed-cat-head-name'),
     ).map((el) => el.textContent);
 
-    expect(dividerLabels).toContain('AI & Tech');
-    expect(dividerLabels).toContain('Security');
+    expect(sectionLabels).toContain('AI & Tech');
+    expect(sectionLabels).toContain('Security');
   });
 
   it('renders footer with generation date', () => {
@@ -146,39 +145,35 @@ describe('BrakeFastApp', () => {
     expect(footerScope.getByText(/Ausgabe/)).toBeInTheDocument();
   });
 
-  it('opens ArticleModal when an article is clicked', async () => {
+  it('opens EditorialArticleModal when an article is clicked', async () => {
     const user = userEvent.setup();
     const { container } = render(<BrakeFastApp {...defaultProps()} />);
 
-    // Target the lead-story link inside a category-section (not the hero briefing)
-    const leadStoryLink = container.querySelector('.lead-story')!;
-    expect(leadStoryLink).toBeInTheDocument();
+    const leadStoryHeadline = container.querySelector('#ai-tech .ed-cat-lead-headline') as HTMLElement;
+    expect(leadStoryHeadline).toBeInTheDocument();
 
-    await user.click(leadStoryLink);
+    await user.click(leadStoryHeadline);
 
-    // Modal should now be visible with the article title and source link
-    expect(screen.getByText(/Weiterlesen auf Test Source/)).toBeInTheDocument();
-    // Modal has a close button
-    expect(screen.getByText('\u2715')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Artikel schlie\u00dfen' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Artikel \u00f6ffnen \u2192' })).toHaveAttribute(
+      'href',
+      'https://example.com/ai1',
+    );
   });
 
-  it('closes ArticleModal when close button is clicked', async () => {
+  it('closes EditorialArticleModal when close button is clicked', async () => {
     const user = userEvent.setup();
     const { container } = render(<BrakeFastApp {...defaultProps()} />);
 
-    // Open modal by clicking lead story
-    const leadStoryLink = container.querySelector('.lead-story')!;
-    await user.click(leadStoryLink);
+    const leadStoryHeadline = container.querySelector('#ai-tech .ed-cat-lead-headline') as HTMLElement;
+    await user.click(leadStoryHeadline);
 
-    // Verify modal is open
-    expect(screen.getByText(/Weiterlesen auf Test Source/)).toBeInTheDocument();
+    const closeButton = screen.getByRole('button', { name: 'Artikel schlie\u00dfen' });
+    expect(closeButton).toBeInTheDocument();
 
-    // Click close button
-    const closeButton = screen.getByText('\u2715');
     await user.click(closeButton);
 
-    // Modal content should be gone
-    expect(screen.queryByText(/Weiterlesen auf Test Source/)).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Artikel schlie\u00dfen' })).not.toBeInTheDocument();
   });
 
   it('does not crash with empty categories', () => {
@@ -191,12 +186,11 @@ describe('BrakeFastApp', () => {
       <BrakeFastApp {...defaultProps()} data={data} />,
     );
 
-    // App still renders masthead and footer
-    expect(screen.getByText('BrakeFast')).toBeInTheDocument();
+    // EditorialFirstScreen provides a dedicated empty state and the shell survives.
+    expect(screen.getByText('Keine Top Story verf\u00fcgbar.')).toBeInTheDocument();
     expect(container.querySelector('.footer')).toBeInTheDocument();
 
-    // No section dividers rendered
-    expect(container.querySelectorAll('.section-divider')).toHaveLength(0);
+    expect(container.querySelectorAll('.ed-category')).toHaveLength(0);
   });
 
   it('does not crash with missing widgets', () => {
@@ -208,15 +202,15 @@ describe('BrakeFastApp', () => {
 
     // App renders without exploding
     expect(screen.getByText('BrakeFast')).toBeInTheDocument();
-    expect(screen.getByText('6 Artikel')).toBeInTheDocument();
+    expect(screen.getByText('Wetter nicht verf\u00fcgbar')).toBeInTheDocument();
   });
 
   it('marks article as read after clicking it', async () => {
     const user = userEvent.setup();
     const { container } = render(<BrakeFastApp {...defaultProps()} />);
 
-    const leadStoryLink = container.querySelector('.lead-story')!;
-    await user.click(leadStoryLink);
+    const leadStoryHeadline = container.querySelector('#ai-tech .ed-cat-lead-headline') as HTMLElement;
+    await user.click(leadStoryHeadline);
 
     // After clicking, the article link should be stored in localStorage
     const stored = localStorageMock.getItem('brakefast-read-items');
@@ -229,7 +223,7 @@ describe('BrakeFastApp', () => {
     const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
     // Create a data set where the AI category has an article whose toString()
-    // on certain fields will cause a render error inside CategorySection.
+    // on certain fields will cause a render error inside the editorial section.
     // We use an object with a getter that throws as the title.
     const badArticle = {
       get title(): string { throw new Error('Simulated render crash'); },
@@ -261,7 +255,7 @@ describe('BrakeFastApp', () => {
     const { container } = render(<BrakeFastApp {...defaultProps()} data={data} />);
 
     // The security section should still render even if AI section errors
-    // Title appears in both HeroBriefing (top story) and CategorySection, so use getAllByText
+    // Title appears in both the first screen and editorial category, so use getAllByText.
     expect(screen.getAllByText('Security Still Works').length).toBeGreaterThanOrEqual(1);
 
     // Footer should still render
@@ -299,66 +293,33 @@ describe('BrakeFastApp', () => {
       <BrakeFastApp {...defaultProps()} data={data} />,
     );
 
-    // AI and World sections render their dividers
-    const dividerLabels = Array.from(
-      container.querySelectorAll('.section-divider-label'),
+    const sectionLabels = Array.from(
+      container.querySelectorAll('.ed-cat-head-name'),
     ).map((el) => el.textContent);
 
-    expect(dividerLabels).toContain('AI & Tech');
-    expect(dividerLabels).toContain('Welt');
-    // Security has 0 articles, so no divider
-    expect(dividerLabels).not.toContain('Security');
+    expect(sectionLabels).toContain('AI & Tech');
+    expect(sectionLabels).toContain('Welt');
+    expect(sectionLabels).not.toContain('Security');
   });
 });
 
-describe('BrakeFastApp editorial flag (ROLL-01 + EDIT-03)', () => {
-  // Reset URL between tests so flag state doesn't bleed into the wider suite.
+describe('BrakeFastApp permanent editorial layout', () => {
   afterEach(() => {
     window.history.pushState({}, '', '/');
   });
 
-  it('renders EditorialFirstScreen when ?editorial=1 is present', () => {
-    window.history.pushState({}, '', '/?editorial=1');
-    const { container } = render(<BrakeFastApp {...defaultProps()} />);
-    expect(container.querySelector('.ed-firstscreen')).toBeInTheDocument();
-    // Legacy nodes must NOT render in the editorial branch
-    expect(container.querySelector('.masthead')).toBeNull();
-    expect(container.querySelector('.first-screen')).toBeNull();
-    expect(container.querySelector('.hero-briefing')).toBeNull();
-  });
-
-  it('renders legacy Masthead + first-screen when the flag is absent (default path unchanged)', () => {
-    window.history.pushState({}, '', '/');
-    const { container } = render(<BrakeFastApp {...defaultProps()} />);
-    expect(container.querySelector('.masthead')).toBeInTheDocument();
-    expect(container.querySelector('.first-screen')).toBeInTheDocument();
-    expect(container.querySelector('.hero-briefing')).toBeInTheDocument();
-    expect(container.querySelector('.ed-firstscreen')).toBeNull();
-  });
-
-  it('renders legacy path when ?editorial has a non-"1" value (strict comparison)', () => {
-    window.history.pushState({}, '', '/?editorial=true');
-    const { container } = render(<BrakeFastApp {...defaultProps()} />);
-    expect(container.querySelector('.masthead')).toBeInTheDocument();
-    expect(container.querySelector('.ed-firstscreen')).toBeNull();
-  });
-
-  it('renders .ed-category sections and hides .section-divider when ?editorial=1 is present (EDIT-04)', () => {
-    window.history.pushState({}, '', '/?editorial=1');
-    const { container } = render(<BrakeFastApp {...defaultProps()} />);
-    // Editorial branch emits .ed-category for every non-empty category
-    expect(container.querySelectorAll('.ed-category').length).toBeGreaterThanOrEqual(1);
-    // Legacy SectionDivider MUST NOT render when the flag is on
-    expect(container.querySelectorAll('.section-divider').length).toBe(0);
-    // Legacy CategorySection MUST NOT render either
-    expect(container.querySelectorAll('.category-section').length).toBe(0);
-  });
-
-  it('renders .section-divider + .category-section and hides .ed-category when the flag is absent (EDIT-04 legacy preservation)', () => {
-    window.history.pushState({}, '', '/');
-    const { container } = render(<BrakeFastApp {...defaultProps()} />);
-    expect(container.querySelectorAll('.section-divider').length).toBeGreaterThanOrEqual(1);
-    expect(container.querySelectorAll('.category-section').length).toBeGreaterThanOrEqual(1);
-    expect(container.querySelectorAll('.ed-category').length).toBe(0);
-  });
+  it.each(['/', '/?editorial=1', '/?editorial=true'])(
+    'renders only the editorial path for %s',
+    (path) => {
+      window.history.pushState({}, '', path);
+      const { container } = render(<BrakeFastApp {...defaultProps()} />);
+      expect(container.querySelector('.ed-firstscreen')).toBeInTheDocument();
+      expect(container.querySelectorAll('.ed-category').length).toBeGreaterThanOrEqual(1);
+      expect(container.querySelector('.masthead')).toBeNull();
+      expect(container.querySelector('.first-screen')).toBeNull();
+      expect(container.querySelector('.hero-briefing')).toBeNull();
+      expect(container.querySelector('.section-divider')).toBeNull();
+      expect(container.querySelector('.category-section')).toBeNull();
+    },
+  );
 });

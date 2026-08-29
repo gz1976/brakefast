@@ -33,6 +33,34 @@ else
   echo "[$(date '+%Y-%m-%d %H:%M:%S')] WARN: flock not available; duplicate-run protection disabled" | tee -a "$LOG_FILE"
 fi
 
+# Install cleanup only after this process owns the lock. A duplicate run exits
+# above without touching the active run's lock or telemetry.
+RUN_STARTED_AT="$(date -Iseconds)"
+RUN_EDITION_DATE="$(date +%Y-%m-%d)"
+PIPELINE_LOG="${BRAKEFAST_DIR}/output/pipeline-run.json"
+FALLBACK_MARKER="${BRAKEFAST_DIR}/output/.fallback_used"
+TELEMETRY_WRITER="${SCRIPT_DIR}/write_telemetry.py"
+
+finalize_pipeline() {
+  local rc=$?
+  trap - EXIT ERR INT TERM HUP
+  if [ "$PUBLISH_ENABLED" -eq 1 ] && [ -f "$TELEMETRY_WRITER" ]; then
+    if ! python3 "$TELEMETRY_WRITER" "$RUN_STARTED_AT" "$RUN_EDITION_DATE" "$rc"; then
+      echo "[$(date '+%Y-%m-%d %H:%M:%S')] WARN: telemetry writer failed (non-blocking)" >> "$LOG_FILE"
+    fi
+  fi
+  rm -f -- "$LOCK_FILE" || true
+  exit "$rc"
+}
+
+trap finalize_pipeline EXIT
+trap 'exit 130' INT
+trap 'exit 143' TERM
+trap 'exit 129' HUP
+
+echo "[]" > "$PIPELINE_LOG"
+rm -f -- "$FALLBACK_MARKER"
+
 # Self-heal Python deps (trafilatura disappears on container recreate)
 if ! python3 -c "import trafilatura" 2>/dev/null; then
   pip3 install --break-system-packages -q trafilatura 2>/dev/null || true
@@ -77,9 +105,6 @@ Last log lines:
 ${tail_log}"
 }
 trap 'on_pipeline_error $LINENO' ERR
-
-PIPELINE_LOG="${BRAKEFAST_DIR}/output/pipeline-run.json"
-echo "[]" > "$PIPELINE_LOG"
 
 log_step_summary() {
   local step="$1"
@@ -372,10 +397,9 @@ log "Step 7: Done"
 
 # Step 8: Smoke-test published data
 log "Step 8: Smoke-testing published edition..."
-SMOKE_OK=1
 PUBLISHED_JSON="${BRAKEFAST_PUBLIC_DIR:-/data/brakefast-public}/data.json"
 if [ -f "$PUBLISHED_JSON" ]; then
-  SMOKE_RESULT=$(python3 -c "
+  if SMOKE_RESULT=$(python3 -c "
 import json, sys
 try:
     with open('$PUBLISHED_JSON') as f:
@@ -412,19 +436,17 @@ try:
 except Exception as e:
     print('FAIL: smoke test error: %s' % e)
     sys.exit(1)
-" 2>&1)
-  if [ $? -ne 0 ]; then
-    log "WARN: Smoke test issues: $SMOKE_RESULT"
-    SMOKE_OK=0
-    log_step_summary "smoke-test" "\"passed\": false, \"issues\": \"${SMOKE_RESULT}\""
-  else
+" 2>&1); then
     log "Step 8: $SMOKE_RESULT"
     log_step_summary "smoke-test" "\"passed\": true"
+  else
+    log "WARN: Smoke test issues: $SMOKE_RESULT"
+    log_step_summary "smoke-test" "\"passed\": false, \"issues\": \"${SMOKE_RESULT}\""
   fi
 else
   log "WARN: Published JSON not found at $PUBLISHED_JSON"
-  SMOKE_OK=0
+  log_step_summary "smoke-test" "\"passed\": false, \"issues\": \"published JSON missing\""
 fi
 
 log "=== BrakeFast Daily Pipeline Complete ==="
-log "Edition available at: https://ottobot.net/"
+log "Edition available at: https://brakefast.ottobot.net/"

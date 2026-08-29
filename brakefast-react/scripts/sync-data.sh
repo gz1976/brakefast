@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-BASE_URL="https://ottobot.net"
+BASE_URL="https://brakefast.ottobot.net"
 PUBLIC_DIR="$(cd "$(dirname "$0")/../public" && pwd)"
 
 download() {

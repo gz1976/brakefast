@@ -1,0 +1,4 @@
+# BrakeFast direct host cron. Install as /etc/cron.d/brakefast-direct.
+SHELL=/bin/bash
+PATH=/usr/bin:/bin:/usr/sbin:/sbin
+30 5 * * * root docker exec -e BRAKEFAST_HOST_CONTAINER_COUNT="$(docker ps -q | wc -l | tr -d ' ')" openclaw-xfcd-openclaw-1 /data/.openclaw/workspace/brakefast/scripts/brakefast-daily.sh >> /var/log/brakefast-host-cron.log 2>&1

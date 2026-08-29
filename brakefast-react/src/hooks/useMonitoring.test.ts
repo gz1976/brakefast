@@ -84,8 +84,9 @@ describe('useMonitoring', () => {
       expect(result.current.loading).toBe(false);
     });
 
-    expect(result.current.error).toBe('Network error');
+    expect(result.current.error).toBe('Keine Monitoring-Daten gefunden');
     expect(result.current.data).toBeNull();
+    expect(globalThis.fetch).toHaveBeenCalledTimes(3);
   });
 
   it('sets error on Zod validation failure', async () => {

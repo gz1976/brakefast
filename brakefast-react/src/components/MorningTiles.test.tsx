@@ -44,19 +44,21 @@ describe('MorningTiles', () => {
     expect(screen.getByText('Glücklicher Zufall')).toBeInTheDocument();
   });
 
-  it('shows empty state when word_of_day missing', () => {
-    render(<MorningTiles data={emptyData()} />);
-    expect(screen.getByText('Heute kein Wort des Tages')).toBeInTheDocument();
+  it('omits the word tile when word_of_day is missing', () => {
+    const data = emptyData({ morning_tiles: mockData.morning_tiles });
+    render(<MorningTiles data={data} />);
+    expect(document.querySelector('.morning-tile-word')).not.toBeInTheDocument();
+    expect(screen.queryByText('Heute kein Wort des Tages')).not.toBeInTheDocument();
   });
 
-  it('renders streaming items', () => {
+  it('does not render the retired streaming feed', () => {
     render(<MorningTiles data={mockData} />);
-    expect(screen.getByText('The Bear S3')).toBeInTheDocument();
+    expect(screen.queryByText('The Bear S3')).not.toBeInTheDocument();
   });
 
-  it('shows streaming empty state when no items', () => {
-    render(<MorningTiles data={emptyData()} />);
-    expect(screen.getByText('Keine Streaming-Tipps heute')).toBeInTheDocument();
+  it('does not render a streaming placeholder when no items exist', () => {
+    render(<MorningTiles data={mockData} />);
+    expect(screen.queryByText('Keine Streaming-Tipps heute')).not.toBeInTheDocument();
   });
 
   it('renders media tip', () => {
@@ -67,9 +69,14 @@ describe('MorningTiles', () => {
     expect(metaDiv.textContent).toContain('Spotify');
   });
 
-  it('shows media tip empty state when missing', () => {
-    render(<MorningTiles data={emptyData()} />);
-    expect(screen.getByText('Kein Tipp heute')).toBeInTheDocument();
+  it('omits the media tile when no tip exists', () => {
+    const data = {
+      ...mockData,
+      morning_tiles: { ...mockData.morning_tiles, media_tip: undefined },
+    } as NewspaperData;
+    render(<MorningTiles data={data} />);
+    expect(document.querySelector('.morning-tile-media')).not.toBeInTheDocument();
+    expect(screen.queryByText('Kein Tipp heute')).not.toBeInTheDocument();
   });
 
   it('renders events', () => {
@@ -77,8 +84,12 @@ describe('MorningTiles', () => {
     expect(screen.getByText('Konzert')).toBeInTheDocument();
   });
 
-  it('shows events empty state when no events', () => {
-    render(<MorningTiles data={emptyData()} />);
-    expect(screen.getByText('Keine Events diese Woche')).toBeInTheDocument();
+  it('shows the current regional events empty state when no events exist', () => {
+    const data = {
+      ...mockData,
+      morning_tiles: { ...mockData.morning_tiles, events: [] },
+    } as NewspaperData;
+    render(<MorningTiles data={data} />);
+    expect(screen.getByText('Keine Events im Bezirk Voitsberg verf\u00fcgbar')).toBeInTheDocument();
   });
 });

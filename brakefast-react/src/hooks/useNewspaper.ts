@@ -13,8 +13,12 @@ const CATEGORY_NAMES: Record<string, string> = {
 };
 
 /** Pre-process raw JSON before Zod validation to handle format drift from pipeline */
-function preprocess(raw: Record<string, unknown>): Record<string, unknown> {
-  const data = { ...raw };
+function preprocess(raw: unknown): unknown {
+  if (raw === null || typeof raw !== 'object' || Array.isArray(raw)) {
+    return raw;
+  }
+
+  const data = { ...(raw as Record<string, unknown>) };
   // Fix: pipeline sometimes sends categories as { "ai": [article, ...] } instead of { "ai": { name, articles } }
   if (data.categories && typeof data.categories === 'object' && !Array.isArray(data.categories)) {
     const cats = data.categories as Record<string, unknown>;

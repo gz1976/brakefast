@@ -13,6 +13,7 @@ import sys
 import tempfile
 import time
 import types
+from datetime import datetime, timezone
 from pathlib import Path
 
 SCRIPT_DIR = Path(__file__).resolve().parent
@@ -159,6 +160,28 @@ def test_worker_count_clamped():
         assert got == want, f"{raw!r} -> {got}, erwartet {want}"
     os.environ.pop("BRAKEFAST_ENRICHMENT_WORKERS", None)
     assert engine._enrichment_workers() == 5
+
+
+def test_curation_index_exposes_date_and_age_to_the_model():
+    categories = {
+        "tech": {
+            "articles": [
+                {
+                    "title": "Fresh platform release",
+                    "source": "Example",
+                    "published_at": "2026-08-09T06:00:00Z",
+                }
+            ]
+        }
+    }
+    now = datetime(2026, 8, 10, 6, 0, tzinfo=timezone.utc)
+
+    index = engine.build_curation_article_index(categories, now=now)
+    prompt_list = engine.format_curation_article_list(index)
+
+    assert index[0]["published_at"] == "2026-08-09T06:00:00Z"
+    assert index[0]["age_hours"] == 24
+    assert "24h alt" in prompt_list
 
 
 if __name__ == "__main__":

@@ -11,6 +11,8 @@ import re
 import sys
 import threading
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from datetime import datetime, timezone
+from email.utils import parsedate_to_datetime
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
 from typing import Any
@@ -718,6 +720,78 @@ def load_json(path: Path) -> dict[str, Any]:
         return json.load(handle)
 
 
+def _parse_published_at(value: Any) -> datetime | None:
+    if not isinstance(value, str) or not value.strip():
+        return None
+    raw = value.strip()
+    try:
+        parsed = datetime.fromisoformat(raw.replace("Z", "+00:00"))
+    except ValueError:
+        try:
+            parsed = parsedate_to_datetime(raw)
+        except (TypeError, ValueError, OverflowError):
+            return None
+    if parsed.tzinfo is None:
+        parsed = parsed.replace(tzinfo=timezone.utc)
+    return parsed.astimezone(timezone.utc)
+
+
+def build_curation_article_index(
+    categories: dict[str, Any],
+    now: datetime | None = None,
+) -> list[dict[str, Any]]:
+    """Build the factual article context used by the curation model."""
+    now = now or datetime.now(timezone.utc)
+    index: list[dict[str, Any]] = []
+    for cat_id, cat_data in categories.items():
+        for art in cat_data.get("articles", []):
+            published_raw = next(
+                (
+                    art.get(key)
+                    for key in ("published_at", "published", "pubDate", "date")
+                    if art.get(key)
+                ),
+                "",
+            )
+            published = _parse_published_at(published_raw)
+            age_hours = None
+            if published is not None:
+                age_hours = max(0, round((now - published).total_seconds() / 3600))
+            title = (art.get("title") or "")[:100]
+            index.append({
+                "idx": len(index),
+                "cat": cat_id,
+                "title": title,
+                "source": (art.get("source") or "")[:30],
+                "summary": (art.get("summary") or art.get("description") or "")[:180],
+                "published_at": published_raw,
+                "age_hours": age_hours,
+                "has_image": bool(art.get("image")),
+                "lang": "de" if any(
+                    word in title.lower()
+                    for word in ("der ", "die ", "das ", "und ", "für ", "mit ", "vom ", "des ", "wird ")
+                ) else "en",
+            })
+    return index
+
+
+def format_curation_article_list(article_index: list[dict[str, Any]]) -> str:
+    lines = []
+    for article in article_index:
+        age = article.get("age_hours")
+        age_label = f"{age}h alt" if age is not None else "Alter unbekannt"
+        line = (
+            f"[{article['idx']}] ({article['cat']}) {article['title']} — {article['source']} "
+            f"{'[DE]' if article['lang'] == 'de' else '[EN]'} "
+            f"{'[IMG]' if article['has_image'] else ''} [{age_label}]"
+        )
+        summary = article.get("summary") or ""
+        if summary:
+            line += f"\n    Inhalt: {summary}"
+        lines.append(line)
+    return "\n".join(lines)
+
+
 def generate_curation_spec(enriched_path: Path, spec_output: Path) -> int:
     """Use LLM to generate a curation spec from enriched articles.
 
@@ -726,8 +800,6 @@ def generate_curation_spec(enriched_path: Path, spec_output: Path) -> int:
     curate.py reads this spec and assembles the final JSON with deterministic
     widgets (weather, pollen, VPS, calendar).
     """
-    from datetime import datetime, timezone
-
     if not enriched_path.exists():
         print(f"ERROR: Enriched file not found: {enriched_path}", file=sys.stderr)
         return 1
@@ -735,34 +807,10 @@ def generate_curation_spec(enriched_path: Path, spec_output: Path) -> int:
     data = load_json(enriched_path)
     categories = data.get("categories", {})
 
-    # Build compact article index for the LLM prompt
-    article_index: list[dict[str, str]] = []
-    global_idx = 0
-    cat_ranges: dict[str, tuple[int, int]] = {}
-    for cat_id, cat_data in categories.items():
-        start = global_idx
-        for art in cat_data.get("articles", []):
-            article_index.append({
-                "idx": global_idx,
-                "cat": cat_id,
-                "title": (art.get("title") or "")[:80],
-                "source": (art.get("source") or "")[:30],
-                "summary": (art.get("summary") or art.get("description") or "")[:150],
-                "has_image": bool(art.get("image")),
-                "lang": "de" if any(w in (art.get("title") or "").lower() for w in
-                    ["der ", "die ", "das ", "und ", "für ", "mit ", "ist ", "wird ", "nach "]) else "en",
-            })
-            global_idx += 1
-        cat_ranges[cat_id] = (start, global_idx)
-
     now = datetime.now(timezone.utc)
+    article_index = build_curation_article_index(categories, now=now)
     today_str = now.strftime("%A, %d. %B %Y")
-    article_list = "\n".join(
-        f"[{a['idx']}] ({a['cat']}) {a['title']} — {a['source']} "
-        f"{'[DE]' if a['lang'] == 'de' else '[EN]'} "
-        f"{'[IMG]' if a['has_image'] else ''}"
-        for a in article_index
-    )
+    article_list = format_curation_article_list(article_index)
 
     # Die Zielzahlen in Regel C spiegeln CATEGORY_QUOTA in curate.py.
     # Beide Stellen von Hand synchron halten — es gibt keinen Import.
@@ -809,13 +857,14 @@ AUFGABE — Erzeuge dann exakt dieses JSON-Format:
 KURATIONS-REGELN (in dieser Reihenfolge anwenden):
 
 A. DEDUPLIZIERUNG: Wenn 2+ Artikel dieselbe Story abdecken: nur den besten waehlen.
-   Praeferenz: deutsche Quelle > englische Quelle, mit Bild > ohne Bild, taggenau > Aggregator.
+   Praeferenz: taggenau > deutsche Quelle > englische Quelle, mit Bild > ohne Bild > Aggregator.
 
 B. QUALITAETSFILTER (skippen, nicht auswaehlen):
    - Reines PR / Produkt-Marketing ohne Substanz
    - Listicles wie "100 Dinge die...", "Top 10 ...", "X Trends fuer ..."
    - Clickbait-Titel ("Sie werden nicht glauben...", "Das aendert alles")
    - Thematisch falsch einsortiert (z.B. Security-Story landete in AI)
+   - Aelter als 7 Tage. Artikel bis 72 Stunden klar bevorzugen.
 
 C. AUSWAHL pro Kategorie — Zielzahl: 6 Artikel fuer ai, security, tech, ev, world und
    local, 4 Artikel fuer knapp. Sortiert nach Relevanz absteigend (wichtigste = erster
@@ -827,8 +876,9 @@ C. AUSWAHL pro Kategorie — Zielzahl: 6 Artikel fuer ai, security, tech, ev, wo
 D. AUSWAHL fuer "ai"-Kategorie speziell: an Position [0] gehoert der wichtigste echte AI-Artikel des Tages
    (Modell-Release, Research-Durchbruch, signifikantes Produkt-Update). NICHT Filler, NICHT misskategorisiert.
 
-E. HEADLINE_DE: kurz, aktiv, praezise. KEINE Marketing-Floskeln. KEINE wortwoertliche
-   Uebersetzung wenn das Deutsche unnatuerlich klingt — frei aber treu uebertragen.
+E. HEADLINE_DE: Bei [DE] den vorhandenen Titel EXAKT uebernehmen. Bei [EN] kurz,
+   aktiv und praezise uebersetzen. Keine Person, Organisation, Zahl, Tierart oder
+   andere Tatsache erfinden, die nicht in Titel oder Inhalt steht.
 
 F. SONST: Deutsche Quellen bevorzugen. ki_modelle: 2-3 neue Modelle/Tools aus AI-Artikeln.
    dev_digest: 2-3 Dev-Tools/Plattform-News aus Tech/Security.
@@ -883,16 +933,38 @@ Antworte NUR mit dem JSON, kein Reasoning-Text, kein Markdown-Wrapper."""
     if not spec.get("editorial"):
         spec["editorial"] = "Ihre Morgenzeitung fuer den Bezirk Voitsberg."
 
-    # Validate article indices are in range
+    # Deterministic guard: invalid, stale and cross-category selections never
+    # reach curate.py, even if the model ignored the prompt.
     max_idx = len(article_index) - 1
     for cat_id, items in spec.get("categories", {}).items():
         if not isinstance(items, list):
             continue
+        clean_items = []
         for item in items:
             idx = item.get("index")
             if isinstance(idx, int) and (idx < 0 or idx > max_idx):
                 enrichment_logger.warning("Curation spec: index %d out of range for %s (max %d)",
                                           idx, cat_id, max_idx)
+                continue
+            if not isinstance(idx, int):
+                continue
+            source = article_index[idx]
+            if source["cat"] != cat_id:
+                enrichment_logger.warning(
+                    "Curation spec: dropping cross-category index %d (%s -> %s)",
+                    idx, source["cat"], cat_id,
+                )
+                continue
+            age_hours = source.get("age_hours")
+            if age_hours is not None and age_hours > 7 * 24:
+                enrichment_logger.warning(
+                    "Curation spec: dropping stale index %d (%dh)", idx, age_hours,
+                )
+                continue
+            if source.get("lang") == "de":
+                item["headline_de"] = source["title"]
+            clean_items.append(item)
+        spec["categories"][cat_id] = clean_items
 
     spec_output.write_text(json.dumps(spec, ensure_ascii=False, indent=2))
     print(f"Curation spec written to {spec_output}", file=sys.stderr)

@@ -15,7 +15,7 @@ function latencyLabel(ms: number): string {
 }
 
 function successLabel(calls: number, rate: number): { text: string; className: string } {
-  if (calls <= 0) return { text: 'n/a', className: 'stat-muted' };
+  if (calls <= 0 || rate <= 0) return { text: 'n/a', className: 'stat-muted' };
   if (rate >= 95) return { text: `${rate.toFixed(0)}%`, className: 'stat-good' };
   if (rate >= 80) return { text: `${rate.toFixed(0)}%`, className: 'stat-warn' };
   return { text: `${rate.toFixed(0)}%`, className: 'stat-bad' };

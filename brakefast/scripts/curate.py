@@ -32,6 +32,7 @@ import urllib.request
 import urllib.parse
 import xml.etree.ElementTree as ET
 from datetime import datetime, timezone, timedelta
+from email.utils import parsedate_to_datetime
 from pathlib import Path
 
 BASE = "/data/.openclaw/workspace/brakefast"
@@ -63,6 +64,16 @@ CATEGORY_QUOTA = {
     "ai": 6, "security": 6, "tech": 6, "ev": 6,
     "world": 6, "knapp": 4, "local": 6,
 }
+
+# Eine Morgenzeitung darf bei knappen Pools kuerzer werden, aber nicht mit
+# wochenalten Meldungen aufgefuellt werden. Artikel ohne verwertbares Datum
+# bleiben zugelassen, werden in der Rangfolge jedoch nach hinten gesetzt.
+MAX_ARTICLE_AGE_DAYS = 7
+TOP_STORY_MAX_AGE_HOURS = 72
+
+# Häufige TLDs der konfigurierten Quellen. Manche RSS-Feeds verlieren beim
+# Zusammenbauen kanonischer URLs den Slash zwischen Host und Artikel-Slug.
+REPAIRABLE_TLDS = ("de", "at", "ch", "com", "net", "org", "io", "ai")
 
 POLLEN_SEASONAL = {
     1:  {"level": "niedrig",     "types": ["Hasel", "Erle"],            "description": "Geringe Belastung durch Fr\u00fchbl\u00fcher"},
@@ -231,7 +242,9 @@ def fetch_weather():
 def fetch_vps():
     """Get VPS stats."""
     disk = run("df -h / | awk 'NR==2{print $5, \"von\", $2}'", "? von ?")
-    containers = run("docker ps -q 2>/dev/null | wc -l", "0").strip()
+    containers = os.environ.get("BRAKEFAST_HOST_CONTAINER_COUNT", "").strip()
+    if not containers.isdigit():
+        containers = run("docker ps -q 2>/dev/null | wc -l", "0").strip()
     uptime_since = run("uptime -s 2>/dev/null", "")
     return {
         "disk": disk,
@@ -1033,6 +1046,132 @@ def load_article_pool():
     return load_articles_from_file(RAW_FILE), RAW_FILE
 
 
+def repair_article_url(url):
+    """Repair a missing slash after a known TLD without touching valid URLs."""
+    if not isinstance(url, str) or not url.strip():
+        return url
+    raw = url.strip()
+    parsed = urllib.parse.urlparse(raw)
+    if parsed.scheme not in ("http", "https") or parsed.path not in ("", "/"):
+        return raw
+    host = parsed.hostname or ""
+    if not host or any(host.endswith(f".{tld}") for tld in REPAIRABLE_TLDS):
+        return raw
+
+    tlds = "|".join(REPAIRABLE_TLDS)
+    match = re.match(
+        rf"^(?P<domain>(?:[a-z0-9-]+\.)+(?:{tlds}))"
+        r"(?P<slug>[a-z0-9][a-z0-9-]{4,})$",
+        host,
+        flags=re.IGNORECASE,
+    )
+    if not match or "-" not in match.group("slug"):
+        return raw
+
+    repaired_host = match.group("domain")
+    repaired_path = f"/{match.group('slug')}"
+    return urllib.parse.urlunparse(
+        (parsed.scheme, repaired_host, repaired_path, parsed.params, parsed.query, parsed.fragment)
+    )
+
+
+def _parse_article_datetime(value):
+    if not isinstance(value, str) or not value.strip():
+        return None
+    raw = value.strip()
+    try:
+        parsed = datetime.fromisoformat(raw.replace("Z", "+00:00"))
+    except ValueError:
+        try:
+            parsed = parsedate_to_datetime(raw)
+        except (TypeError, ValueError, OverflowError):
+            return None
+    if parsed.tzinfo is None:
+        parsed = parsed.replace(tzinfo=timezone.utc)
+    return parsed.astimezone(timezone.utc)
+
+
+def article_age_hours(article, now=None):
+    """Return article age in hours, or None when the source has no valid date."""
+    now = now or datetime.now(timezone.utc)
+    if now.tzinfo is None:
+        now = now.replace(tzinfo=timezone.utc)
+    raw_date = next(
+        (
+            article.get(key)
+            for key in ("published_at", "published", "pubDate", "date")
+            if article.get(key)
+        ),
+        None,
+    )
+    published = _parse_article_datetime(raw_date)
+    if published is None:
+        return None
+    return max(0.0, (now.astimezone(timezone.utc) - published).total_seconds() / 3600)
+
+
+def is_article_fresh(article, now=None, max_age_days=MAX_ARTICLE_AGE_DAYS):
+    age = article_age_hours(article, now)
+    return age is None or age <= max_age_days * 24
+
+
+def article_matches_category(article, target_category):
+    """Keep model selections inside the deterministic source category."""
+    raw_category = (article.get("_raw_category") or article.get("category") or "").lower()
+    return not raw_category or raw_category == (target_category or "").lower()
+
+
+def _looks_german_article(article):
+    lang = str(article.get("lang") or article.get("language") or "").lower()
+    if lang.startswith("de"):
+        return True
+    title = str(article.get("headline") or article.get("title") or "").lower()
+    if re.search(r"[äöüß]", title):
+        return True
+    german_tokens = {
+        "der", "die", "das", "den", "dem", "des", "ein", "eine", "und",
+        "für", "mit", "vom", "zum", "zur", "auf", "nach", "bei", "wird",
+    }
+    return bool(set(re.findall(r"[a-zäöüß]+", title)) & german_tokens)
+
+
+def select_article_headline(item, source_article):
+    """Preserve factual German source headlines; translate only foreign ones."""
+    source_headline = str(
+        source_article.get("headline") or source_article.get("title") or ""
+    ).strip()
+    curated = str(item.get("headline_de") or "").strip()
+    if source_headline and _looks_german_article(source_article):
+        return source_headline
+    return curated or source_headline
+
+
+def calculate_relevance_score(article, now=None):
+    """Calculate a stable 0..1 score from freshness, trust and content quality."""
+    age = article_age_hours(article, now)
+    if age is None:
+        freshness = 0.45
+    elif age <= 24:
+        freshness = 0.98
+    elif age <= 72:
+        freshness = 0.85
+    elif age <= MAX_ARTICLE_AGE_DAYS * 24:
+        freshness = 0.60
+    else:
+        freshness = 0.15
+
+    try:
+        trust = max(0.0, min(float(article.get("trust", 5)), 10.0)) / 10.0
+    except (TypeError, ValueError):
+        trust = 0.5
+
+    summary = str(article.get("summary") or article.get("description") or "")
+    summary_quality = min(len(summary) / 500, 1.0)
+    image_quality = 1.0 if (article.get("image") or article.get("best_image")) else 0.0
+    score = (0.50 * freshness) + (0.25 * trust) + (0.20 * summary_quality) + (0.05 * image_quality)
+    return round(max(0.01, min(score, 0.99)), 2)
+
+
 def build_article_payload(item, source_article):
     """Merge curated overrides with enriched/raw article data."""
     base = source_article or {}
@@ -1045,9 +1184,22 @@ def build_article_payload(item, source_article):
                 return base.get(key)
         return default
 
+    selected_headline = select_article_headline(item, base)
+    scoring_source = {**base, **item}
+    provided_relevance = item.get("relevance_score", base.get("relevance_score"))
+    try:
+        provided_relevance = float(provided_relevance)
+    except (TypeError, ValueError):
+        provided_relevance = None
+    relevance_score = (
+        calculate_relevance_score(scoring_source)
+        if provided_relevance is None or provided_relevance == 0.5
+        else max(0.0, min(provided_relevance, 1.0))
+    )
+
     article = {
-        "title": pick("headline_de", "headline", "title"),
-        "headline": pick("headline_de", "headline", "title"),
+        "title": selected_headline,
+        "headline": selected_headline,
         "link": pick("canonical_url", "source_url", "link"),
         "canonical_url": pick("canonical_url", "source_url", "link"),
         "source": pick("source"),
@@ -1069,10 +1221,7 @@ def build_article_payload(item, source_article):
             "reading_time_minutes",
             base.get("reading_time_minutes", 2),
         ),
-        "relevance_score": item.get(
-            "relevance_score",
-            base.get("relevance_score", 0.5),
-        ),
+        "relevance_score": relevance_score,
         "summary_quality_score": item.get(
             "summary_quality_score",
             base.get("summary_quality_score"),
@@ -1096,6 +1245,9 @@ def build_article_payload(item, source_article):
 
     if base.get("full_text") and not item.get("full_text"):
         article["full_text"] = base.get("full_text")
+
+    for url_key in ("link", "canonical_url", "source_url"):
+        article[url_key] = repair_article_url(article.get(url_key))
 
     if is_wrapper_feed_link(article.get("link")):
         resolved = resolve_final_url(article["link"])
@@ -1550,7 +1702,13 @@ def build_curated(spec, source_articles):
         a = source_articles[idx]
         body_len = len(a.get("summary") or a.get("description") or "")
         has_image = 1 if (a.get("image") or a.get("best_image")) else 0
-        return (has_image, a.get("trust", 5), body_len)
+        age = article_age_hours(a, now)
+        freshness = -age if age is not None else float("-inf")
+        try:
+            trust = float(a.get("trust", 5))
+        except (TypeError, ValueError):
+            trust = 5.0
+        return (freshness, has_image, trust, body_len)
 
     # Build categories from spec
     categories = {}
@@ -1570,9 +1728,22 @@ def build_curated(spec, source_articles):
                 idx = item["index"]
                 if not (0 <= idx < len(source_articles)):
                     continue  # halluzinierter Index — verwerfen (Produktionsverhalten)
-                payload = build_article_payload(item, source_articles[idx])
+                source_article = source_articles[idx]
+                if not article_matches_category(source_article, cat_key):
+                    print(
+                        f"[quality-gate] {cat_key}: index {idx} belongs to "
+                        f"{source_article.get('_raw_category') or source_article.get('category')}; skipped",
+                        file=sys.stderr,
+                    )
+                    continue
+                if not is_article_fresh(source_article, now):
+                    print(f"[quality-gate] {cat_key}: stale index {idx} skipped", file=sys.stderr)
+                    continue
+                payload = build_article_payload(item, source_article)
                 used_indices.add(idx)
             else:
+                if not is_article_fresh(item, now):
+                    continue
                 payload = build_article_payload(item, {})
             link = _norm_link(payload)
             if link and link in seen_links:
@@ -1587,7 +1758,10 @@ def build_curated(spec, source_articles):
         if quota and len(articles) < quota:
             _before = len(articles)
             candidates = sorted(
-                (i for i in pool_by_cat.get(cat_key, []) if i not in used_indices),
+                (
+                    i for i in pool_by_cat.get(cat_key, [])
+                    if i not in used_indices and is_article_fresh(source_articles[i], now)
+                ),
                 key=_pool_score, reverse=True,
             )
             for idx in candidates:
@@ -1604,6 +1778,21 @@ def build_curated(spec, source_articles):
             print(f"[quota-backfill] {cat_key}: {_before} -> {len(articles)} "
                   f"(Quote {quota}, Pool {len(pool_by_cat.get(cat_key, []))})",
                   file=sys.stderr)
+
+        # Falls der Modell-Rang mit einer mehrere Tage alten Meldung beginnt,
+        # ziehe den ersten wirklich tagesnahen Artikel nach vorn. Die restliche
+        # redaktionelle Reihenfolge bleibt erhalten.
+        if articles and (article_age_hours(articles[0], now) or 0) > TOP_STORY_MAX_AGE_HOURS:
+            fresh_position = next(
+                (
+                    pos for pos, article in enumerate(articles[1:], start=1)
+                    if (article_age_hours(article, now) is not None)
+                    and article_age_hours(article, now) <= TOP_STORY_MAX_AGE_HOURS
+                ),
+                None,
+            )
+            if fresh_position is not None:
+                articles.insert(0, articles.pop(fresh_position))
 
         # Kappen, wenn die Spec mehr liefert als die Quote. Die Spec ist nach
         # Relevanz absteigend sortiert — es faellt der schwaechste Eintrag.
@@ -2112,35 +2301,27 @@ def main():
             if (_a.get("link") or _a.get("url") or "") not in _picked_urls
             and (_a.get("link") or _a.get("url"))
             and _a.get("title")
+            and is_article_fresh(_a)
         ]
-        _cands.sort(key=lambda _a: (
-            -float(_a.get("relevance_score") or 0.0),
-            _a.get("published_at") or "",
-        ))
+        _cands.sort(key=lambda _a: calculate_relevance_score(_a), reverse=True)
         _rescued = 0
         _rescued_per_cat = {}
         _existing_cats = set(result.get("categories", {}).keys())
-        _default_cat = "ai" if "ai" in _existing_cats else (next(iter(_existing_cats), None))
         for _cand in _cands:
             if _rescued >= _target_to_add:
                 break
-            _cand_cat = _cand.get("category", "")
+            _cand_cat = _cand.get("_raw_category") or _cand.get("category", "")
             if _cand_cat not in _existing_cats:
-                _cand_cat = _default_cat
+                continue
             if not _cand_cat:
                 continue
-            _fb_art = {
-                "title":        _cand.get("title", "").strip(),
-                "link":         _cand.get("link") or _cand.get("url") or "",
-                "source":       _cand.get("source", ""),
-                "summary":      (_cand.get("description") or _cand.get("summary") or "").strip(),
-                "category":     _cand_cat,
-                "published_at": _cand.get("published_at", ""),
-            }
-            for _k in ("image", "relevance_score", "reading_time_minutes", "tags", "description", "headline"):
-                if _cand.get(_k):
-                    _fb_art[_k] = _cand[_k]
+            _fb_art = build_article_payload({}, _cand)
+            _fb_art["category"] = _cand_cat
+            _fb_url = _fb_art.get("link") or ""
+            if not _fb_url or _fb_url in _picked_urls:
+                continue
             result["categories"][_cand_cat]["articles"].append(_fb_art)
+            _picked_urls.add(_fb_url)
             _rescued += 1
             _rescued_per_cat[_cand_cat] = _rescued_per_cat.get(_cand_cat, 0) + 1
         if _rescued > 0:

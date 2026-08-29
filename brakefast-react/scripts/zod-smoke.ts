@@ -6,7 +6,7 @@
  * and per-article ArticleSchema. Exits 0 on success, 1 on validation failure.
  *
  * Usage:
- *   npx tsx scripts/zod-smoke.ts                       # default: fetches https://ottobot.net/latest/data.json
+ *   npx tsx scripts/zod-smoke.ts                       # default: fetches https://brakefast.ottobot.net/latest/data.json
  *   npx tsx scripts/zod-smoke.ts <path-to-data.json>   # local file
  *   npx tsx scripts/zod-smoke.ts <https://url>         # explicit URL
  *   curl -sf <url> | npx tsx scripts/zod-smoke.ts -    # stdin
@@ -17,7 +17,7 @@ import { readFileSync } from 'node:fs';
 import process from 'node:process';
 import { ArticleSchema, NewspaperDataSchema } from '../src/utils/schemas.js';
 
-const DEFAULT_URL = 'https://ottobot.net/latest/data.json';
+const DEFAULT_URL = 'https://brakefast.ottobot.net/latest/data.json';
 
 async function readInput(arg: string | undefined): Promise<string> {
   if (arg === '-') {

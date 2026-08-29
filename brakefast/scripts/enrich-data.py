@@ -247,7 +247,9 @@ def fetch_vps():
     """Fetch VPS status."""
     try:
         disk = run("df -h / | tail -1 | awk '{print $5, \"von\", $2}'")
-        containers = run("docker ps -q 2>/dev/null | wc -l")
+        containers = os.environ.get("BRAKEFAST_HOST_CONTAINER_COUNT", "").strip()
+        if not containers.isdigit():
+            containers = run("docker ps -q 2>/dev/null | wc -l")
         uptime = run("uptime -p 2>/dev/null || uptime")
         return {
             "disk": disk or "unbekannt",

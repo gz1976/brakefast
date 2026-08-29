@@ -12,8 +12,11 @@ Exit codes:
     1 - Blocking errors found
 """
 import json
+import re
 import sys
 from datetime import datetime, timezone
+from email.utils import parsedate_to_datetime
+from urllib.parse import urlparse
 
 PIPELINE_VERSION = "1.5.0"
 
@@ -22,6 +25,53 @@ FALLBACK_EDITORIALS = {
     "Ihre Morgenzeitung für den Bezirk Voitsberg.",
 }
 FALLBACK_HISTORY_WIKIS = {"RMS_Titanic", "Hillsborough-Katastrophe"}
+HARD_MAX_ARTICLE_AGE_DAYS = 14
+
+
+def _parse_article_date(article):
+    raw = next(
+        (
+            article.get(key)
+            for key in ("published_at", "published", "pubDate", "date")
+            if article.get(key)
+        ),
+        None,
+    )
+    if not isinstance(raw, str):
+        return None
+    try:
+        parsed = datetime.fromisoformat(raw.replace("Z", "+00:00"))
+    except ValueError:
+        try:
+            parsed = parsedate_to_datetime(raw)
+        except (TypeError, ValueError, OverflowError):
+            return None
+    if parsed.tzinfo is None:
+        parsed = parsed.replace(tzinfo=timezone.utc)
+    return parsed.astimezone(timezone.utc)
+
+
+def _article_age_hours(article):
+    published = _parse_article_date(article)
+    if published is None:
+        return None
+    return max(0.0, (datetime.now(timezone.utc) - published).total_seconds() / 3600)
+
+
+def is_valid_article_url(value):
+    if not isinstance(value, str) or not value.strip():
+        return False
+    parsed = urlparse(value.strip())
+    if parsed.scheme not in ("http", "https") or not parsed.hostname or "." not in parsed.hostname:
+        return False
+    # Detect the observed RSS corruption: `domain.dearticle-slug` in the host.
+    if parsed.path in ("", "/") and re.search(
+        r"\.(?:de|at|ch|com|net|org|io|ai)[a-z0-9][a-z0-9-]{4,}$",
+        parsed.hostname,
+        flags=re.IGNORECASE,
+    ):
+        return False
+    return True
 
 
 def print_err(msg):
@@ -38,17 +88,36 @@ def validate(data):
     # entirely (e.g. enrichment timed out mid-run), which killed the whole edition.
     # We silently drop them and rely on the minimum-count check below.
     dropped_titleless = 0
+    dropped_bad_link = 0
+    dropped_stale = 0
     for cat_val in data.get("categories", {}).values():
         if not isinstance(cat_val, dict):
             continue
         articles = cat_val.get("articles", [])
         if not isinstance(articles, list):
             continue
-        kept = [a for a in articles if isinstance(a, dict) and (a.get("title") or "").strip()]
-        dropped_titleless += len(articles) - len(kept)
+        kept = []
+        for article in articles:
+            if not isinstance(article, dict) or not (article.get("title") or "").strip():
+                dropped_titleless += 1
+                continue
+            if not is_valid_article_url(article.get("link")):
+                dropped_bad_link += 1
+                continue
+            age_hours = _article_age_hours(article)
+            if age_hours is not None and age_hours > HARD_MAX_ARTICLE_AGE_DAYS * 24:
+                dropped_stale += 1
+                continue
+            kept.append(article)
         cat_val["articles"] = kept
     if dropped_titleless:
         warnings.append(f"Dropped {dropped_titleless} article(s) with empty title before validation")
+    if dropped_bad_link:
+        warnings.append(f"Dropped {dropped_bad_link} article(s) with invalid link before validation")
+    if dropped_stale:
+        warnings.append(
+            f"Dropped {dropped_stale} article(s) older than {HARD_MAX_ARTICLE_AGE_DAYS} days"
+        )
 
     # --- Collect all articles across categories ---
     categories = data.get("categories", {})
@@ -64,6 +133,8 @@ def validate(data):
         # WARN: category with fewer than 3 articles
         if len(articles) < 3:
             warnings.append(f"Category '{cat_key}' has only {len(articles)} article(s)")
+
+    data["totalArticles"] = len(all_articles)
 
     # --- BLOCKING: article field checks ---
     for i, article in enumerate(all_articles):
@@ -86,6 +157,9 @@ def validate(data):
                 errors.append(
                     f"Article {i}: missing summary and description (need at least one)"
                 )
+        age_hours = _article_age_hours(article)
+        if age_hours is not None and age_hours > 72:
+            warnings.append(f"Article {i}: {age_hours / 24:.1f} days old")
 
     # --- BLOCKING: minimum article count ---
     if len(all_articles) < 20:

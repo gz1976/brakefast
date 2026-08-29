@@ -10,13 +10,15 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 SCRIPTS_DIR="${SCRIPT_DIR}/scripts"
 SOURCES_FILE="${SCRIPT_DIR}/sources.json"
-SERVER="gerhard@clogzoehrer.ddns.net"
+SERVER="${BRAKEFAST_SERVER:-otto-vps}"
 CONTAINER="openclaw-xfcd-openclaw-1"
 HOST_SCRIPTS="/docker/openclaw-xfcd/data/.openclaw/workspace/brakefast/scripts"
 HOST_SOURCES="/docker/openclaw-xfcd/data/.openclaw/workspace/brakefast/sources.json"
+HOST_BACKUPS="/docker/openclaw-xfcd/data/.openclaw/workspace/brakefast/deploy-backups"
 CONTAINER_SCRIPTS="/data/.openclaw/workspace/brakefast/scripts"
 CONTAINER_SOURCES="/data/.openclaw/workspace/brakefast/sources.json"
 REMOTE_TMP="/tmp/brakefast-deploy-$$"
+DEPLOY_STAMP="$(date -u +%Y%m%dT%H%M%SZ)"
 
 DRY_RUN=0
 DEPLOY_SOURCES=0
@@ -49,6 +51,14 @@ if [ "$SYNTAX_OK" -eq 0 ]; then
   exit 1
 fi
 
+DEPLOY_FILES=()
+for file in "${SCRIPTS_DIR}"/*.py "${SCRIPTS_DIR}"/*.sh; do
+  case "$(basename "$file")" in
+    *_test.py|conftest.py) continue ;;
+  esac
+  DEPLOY_FILES+=("$file")
+done
+
 # Syntax check shell scripts
 echo ""
 echo "Checking shell syntax..."
@@ -68,23 +78,14 @@ fi
 if [ "$DRY_RUN" -eq 1 ]; then
   echo ""
   echo "=== DRY RUN — showing diff ==="
-  ssh -o ConnectTimeout=15 "$SERVER" "sudo docker exec $CONTAINER ls $CONTAINER_SCRIPTS/" | while read -r f; do
-    local_file="${SCRIPTS_DIR}/${f}"
-    if [ -f "$local_file" ]; then
-      remote_content=$(ssh "$SERVER" "sudo docker exec $CONTAINER cat $CONTAINER_SCRIPTS/$f" 2>/dev/null || true)
-      local_content=$(cat "$local_file")
-      if [ "$remote_content" != "$local_content" ]; then
-        echo "CHANGED: $f"
-      fi
-    else
-      echo "REMOTE ONLY: $f"
-    fi
-  done
-  for f in "${SCRIPTS_DIR}"/*.{py,sh}; do
-    fname=$(basename "$f")
-    remote_check=$(ssh "$SERVER" "sudo docker exec $CONTAINER test -f $CONTAINER_SCRIPTS/$fname && echo yes || echo no" 2>/dev/null)
-    if [ "$remote_check" = "no" ]; then
+  for file in "${DEPLOY_FILES[@]}"; do
+    fname=$(basename "$file")
+    local_hash=$(shasum -a 256 "$file" | awk '{print $1}')
+    remote_hash=$(ssh "$SERVER" "sudo sha256sum '$HOST_SCRIPTS/$fname' 2>/dev/null | awk '{print \$1}'" || true)
+    if [ -z "$remote_hash" ]; then
       echo "NEW: $fname"
+    elif [ "$local_hash" != "$remote_hash" ]; then
+      echo "CHANGED: $fname"
     fi
   done
   echo ""
@@ -96,8 +97,8 @@ fi
 echo ""
 echo "Uploading scripts..."
 ssh -o ConnectTimeout=15 "$SERVER" "mkdir -p $REMOTE_TMP"
-scp -q "${SCRIPTS_DIR}"/*.py "${SCRIPTS_DIR}"/*.sh "${SERVER}:${REMOTE_TMP}/"
-echo "  Uploaded $(ls "${SCRIPTS_DIR}"/*.py "${SCRIPTS_DIR}"/*.sh 2>/dev/null | wc -l | tr -d ' ') files"
+scp -q "${DEPLOY_FILES[@]}" "${SERVER}:${REMOTE_TMP}/"
+echo "  Uploaded ${#DEPLOY_FILES[@]} production files"
 
 # Upload sources.json if requested
 if [ "$DEPLOY_SOURCES" -eq 1 ] && [ -f "$SOURCES_FILE" ]; then
@@ -109,15 +110,20 @@ fi
 echo ""
 echo "Installing into container..."
 ssh "$SERVER" "
+  sudo mkdir -p '$HOST_BACKUPS/$DEPLOY_STAMP' &&
+  sudo cp -a '$HOST_SCRIPTS/.' '$HOST_BACKUPS/$DEPLOY_STAMP/' &&
+  sudo sh -c \"sha256sum '$HOST_BACKUPS/$DEPLOY_STAMP/'*.py '$HOST_BACKUPS/$DEPLOY_STAMP/'*.sh > '$HOST_BACKUPS/$DEPLOY_STAMP/SHA256SUMS.before' 2>/dev/null\" &&
   sudo cp ${REMOTE_TMP}/*.py ${REMOTE_TMP}/*.sh ${HOST_SCRIPTS}/ &&
   sudo chown 1000:1000 ${HOST_SCRIPTS}/*.py ${HOST_SCRIPTS}/*.sh &&
-  echo '  Scripts installed with node:node (uid 1000) permissions'
+  echo '  Scripts installed with node:node (uid 1000) permissions' &&
+  echo '  Backup: $HOST_BACKUPS/$DEPLOY_STAMP'
 "
 
 # Deploy sources.json if requested
 if [ "$DEPLOY_SOURCES" -eq 1 ]; then
   ssh "$SERVER" "
     if [ -f $REMOTE_TMP/sources.json ]; then
+      sudo cp '$HOST_SOURCES' '$HOST_BACKUPS/$DEPLOY_STAMP/sources.json.before' &&
       sudo cp $REMOTE_TMP/sources.json $HOST_SOURCES &&
       sudo chown 1000:1000 $HOST_SOURCES &&
       echo '  sources.json deployed'
@@ -126,12 +132,22 @@ if [ "$DEPLOY_SOURCES" -eq 1 ]; then
 fi
 
 # Cleanup
-ssh "$SERVER" "rm -rf $REMOTE_TMP"
+ssh "$SERVER" "case '$REMOTE_TMP' in /tmp/brakefast-deploy-*) rm -rf -- '$REMOTE_TMP' ;; *) exit 2 ;; esac"
 
 # Verify deployment
 echo ""
 echo "Verifying..."
 ssh "$SERVER" "sudo docker exec $CONTAINER python3 -c 'import ast; ast.parse(open(\"$CONTAINER_SCRIPTS/curate.py\").read()); print(\"  curate.py: syntax OK\")'"
+for file in "${DEPLOY_FILES[@]}"; do
+  fname=$(basename "$file")
+  local_hash=$(shasum -a 256 "$file" | awk '{print $1}')
+  remote_hash=$(ssh "$SERVER" "sudo sha256sum '$HOST_SCRIPTS/$fname' | awk '{print \$1}'")
+  if [ "$local_hash" != "$remote_hash" ]; then
+    echo "ERROR: hash mismatch after deploy: $fname"
+    exit 1
+  fi
+done
+echo "  All deployed file hashes match"
 
 echo ""
 echo "=== Deploy complete ==="
