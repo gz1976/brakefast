@@ -1,0 +1,8 @@
+# BrakeFast Parallellauf im Pipeline-Container (Migration OpenClaw->Hermes, Phase 1).
+# Install als /etc/cron.d/brakefast-parallel. Läuft zeitgleich zum alten Cron
+# brakefast-direct; schreibt nur nach /docker/brakefast-pipeline/public.
+# Nach der Umschaltung ersetzt dieser Eintrag brakefast-direct und diese
+# Datei wird zu /etc/cron.d/brakefast-direct (Container-Name bleibt).
+SHELL=/bin/bash
+PATH=/usr/bin:/bin:/usr/sbin:/sbin
+30 5 * * * root docker exec -e BRAKEFAST_HOST_CONTAINER_COUNT="$(docker ps -q | wc -l | tr -d ' ')" brakefast-pipeline /data/.openclaw/workspace/brakefast/scripts/brakefast-daily.sh >> /var/log/brakefast-parallel-cron.log 2>&1

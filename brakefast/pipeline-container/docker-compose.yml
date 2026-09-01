@@ -1,0 +1,32 @@
+# BrakeFast Pipeline — Compose-Projekt für /docker/brakefast-pipeline auf otto-vps
+#
+# Layout auf dem Host:
+#   /docker/brakefast-pipeline/
+#     docker-compose.yml   (diese Datei)
+#     Dockerfile
+#     app/                 git-Checkout von gz1976/brakefast
+#       brakefast/         -> gemountet nach /data/.openclaw/workspace/brakefast
+#     public/              -> gemountet nach /data/brakefast-public (nginx-Root nach Umschaltung)
+#
+# Secrets (nicht im Repo, aus dem OpenClaw-Volume kopieren):
+#   app/brakefast/config/briefing.local.env
+#   app/brakefast/config/gcal_credentials.json
+#   app/brakefast/config/gcal_token.json
+#   app/brakefast/config/hf_token.txt
+#
+# TELEGRAM_BOT_TOKEN bewusst nicht gesetzt, solange der Container parallel
+# zur alten Pipeline läuft (sonst doppelte Fehler-Alerts). Nach der
+# Umschaltung in environment ergänzen.
+
+services:
+  pipeline:
+    build: .
+    image: brakefast-pipeline:latest
+    container_name: brakefast-pipeline
+    restart: unless-stopped
+    init: true
+    environment:
+      - TZ=Europe/Vienna
+    volumes:
+      - ./app/brakefast:/data/.openclaw/workspace/brakefast
+      - ./public:/data/brakefast-public
