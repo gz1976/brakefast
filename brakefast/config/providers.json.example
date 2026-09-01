@@ -1,0 +1,12 @@
+{
+  "providers": {
+    "teamorouter": {
+      "baseUrl": "https://api.teamorouter.com/v1",
+      "apiKey": "sk-..."
+    },
+    "openrouter": {
+      "baseUrl": "https://openrouter.ai/api/v1",
+      "apiKey": "sk-or-..."
+    }
+  }
+}

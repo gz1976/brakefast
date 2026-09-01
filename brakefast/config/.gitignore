@@ -3,5 +3,7 @@ briefing.local.env
 gcal_token.json
 gcal_credentials.json
 hf_token.txt
+providers.json
 !.gitignore
 !briefing.env.example
+!providers.json.example

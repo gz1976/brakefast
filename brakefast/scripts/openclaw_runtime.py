@@ -62,7 +62,35 @@ def parse_json_env(key: str) -> Any:
         return None
 
 
+def _load_providers_json() -> dict[str, dict[str, Any]] | None:
+    """Provider-Liste aus einer eigenen providers.json (primäre Quelle).
+
+    Format: {"providers": {name: {"baseUrl": ..., "apiKey": ...}}} — derselbe
+    Teilbaum wie models.providers in openclaw.json, erzeugbar mit
+    `jq '{providers: .models.providers}' openclaw.json`.
+    """
+    providers_path = first_env("BRAKEFAST_PROVIDERS_FILE")
+    candidates = [Path(providers_path)] if providers_path else [CONFIG_DIR / "providers.json"]
+    for candidate in candidates:
+        if not candidate.exists():
+            continue
+        try:
+            payload = json.loads(candidate.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            continue
+        providers = payload.get("providers")
+        if isinstance(providers, dict):
+            return providers
+    return None
+
+
 def load_openclaw_model_providers() -> dict[str, dict[str, Any]]:
+    providers = _load_providers_json()
+    if providers is not None:
+        return providers
+    # Legacy-Fallback: models.providers aus openclaw.json. Noch load-bearing
+    # für den Model-Desk-Generator auf dem Host; entfällt mit Phase 3/4 der
+    # OpenClaw→Hermes-Migration.
     config_path = first_env("OPENCLAW_CONFIG_PATH")
     candidates = [Path(config_path)] if config_path else list(OPENCLAW_CONFIG_CANDIDATES)
     for candidate in candidates:
