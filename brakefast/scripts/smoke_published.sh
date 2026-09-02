@@ -7,7 +7,9 @@ TELEMETRY=/docker/brakefast-pipeline/public/pipeline-telemetry.json
 LOG=/docker/brakefast-pipeline/app/brakefast/output/brakefast.log
 LOCK=/docker/brakefast-pipeline/app/brakefast/output/brakefast-daily.lock
 HOST_CRON=/etc/cron.d/brakefast-direct
-CONTAINER=brakefast-pipeline
+# C5+ prueft die OpenClaw-eigene Cron-Liste auf konkurrierende BrakeFast-Jobs;
+# der Agent laeuft bis Phase 3 der Migration weiter im OpenClaw-Container.
+AGENT_CONTAINER=openclaw-xfcd-openclaw-1
 
 FAILED=0
 pass() { echo "PASS  $1"; }
@@ -105,7 +107,7 @@ else
   fail "C5: direct 05:30 host cron missing"
 fi
 
-CRON_JSON=$(docker exec "$CONTAINER" openclaw cron list --json 2>/dev/null || true)
+CRON_JSON=$(docker exec -u node -e HOME=/data "$AGENT_CONTAINER" openclaw cron list --json 2>/dev/null || true)
 if [ -z "$CRON_JSON" ]; then
   fail "C5+: OpenClaw cron list unavailable"
 else
