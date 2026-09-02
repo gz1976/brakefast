@@ -18,10 +18,9 @@
 #   app/brakefast/config/hf_token.txt
 #   app/brakefast/config/providers.json      (per resolve_providers.py erzeugen)
 #   secrets/alterlab.key, secrets/scrapedo.key
-#
-# TELEGRAM_BOT_TOKEN bewusst nicht gesetzt, solange der Container parallel
-# zur alten Pipeline läuft (sonst doppelte Fehler-Alerts). Nach der
-# Umschaltung in environment ergänzen.
+#   secrets/pipeline.env                     (TELEGRAM_BOT_TOKEN=... fuer Fehler-Alerts;
+#                                             erst nach der Umschaltung anlegen, sonst
+#                                             doppelte Alerts neben der alten Pipeline)
 
 services:
   pipeline:
@@ -32,6 +31,9 @@ services:
     init: true
     environment:
       - TZ=Europe/Vienna
+    env_file:
+      - path: ./secrets/pipeline.env
+        required: false
     volumes:
       - ./app/brakefast:/data/.openclaw/workspace/brakefast
       - ./public:/data/brakefast-public

@@ -2,12 +2,12 @@
 # Read-only production smoke test for BrakeFast. Runs on the VPS host.
 set -u
 
-DATA_JSON=/docker/openclaw-xfcd/data/brakefast-public/data.json
-TELEMETRY=/docker/openclaw-xfcd/data/brakefast-public/pipeline-telemetry.json
-LOG=/docker/openclaw-xfcd/data/.openclaw/workspace/brakefast/output/brakefast.log
-LOCK=/docker/openclaw-xfcd/data/.openclaw/workspace/brakefast/output/brakefast-daily.lock
+DATA_JSON=/docker/brakefast-pipeline/public/data.json
+TELEMETRY=/docker/brakefast-pipeline/public/pipeline-telemetry.json
+LOG=/docker/brakefast-pipeline/app/brakefast/output/brakefast.log
+LOCK=/docker/brakefast-pipeline/app/brakefast/output/brakefast-daily.lock
 HOST_CRON=/etc/cron.d/brakefast-direct
-CONTAINER=openclaw-xfcd-openclaw-1
+CONTAINER=brakefast-pipeline
 
 FAILED=0
 pass() { echo "PASS  $1"; }

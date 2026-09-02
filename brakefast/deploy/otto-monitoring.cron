@@ -1,0 +1,8 @@
+# Install as /etc/cron.d/otto-monitoring for truthful Otto monitoring metrics.
+# generate-monitoring.py ist OpenClaw-spezifisch (Heartbeat, CLI, Agent-Modelle)
+# und läuft bis Phase 3 der Migration weiter im OpenClaw-Container; die Ausgabe
+# wird ins Public-Verzeichnis der Pipeline gespiegelt, das nginx seit 2026-09-02
+# serviert.
+SHELL=/bin/bash
+PATH=/usr/bin:/bin:/usr/sbin:/sbin
+*/30 * * * * root docker exec -e BRAKEFAST_HOST_CONTAINER_COUNT="$(docker ps -q | wc -l | tr -d ' ')" openclaw-xfcd-openclaw-1 python3 /data/.openclaw/workspace/scripts/generate-monitoring.py > /dev/null 2>&1; cp -p /docker/openclaw-xfcd/data/brakefast-public/monitoring.json /docker/brakefast-pipeline/public/monitoring.json
