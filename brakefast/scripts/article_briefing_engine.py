@@ -665,10 +665,14 @@ class ArticleBriefingEngine:
         article_url = (article.get("source_url") or article.get("link") or "").strip()
         cached = self.cache.get(article_url)
         cache_key = self._content_fingerprint(article)
+        # Nur vollstaendig per LLM verarbeitete Eintraege sind Treffer. Ein
+        # Heuristik-Eintrag (LLM war ausgefallen) wird beim naechsten Lauf
+        # erneut versucht, statt den Ausfall im Cache einzufrieren.
         if (
             cached
             and cached.get("_fingerprint") == cache_key
             and cached.get("_cache_version") == CACHE_VERSION
+            and cached.get("processing_status") == "complete"
         ):
             with self._stats_lock:
                 self._cache_hits += 1

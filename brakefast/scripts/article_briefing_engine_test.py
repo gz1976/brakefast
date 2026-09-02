@@ -308,6 +308,7 @@ def test_enrich_writes_stats_file_with_cache_hits_and_llm_verdict():
             "_fingerprint": eng._content_fingerprint(article),
             "summary": "aus dem Cache",
             "enrichment_method": "llm",
+            "processing_status": "complete",
         })
     stats_path = tmp_dir / "enrichment-stats.json"
 
@@ -322,6 +323,56 @@ def test_enrich_writes_stats_file_with_cache_hits_and_llm_verdict():
     assert stats["llm_last_error"] == "teamo-pro: request failed: HTTP 401"
     methods = [a.get("enrichment_method") for a in result["categories"]["ai"]["articles"]]
     assert methods == ["llm", "llm", "heuristic"], methods
+
+
+def test_heuristic_cache_entry_is_retried_not_served():
+    """Ein Heuristik-Eintrag im Cache darf kein Treffer sein.
+
+    Sonst friert der Cache jeden LLM-Ausfall ein: der Artikel bekommt bei
+    jedem Lauf wieder den Fallback, solange sich der Fingerprint nicht
+    aendert (Parallellauf 2026-09-02: 52/102 heuristic aus vergiftetem Cache).
+    """
+    payload = {
+        "generated": "2026-09-02T05:30:00Z",
+        "categories": {
+            "ai": {
+                "name": "AI",
+                "articles": [
+                    {"title": "ai-0", "link": "cached://ai/0", "source": "Q", "description": "Text " * 30},
+                    {"title": "ai-1", "link": "cached://ai/1", "source": "Q", "description": "Text " * 30},
+                ],
+            },
+        },
+    }
+    tmp_dir = Path(tempfile.mkdtemp())
+    cache = engine.ArticleCache(tmp_dir / "cache.json")
+    eng = engine.ArticleBriefingEngine(cache)
+    eng.builder = engine.BriefingBuilder(client=_FakeClient(content=None))
+    complete, heuristic = payload["categories"]["ai"]["articles"]
+    cache.set(complete["link"], {
+        "_cache_version": engine.CACHE_VERSION,
+        "_fingerprint": eng._content_fingerprint(complete),
+        "summary": "aus dem Cache",
+        "enrichment_method": "llm",
+        "processing_status": "complete",
+    })
+    cache.set(heuristic["link"], {
+        "_cache_version": engine.CACHE_VERSION,
+        "_fingerprint": eng._content_fingerprint(heuristic),
+        "summary": "vergifteter Fallback",
+        "enrichment_method": "heuristic",
+        "processing_status": "heuristic",
+    })
+    stats_path = tmp_dir / "enrichment-stats.json"
+
+    result = _run(eng, payload, workers=1, stats_path=stats_path)
+
+    stats = json.loads(stats_path.read_text())
+    assert stats["cache_hits"] == 1, stats
+    assert stats["llm_calls"] == 1, stats
+    summaries = [a.get("summary") for a in result["categories"]["ai"]["articles"]]
+    assert summaries[0] == "aus dem Cache", summaries
+    assert summaries[1] != "vergifteter Fallback", summaries
 
 
 def test_main_writes_stats_next_to_enriched_output():
