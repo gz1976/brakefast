@@ -126,12 +126,49 @@ class BriefingBuilder:
         "they", "them", "their", "über", "eine", "einen", "mehr", "less", "than",
     }
 
-    def __init__(self) -> None:
-        self.client = OpenClawChatClient()
+    def __init__(self, client: OpenClawChatClient | None = None) -> None:
+        self.client = client if client is not None else OpenClawChatClient()
         self.enabled = self.client.enabled
+        # LLM-Bilanz des Laufs. build() laeuft in den Worker-Threads des Pools.
+        self._stats_lock = threading.Lock()
+        self._llm_counts = {"calls": 0, "responses": 0, "briefings": 0}
 
     def mode_description(self) -> str:
         return self.client.describe_chain()
+
+    def _count(self, key: str) -> None:
+        with self._stats_lock:
+            self._llm_counts[key] += 1
+
+    def llm_stats(self) -> dict[str, Any]:
+        """LLM-Bilanz des Laufs; `llm_status` ist das Signal fuer brakefast-daily.sh.
+
+        ok          - mindestens ein Aufruf lieferte ein brauchbares Briefing
+        failed      - Provider konfiguriert und aufgerufen, aber kein einziges
+                      brauchbares Briefing (Befund 31.08.-01.09.2026: alle
+                      Provider HTTP 401, die Zeitung lief still mit Heuristik
+                      und Cache weiter, die Telemetrie meldete ok)
+        unavailable - keine Provider konfiguriert, reiner Heuristik-Modus
+        idle        - Provider konfiguriert, aber kein Aufruf noetig (Cache)
+        """
+        with self._stats_lock:
+            counts = dict(self._llm_counts)
+        if not self.enabled:
+            status = "unavailable"
+        elif counts["calls"] == 0:
+            status = "idle"
+        elif counts["briefings"] == 0:
+            status = "failed"
+        else:
+            status = "ok"
+        return {
+            "llm_status": status,
+            "llm_calls": counts["calls"],
+            "llm_responses": counts["responses"],
+            "llm_briefings": counts["briefings"],
+            "llm_last_error": (self.client.last_error or "")[:300],
+            "provider_chain": self.client.describe_chain(),
+        }
 
     def build(
         self,
@@ -187,10 +224,12 @@ class BriefingBuilder:
             response_format={"type": "json_object"},
             timeout=40,
         )
+        self._count("calls")
         if response is None:
             enrichment_logger.warning("LLM returned None for '%s'. Last error: %s",
                                       article.get("title", "?")[:60], self.client.last_error)
             return None
+        self._count("responses")
 
         enrichment_logger.debug("LLM response for '%s' via %s: %.2000s",
                                 article.get("title", "?")[:60], response.provider_name, response.content)
@@ -217,6 +256,7 @@ class BriefingBuilder:
             if isinstance(point, str) and self._cleanup_text(point)
         ]
 
+        self._count("briefings")
         return {
             "dek": smart_truncate(dek, 200),
             "summary": smart_truncate(summary, 720),
@@ -421,12 +461,32 @@ class BriefingBuilder:
         return smart_truncate(f"Relevant fuer Otto, weil {summary.lower()}", 180)
 
 
+def describe_enrichment_stats(stats: dict[str, Any]) -> str:
+    """Einzeiler fuer brakefast.log und den Telegram-Alert."""
+    text = (
+        f"{stats['llm_briefings']} of {stats['llm_calls']} LLM calls produced a usable briefing "
+        f"({stats['llm_responses']} responses), {stats['cache_hits']} of {stats['articles']} articles "
+        f"from cache, providers: {stats['provider_chain']}"
+    )
+    if stats.get("llm_last_error"):
+        text += f"; last error: {stats['llm_last_error']}"
+    return text
+
+
 class ArticleBriefingEngine:
     def __init__(self, cache: ArticleCache) -> None:
         self.cache = cache
         self.builder = BriefingBuilder()
+        self._stats_lock = threading.Lock()
+        self._cache_hits = 0
+        self.last_stats: dict[str, Any] | None = None
 
-    def enrich(self, raw_payload: dict[str, Any], checkpoint_path: Path | None = None) -> dict[str, Any]:
+    def enrich(
+        self,
+        raw_payload: dict[str, Any],
+        checkpoint_path: Path | None = None,
+        stats_path: Path | None = None,
+    ) -> dict[str, Any]:
         """Reichert alle Artikel ueber einen begrenzten Thread-Pool an.
 
         Die Arbeitsliste wird ueber ALLE Kategorien flachgezogen. Das ist der
@@ -439,8 +499,14 @@ class ArticleBriefingEngine:
         Slot-Tabelle geschrieben werden — die Kuratierung liest Kategorien und
         Artikel positionsbezogen, Fertigstellungs-Reihenfolge darf nicht
         durchschlagen.
+
+        `stats_path` nimmt die LLM-Bilanz des Laufs auf (enrichment-stats.json);
+        brakefast-daily.sh entscheidet daraus, ob der Schritt degraded ist.
         """
         categories = raw_payload.get("categories", {})
+        with self._stats_lock:
+            self._cache_hits = 0
+        failed_articles = 0
 
         work: list[tuple[str, int, dict[str, Any]]] = []
         slots: dict[str, list[dict[str, Any] | None]] = {}
@@ -472,6 +538,7 @@ class ArticleBriefingEngine:
                             article.get("title"), category_id, exc,
                         )
                         slots[category_id][position] = article
+                        failed_articles += 1
                     completed += 1
                     if checkpoint_path is not None and completed % CHECKPOINT_EVERY == 0:
                         with checkpoint_lock:
@@ -482,6 +549,12 @@ class ArticleBriefingEngine:
         if checkpoint_path is not None:
             with checkpoint_lock:
                 self._write_checkpoint(raw_payload=raw_payload, slots=slots, output_path=checkpoint_path)
+
+        self.last_stats = self._build_stats(articles=len(work), errors=failed_articles)
+        if stats_path is not None:
+            tmp_path = stats_path.with_name(f"{stats_path.name}.tmp")
+            tmp_path.write_text(json.dumps(self.last_stats, ensure_ascii=False, indent=2))
+            tmp_path.replace(stats_path)
 
         result_categories: dict[str, Any] = {}
         total_articles = 0
@@ -499,6 +572,19 @@ class ArticleBriefingEngine:
             "totalArticles": total_articles,
             "categories": result_categories,
         }
+
+    def _build_stats(self, *, articles: int, errors: int) -> dict[str, Any]:
+        with self._stats_lock:
+            cache_hits = self._cache_hits
+        stats: dict[str, Any] = {
+            "generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+            "articles": articles,
+            "cache_hits": cache_hits,
+            "errors": errors,
+            **self.builder.llm_stats(),
+        }
+        stats["summary"] = describe_enrichment_stats(stats)
+        return stats
 
     @staticmethod
     def _resolve_slots(
@@ -584,6 +670,8 @@ class ArticleBriefingEngine:
             and cached.get("_fingerprint") == cache_key
             and cached.get("_cache_version") == CACHE_VERSION
         ):
+            with self._stats_lock:
+                self._cache_hits += 1
             return {**article, **cached, "image": cached.get("best_image") or cached.get("image", "")}
 
         extracted = {
@@ -998,12 +1086,20 @@ def main() -> int:
     engine = ArticleBriefingEngine(cache)
     mode = engine.builder.mode_description()
     print(f"Briefing builder mode: {mode}", file=sys.stderr)
-    enriched = engine.enrich(raw_payload, checkpoint_path=output_path)
+    enriched = engine.enrich(
+        raw_payload,
+        checkpoint_path=output_path,
+        stats_path=output_path.with_name("enrichment-stats.json"),
+    )
 
     output_path.write_text(json.dumps(enriched, ensure_ascii=False, indent=2))
     cache.save()
 
     print(f"Enriched articles written to {output_path}", file=sys.stderr)
+    stats = engine.last_stats or {}
+    if stats:
+        print(f"Enrichment LLM stats: llm_status={stats['llm_status']} ({stats['summary']})", file=sys.stderr)
+        enrichment_logger.info("Enrichment LLM stats: llm_status=%s (%s)", stats["llm_status"], stats["summary"])
 
     # Phase 04.02: persist scraper telemetry (per-run + monthly digest).
     # Lazy import keeps article_briefing_engine importable when scraper_proxy

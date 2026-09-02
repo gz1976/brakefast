@@ -39,6 +39,7 @@ RUN_STARTED_AT="$(date -Iseconds)"
 RUN_EDITION_DATE="$(date +%Y-%m-%d)"
 PIPELINE_LOG="${BRAKEFAST_DIR}/output/pipeline-run.json"
 FALLBACK_MARKER="${BRAKEFAST_DIR}/output/.fallback_used"
+ENRICHMENT_STATS="${BRAKEFAST_DIR}/output/enrichment-stats.json"
 TELEMETRY_WRITER="${SCRIPT_DIR}/write_telemetry.py"
 
 finalize_pipeline() {
@@ -60,6 +61,7 @@ trap 'exit 129' HUP
 
 echo "[]" > "$PIPELINE_LOG"
 rm -f -- "$FALLBACK_MARKER"
+rm -f -- "$ENRICHMENT_STATS"
 
 # Self-heal Python deps (trafilatura disappears on container recreate)
 if ! python3 -c "import trafilatura" 2>/dev/null; then
@@ -122,6 +124,36 @@ arr.append(entry)
 with open(sys.argv[2], 'w') as f:
     json.dump(arr, f, ensure_ascii=False, indent=2)
 " "$entry" "$PIPELINE_LOG" 2>/dev/null || true
+}
+
+# LLM-Bilanz der Anreicherung: article_briefing_engine.py schreibt sie nach
+# jedem Lauf nach $ENRICHMENT_STATS. Ein Feld lesen (leer, wenn Datei oder
+# Feld fehlt).
+enrichment_stat() {
+  python3 -c '
+import json, sys
+try:
+    value = json.load(open(sys.argv[1])).get(sys.argv[2])
+except Exception:
+    value = None
+print("" if value is None else value)
+' "$ENRICHMENT_STATS" "$1" 2>/dev/null || true
+}
+
+# LLM-Felder der Bilanz als JSON-Fragment fuer log_step_summary.
+enrichment_step_fields() {
+  python3 -c '
+import json, sys
+keys = ("llm_status", "llm_calls", "llm_responses", "llm_briefings", "cache_hits", "llm_last_error")
+try:
+    stats = json.load(open(sys.argv[1]))
+except Exception:
+    stats = {}
+fields = {key: stats[key] for key in keys if key in stats}
+if not fields:
+    fields = {"llm_status": "unknown"}
+print(json.dumps(fields, ensure_ascii=False)[1:-1])
+' "$ENRICHMENT_STATS" 2>/dev/null || echo '"llm_status": "unknown"'
 }
 
 log "=== BrakeFast Daily Pipeline Start ==="
@@ -199,8 +231,29 @@ fi
 if [ -f "$ENGINE_SCRIPT" ] && [ -f "$RAW_FILE" ]; then
   if timeout --signal=TERM --kill-after=30 "$ENRICHMENT_TIMEOUT_SEC" \
        python3 "$ENGINE_SCRIPT" "$RAW_FILE" "$ENRICHED_FILE" 2>&1 | tee -a "$LOG_FILE"; then
-    log "Step 1.5: Enrichment complete"
-    log_step_summary "enrichment" "\"status\": \"complete\""
+    # Befund 31.08.-01.09.2026: alle LLM-Provider antworteten mit HTTP 401, die
+    # Engine lief trotzdem mit rc=0 durch (Heuristik + Cache) und die Telemetrie
+    # meldete ok. Ohne ein einziges brauchbares LLM-Briefing gilt der Schritt
+    # als degraded: Edition wird weiter publiziert, aber Alert und Telemetrie
+    # zeigen es an.
+    LLM_STATUS="$(enrichment_stat llm_status)"
+    case "$LLM_STATUS" in
+      failed|unavailable)
+        log "WARN: Article enrichment finished without a usable LLM briefing (llm_status=${LLM_STATUS}): $(enrichment_stat summary)"
+        log_step_summary "enrichment" "\"status\": \"degraded\", $(enrichment_step_fields)"
+        send_telegram_alert "⚠️ BrakeFast Enrichment DEGRADED
+Edition ${RUN_EDITION_DATE}: no usable LLM briefing (llm_status=${LLM_STATUS}), edition is heuristic-only
+$(enrichment_stat summary)
+Host: $(hostname -s)"
+        ;;
+      *)
+        if [ -z "$LLM_STATUS" ]; then
+          log "WARN: enrichment-stats.json missing or unreadable; LLM outcome unknown"
+        fi
+        log "Step 1.5: Enrichment complete"
+        log_step_summary "enrichment" "\"status\": \"complete\", $(enrichment_step_fields)"
+        ;;
+    esac
   else
     rc="${PIPESTATUS[0]}"
     if [ "$rc" = "124" ] || [ "$rc" = "137" ]; then

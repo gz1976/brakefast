@@ -66,11 +66,11 @@ def _fake_ok(sleep_s: float = 0.05):
     return _f
 
 
-def _run(eng, payload, workers, checkpoint_path=None):
+def _run(eng, payload, workers, checkpoint_path=None, stats_path=None):
     previous = os.environ.get("BRAKEFAST_ENRICHMENT_WORKERS")
     os.environ["BRAKEFAST_ENRICHMENT_WORKERS"] = str(workers)
     try:
-        return eng.enrich(payload, checkpoint_path=checkpoint_path)
+        return eng.enrich(payload, checkpoint_path=checkpoint_path, stats_path=stats_path)
     finally:
         if previous is None:
             os.environ.pop("BRAKEFAST_ENRICHMENT_WORKERS", None)
@@ -183,6 +183,170 @@ def test_curation_index_exposes_date_and_age_to_the_model():
     assert index[0]["age_hours"] == 24
     assert "24h alt" in prompt_list
 
+
+
+# ---------------------------------------------------------------------------
+# LLM-Bilanz (Befund 31.08.-01.09.2026: alle Provider HTTP 401, Telemetrie
+# meldete trotzdem status=ok). Die Engine muss zaehlen, ob ueberhaupt ein
+# LLM-Call ein brauchbares Briefing geliefert hat.
+# ---------------------------------------------------------------------------
+
+from openclaw_client import ChatResponse  # noqa: E402
+
+_GOOD_LLM_JSON = json.dumps({
+    "dek": "Kurzer Vorspann.",
+    "summary": "Satz eins mit Inhalt. Satz zwei mit Inhalt. Satz drei mit Inhalt. "
+               "Satz vier mit noch mehr Inhalt und Woertern.",
+    "bullet_points": ["Punkt eins", "Punkt zwei", "Punkt drei"],
+    "why_it_matters": "Weil es Otto betrifft.",
+    "topics": ["Test", "Bilanz"],
+})
+
+
+class _FakeClient:
+    """Stand-in fuer OpenClawChatClient: gescriptete Antworten, kein Netz."""
+
+    def __init__(self, enabled=True, content=None):
+        self.enabled = enabled
+        self.content = content  # None -> jeder Call scheitert (alle Provider down)
+        self.last_error = "teamo-pro: request failed: HTTP 401" if content is None else ""
+        self.calls = 0
+
+    def describe_chain(self):
+        return "fake-a -> fake-b" if self.enabled else "heuristic"
+
+    def complete_json(self, **kwargs):
+        self.calls += 1
+        if self.content is None:
+            return None
+        return ChatResponse(provider_name="fake", model="m", content=self.content, payload={})
+
+
+def _build(builder, title="Testartikel"):
+    return builder.build(
+        article={"title": title, "source": "Testquelle", "description": "Beschreibung " * 20},
+        category_id="ai",
+        full_text="Volltext mit Inhalt. " * 40,
+        fallback_text="",
+    )
+
+
+def test_llm_stats_all_calls_failed_is_failed():
+    builder = engine.BriefingBuilder(client=_FakeClient(content=None))
+    _, used_llm_1 = _build(builder, "A")
+    _, used_llm_2 = _build(builder, "B")
+    stats = builder.llm_stats()
+
+    assert (used_llm_1, used_llm_2) == (False, False)
+    assert stats["llm_status"] == "failed", stats
+    assert (stats["llm_calls"], stats["llm_responses"], stats["llm_briefings"]) == (2, 0, 0), stats
+    assert stats["llm_last_error"] == "teamo-pro: request failed: HTTP 401"
+    assert stats["provider_chain"] == "fake-a -> fake-b"
+
+
+def test_llm_stats_unusable_response_is_response_but_no_briefing():
+    builder = engine.BriefingBuilder(client=_FakeClient(content="kein json"))
+    _build(builder)
+    stats = builder.llm_stats()
+
+    assert stats["llm_status"] == "failed", stats
+    assert (stats["llm_calls"], stats["llm_responses"], stats["llm_briefings"]) == (1, 1, 0), stats
+
+
+def test_llm_stats_usable_briefing_is_ok():
+    builder = engine.BriefingBuilder(client=_FakeClient(content=_GOOD_LLM_JSON))
+    _, used_llm = _build(builder)
+    stats = builder.llm_stats()
+
+    assert used_llm is True
+    assert stats["llm_status"] == "ok", stats
+    assert (stats["llm_calls"], stats["llm_responses"], stats["llm_briefings"]) == (1, 1, 1), stats
+
+
+def test_llm_stats_without_providers_is_unavailable():
+    builder = engine.BriefingBuilder(client=_FakeClient(enabled=False))
+    _build(builder)
+    stats = builder.llm_stats()
+
+    assert stats["llm_status"] == "unavailable", stats
+    assert stats["llm_calls"] == 0, stats
+    assert stats["provider_chain"] == "heuristic"
+
+
+def test_llm_stats_without_calls_is_idle():
+    builder = engine.BriefingBuilder(client=_FakeClient(content=_GOOD_LLM_JSON))
+    stats = builder.llm_stats()
+
+    assert stats["llm_status"] == "idle", stats
+    assert stats["llm_calls"] == 0, stats
+
+
+def test_enrich_writes_stats_file_with_cache_hits_and_llm_verdict():
+    """brakefast-daily.sh liest genau diese Datei nach dem Enrichment-Schritt."""
+    payload = {
+        "generated": "2026-09-01T05:30:00Z",
+        "categories": {
+            "ai": {
+                "name": "AI",
+                "articles": [
+                    # Zwei Artikel mit Cache-Treffer: kein LLM-Call noetig.
+                    {"title": "ai-0", "link": "cached://ai/0", "source": "Q", "description": "Text " * 30},
+                    {"title": "ai-1", "link": "cached://ai/1", "source": "Q", "description": "Text " * 30},
+                    # Ohne Link: kein Fetch, aber ein LLM-Call ueber den Fallback-Text.
+                    {"title": "ai-2", "link": "", "source": "Q", "description": "Frischer Text " * 30},
+                ],
+            },
+        },
+    }
+    tmp_dir = Path(tempfile.mkdtemp())
+    cache = engine.ArticleCache(tmp_dir / "cache.json")
+    eng = engine.ArticleBriefingEngine(cache)
+    eng.builder = engine.BriefingBuilder(client=_FakeClient(content=None))
+    for article in payload["categories"]["ai"]["articles"][:2]:
+        cache.set(article["link"], {
+            "_cache_version": engine.CACHE_VERSION,
+            "_fingerprint": eng._content_fingerprint(article),
+            "summary": "aus dem Cache",
+            "enrichment_method": "llm",
+        })
+    stats_path = tmp_dir / "enrichment-stats.json"
+
+    result = _run(eng, payload, workers=2, stats_path=stats_path)
+
+    stats = json.loads(stats_path.read_text())
+    assert stats["articles"] == 3, stats
+    assert stats["cache_hits"] == 2, stats
+    assert stats["llm_status"] == "failed", stats
+    assert (stats["llm_calls"], stats["llm_responses"], stats["llm_briefings"]) == (1, 0, 0), stats
+    assert "0 of 1" in stats["summary"], stats["summary"]
+    assert stats["llm_last_error"] == "teamo-pro: request failed: HTTP 401"
+    methods = [a.get("enrichment_method") for a in result["categories"]["ai"]["articles"]]
+    assert methods == ["llm", "llm", "heuristic"], methods
+
+
+def test_main_writes_stats_next_to_enriched_output():
+    """Der Shell-Orchestrator erwartet output/enrichment-stats.json neben enriched-articles.json."""
+    tmp_dir = Path(tempfile.mkdtemp())
+    raw_path = tmp_dir / "raw-articles.json"
+    out_path = tmp_dir / "enriched-articles.json"
+    raw_path.write_text(json.dumps({
+        "generated": "2026-09-01T05:30:00Z",
+        "categories": {"ai": {"name": "AI", "articles": [
+            {"title": "ai-0", "link": "", "source": "Q", "description": "Frischer Text " * 30},
+        ]}},
+    }))
+    saved_argv, saved_client = sys.argv, engine.OpenClawChatClient
+    sys.argv = ["article_briefing_engine.py", str(raw_path), str(out_path), str(tmp_dir / "cache.json")]
+    engine.OpenClawChatClient = lambda: _FakeClient(content=None)
+    try:
+        rc = engine.main()
+    finally:
+        sys.argv, engine.OpenClawChatClient = saved_argv, saved_client
+
+    assert rc == 0
+    assert out_path.exists()
+    stats = json.loads((tmp_dir / "enrichment-stats.json").read_text())
+    assert stats["llm_status"] == "failed", stats
 
 if __name__ == "__main__":
     names = [n for n in sorted(globals()) if n.startswith("test_")]

@@ -126,3 +126,90 @@ def test_write_uses_atomic_replace(monkeypatch, tmp_path):
     assert len(calls) == 1
     assert calls[0][1] == public / "pipeline-telemetry.json"
     assert json.loads((public / "pipeline-telemetry.json").read_text()) == payload
+
+
+def _degraded_enrichment_entry():
+    return {
+        "step": "enrichment",
+        "status": "degraded",
+        "llm_status": "failed",
+        "llm_calls": 62,
+        "llm_responses": 0,
+        "llm_briefings": 0,
+        "llm_last_error": "teamo-pro:deepseek-v4-pro: request failed: HTTP 401",
+    }
+
+
+def _fresh_published_run(output, public, entries, curated=40):
+    (output / "pipeline-run.json").write_text(json.dumps(entries))
+    (output / "curated-articles.json").write_text(json.dumps({"totalArticles": curated}))
+    data_path = public / "data.json"
+    data_path.write_text("{}")
+    os.utime(data_path, (100, 100))
+    return telemetry.build_telemetry(
+        "1970-01-01T00:01:00+00:00",
+        "1970-01-01",
+        ended_at=datetime.fromtimestamp(120, tz=timezone.utc),
+    )["last_run"]
+
+
+def test_degraded_enrichment_marks_run_partial_and_exposes_llm_status(monkeypatch, tmp_path):
+    """Befund 31.08.-01.09.2026: alle Provider HTTP 401, Edition publiziert, Telemetrie sagte ok."""
+    output, public = _configure_paths(monkeypatch, tmp_path)
+    entries = _successful_entries()
+    entries[1] = _degraded_enrichment_entry()
+    entries[2] = {"step": "curation", "mode": "auto"}
+
+    run = _fresh_published_run(output, public, entries)
+
+    assert run["publish_status"] == "partial"
+    assert run["failing_step"] == "enrichment"
+    assert run["llm_status"] == "failed"
+    assert run["warnings"] == [
+        "enrichment: degraded (llm_status=failed, 0/62 LLM calls usable; "
+        "last error: teamo-pro:deepseek-v4-pro: request failed: HTTP 401)"
+    ]
+
+
+def test_complete_enrichment_exposes_llm_status_ok(monkeypatch, tmp_path):
+    output, public = _configure_paths(monkeypatch, tmp_path)
+    entries = _successful_entries()
+    entries[1] = {
+        "step": "enrichment", "status": "complete",
+        "llm_status": "ok", "llm_calls": 60, "llm_responses": 60, "llm_briefings": 58,
+    }
+
+    run = _fresh_published_run(output, public, entries)
+
+    assert run["publish_status"] == "ok"
+    assert run["failing_step"] is None
+    assert run["llm_status"] == "ok"
+    assert run["warnings"] == []
+
+
+def test_legacy_enrichment_entry_without_llm_fields_stays_ok(monkeypatch, tmp_path):
+    output, public = _configure_paths(monkeypatch, tmp_path)
+
+    run = _fresh_published_run(output, public, _successful_entries())
+
+    assert run["publish_status"] == "ok"
+    assert run["llm_status"] is None
+
+
+def test_history_summary_carries_llm_status(monkeypatch, tmp_path):
+    _output, public = _configure_paths(monkeypatch, tmp_path)
+    (public / "pipeline-telemetry.json").write_text(json.dumps({
+        "last_run": {
+            "edition_date": "2026-09-01",
+            "publish_status": "partial",
+            "failing_step": "enrichment",
+            "llm_status": "failed",
+        },
+        "history": [],
+    }))
+
+    history = telemetry.load_history("2026-09-02")
+
+    assert history[0]["edition_date"] == "2026-09-01"
+    assert history[0]["publish_status"] == "partial"
+    assert history[0]["llm_status"] == "failed"

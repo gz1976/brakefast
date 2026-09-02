@@ -54,6 +54,8 @@ def step_succeeded(entry: dict[str, Any]) -> bool:
     if name == "fetch-feeds":
         return int(entry.get("articles", 0)) > 0
     if name == "enrichment":
+        # "degraded" (kein brauchbares LLM-Briefing), "timeout" und "failed"
+        # gelten als nicht bestanden, auch wenn die Edition publiziert wurde.
         return entry.get("status") == "complete"
     if name == "curation":
         return entry.get("mode") in ("llm", "auto-fallback", "auto")
@@ -116,6 +118,20 @@ def _redact_warning(value: Any) -> str:
     return text[:300]
 
 
+def _describe_failed_step(entry: dict[str, Any]) -> str:
+    text = f"{entry.get('step', 'unknown')}: {entry.get('status', 'failed')}"
+    llm_status = entry.get("llm_status")
+    if llm_status:
+        text += (
+            f" (llm_status={llm_status}, "
+            f"{entry.get('llm_briefings', 0)}/{entry.get('llm_calls', 0)} LLM calls usable"
+        )
+        if entry.get("llm_last_error"):
+            text += f"; last error: {entry['llm_last_error']}"
+        text += ")"
+    return text
+
+
 def collect_warnings(entries: list[dict[str, Any]], limit: int = 25) -> list[str]:
     """Collect only structured current-run warnings; never expose raw logs."""
     warnings: list[str] = []
@@ -128,7 +144,7 @@ def collect_warnings(entries: list[dict[str, Any]], limit: int = 25) -> list[str
 
     for entry in entries:
         if not step_succeeded(entry):
-            warnings.append(_redact_warning(f"{entry.get('step', 'unknown')}: {entry.get('status', 'failed')}"))
+            warnings.append(_redact_warning(_describe_failed_step(entry)))
         issues = entry.get("issues")
         if issues:
             warnings.append(_redact_warning(issues))
@@ -148,7 +164,7 @@ def load_history(current_edition_date: str) -> list[dict[str, Any]]:
         summary_keys = (
             "edition_date", "publish_status", "duration_seconds", "fetch_count",
             "enriched_count", "curated_count", "fallback_used", "failing_step",
-            "exit_code",
+            "exit_code", "llm_status",
         )
         summary = {key: previous.get(key) for key in summary_keys}
         history = [entry for entry in history if entry.get("edition_date") != summary.get("edition_date")]
@@ -164,6 +180,13 @@ def _entry_count(entries: list[dict[str, Any]], step: str, key: str) -> int:
             except (TypeError, ValueError):
                 return 0
     return 0
+
+
+def _entry_field(entries: list[dict[str, Any]], step: str, key: str) -> Any:
+    for entry in entries:
+        if entry.get("step") == step:
+            return entry.get(key)
+    return None
 
 
 def build_telemetry(
@@ -216,6 +239,7 @@ def build_telemetry(
         "curated_count": curated_count,
         "fallback_used": fallback_used,
         "failing_step": failing_step,
+        "llm_status": _entry_field(entries, "enrichment", "llm_status"),
         "warnings": collect_warnings(entries),
         "steps": entries,
     }
@@ -268,7 +292,7 @@ def main(argv: list[str]) -> int:
     run = telemetry["last_run"]
     print(
         f"[telemetry] status={run['publish_status']} curated={run['curated_count']} "
-        f"exit={run['exit_code']} failing={run['failing_step']}",
+        f"exit={run['exit_code']} failing={run['failing_step']} llm={run['llm_status']}",
         file=sys.stderr,
     )
     return 0
