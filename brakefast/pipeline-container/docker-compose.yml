@@ -7,12 +7,17 @@
 #     app/                 git-Checkout von gz1976/brakefast
 #       brakefast/         -> gemountet nach /data/.openclaw/workspace/brakefast
 #     public/              -> gemountet nach /data/brakefast-public (nginx-Root nach Umschaltung)
+#     secrets/             -> gemountet nach /data/.openclaw/workspace/etc/Secrets (read-only);
+#                             load-brakefast-env.sh sucht die Proxy-Keys eine Ebene
+#                             ueber brakefast/ unter etc/Secrets/
 #
 # Secrets (nicht im Repo, aus dem OpenClaw-Volume kopieren):
 #   app/brakefast/config/briefing.local.env
 #   app/brakefast/config/gcal_credentials.json
 #   app/brakefast/config/gcal_token.json
 #   app/brakefast/config/hf_token.txt
+#   app/brakefast/config/providers.json      (per resolve_providers.py erzeugen)
+#   secrets/alterlab.key, secrets/scrapedo.key
 #
 # TELEGRAM_BOT_TOKEN bewusst nicht gesetzt, solange der Container parallel
 # zur alten Pipeline läuft (sonst doppelte Fehler-Alerts). Nach der
@@ -30,3 +35,4 @@ services:
     volumes:
       - ./app/brakefast:/data/.openclaw/workspace/brakefast
       - ./public:/data/brakefast-public
+      - ./secrets:/data/.openclaw/workspace/etc/Secrets:ro
