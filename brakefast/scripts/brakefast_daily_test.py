@@ -102,3 +102,21 @@ def test_dead_llm_chain_degrades_the_enrichment_step_and_alerts():
     # Der bestehende Telegram-Alert muss anschlagen, bevor die Kuratierung weiterlaeuft.
     alert_at = text.index('send_telegram_alert "⚠️ BrakeFast Enrichment DEGRADED')
     assert text.index('python3 "$ENGINE_SCRIPT" "$RAW_FILE"') < alert_at < text.index('log "Step 2: Curating articles..."')
+
+
+# ---------------------------------------------------------------------------
+# Kalender-Fetch (Befund 02.09.2026: HTTP 500, leere Kalender-Dateien, keine Warnung).
+# ---------------------------------------------------------------------------
+
+def test_calendar_status_is_reset_before_the_calendar_fetch():
+    text = SCRIPT.read_text()
+
+    # Status von gestern darf nicht in die heutige Telemetrie einfliessen.
+    assert text.index('rm -f -- "$CALENDAR_STATUS"') < text.index('python3 "$CALENDAR_SCRIPT"')
+
+
+def test_crashed_calendar_fetch_keeps_the_previous_calendar_files():
+    text = SCRIPT.read_text()
+
+    assert '[ -f "$CALENDAR_JSON" ] || echo "[]" > "$CALENDAR_JSON"' in text
+    assert '[ -f "$CALENDAR_PRIVATE_JSON" ] || echo "[]" > "$CALENDAR_PRIVATE_JSON"' in text

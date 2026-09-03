@@ -8,11 +8,17 @@ Configuration — `BRAKEFAST_CALENDAR_SOURCES` env var, JSON array of sources:
       {"url": "https://calendar.google.com/calendar/ical/.../basic.ics", "kind": "arbeit"}
     ]
 
-Outputs TWO files in brakefast/output/:
+Outputs in brakefast/output/:
 
 - ``calendar-events.json``          redacted, public  — `[{time, end, kind}, ...]`
 - ``calendar-events-private.json``  full, served only via key-protected path
                                     — `[{time, end, kind, title, location}, ...]`
+- ``calendar-fetch-status.json``    per-run fetch status, read by write_telemetry.py
+                                    — `{sources, attempts, failed_sources, errors, kept_previous}`
+
+A source that still fails after every retry attempt leaves the two event files
+untouched (the last successful fetch stays in place); only a first run without
+any previous files writes empty lists.
 
 The redacted file is consumed by `curate.py` and lands in the public data.json.
 The private file is shipped to `/data/brakefast-public/private/calendar.json`
@@ -27,6 +33,7 @@ import urllib.request
 import urllib.error
 from datetime import datetime, date, time, timedelta, timezone
 from pathlib import Path
+from time import sleep
 
 try:
     from zoneinfo import ZoneInfo
@@ -40,10 +47,16 @@ BRAKEFAST_DIR = SCRIPT_DIR.parent
 OUTPUT_DIR = BRAKEFAST_DIR / "output"
 PUBLIC_FILE = OUTPUT_DIR / "calendar-events.json"
 PRIVATE_FILE = OUTPUT_DIR / "calendar-events-private.json"
+STATUS_FILE = OUTPUT_DIR / "calendar-fetch-status.json"
 
 # Fetch ±7 days so the frontend calendar widget supports week navigation
 LOOKBACK_DAYS = 7
 LOOKAHEAD_DAYS = 7
+
+# Transient errors (e.g. HTTP 500 on 2026-09-02, gone 10 s later) get a short retry:
+# three attempts in total, sleeping 5 s and then 10 s in between.
+RETRY_DELAYS_SECONDS = (5, 10)
+RETRY_ATTEMPTS = len(RETRY_DELAYS_SECONDS) + 1
 
 
 def _load_sources() -> list[dict]:
@@ -66,6 +79,31 @@ def _fetch_ics(url: str, timeout: int = 15) -> str:
     })
     with urllib.request.urlopen(req, timeout=timeout) as response:
         return response.read().decode("utf-8", errors="replace")
+
+
+def _fetch_ics_with_retry(url: str, kind: str) -> str:
+    """Fetch with backoff; re-raises the last error once every attempt failed."""
+    for attempt in range(1, RETRY_ATTEMPTS + 1):
+        try:
+            return _fetch_ics(url)
+        except Exception as exc:  # noqa: BLE001
+            print(
+                f"WARN: Fetch failed for calendar source '{kind}' "
+                f"(attempt {attempt}/{RETRY_ATTEMPTS}): {exc}",
+                file=sys.stderr,
+            )
+            if attempt == RETRY_ATTEMPTS:
+                raise
+            sleep(RETRY_DELAYS_SECONDS[attempt - 1])
+
+
+def _describe_error(exc: BaseException) -> str:
+    """Short, URL-free error text — the status file ends up in public telemetry."""
+    if isinstance(exc, urllib.error.HTTPError):
+        return f"HTTP {exc.code} {exc.reason}"
+    if isinstance(exc, urllib.error.URLError):
+        return f"URLError: {exc.reason}"
+    return type(exc).__name__
 
 
 def _ensure_tz(dt):
@@ -161,17 +199,39 @@ def main() -> int:
     window_end = today + timedelta(days=LOOKAHEAD_DAYS)
 
     collected: list[dict] = []
+    errors: dict[str, str] = {}
     for src in sources:
         url = src["url"]
         kind = (src.get("kind") or "privat").strip().lower()
         try:
-            ics = _fetch_ics(url)
+            ics = _fetch_ics_with_retry(url, kind)
         except Exception as exc:  # noqa: BLE001
-            print(f"WARN: Fetch failed for calendar source '{kind}': {exc}", file=sys.stderr)
+            errors[kind] = _describe_error(exc)
             continue
         for ev in _parse_events(ics, window_start, window_end):
             ev["kind"] = kind
             collected.append(ev)
+
+    # A source that stayed down after every attempt must not wipe the last good
+    # files: keep them, and let the status file carry the warning into telemetry.
+    kept_previous = bool(errors) and PUBLIC_FILE.exists() and PRIVATE_FILE.exists()
+    STATUS_FILE.write_text(
+        json.dumps({
+            "sources": len(sources),
+            "attempts": RETRY_ATTEMPTS,
+            "failed_sources": sorted(errors),
+            "errors": errors,
+            "kept_previous": kept_previous,
+        }, ensure_ascii=False, indent=2),
+        encoding="utf-8",
+    )
+    if kept_previous:
+        print(
+            f"WARN: Calendar: source(s) {', '.join(sorted(errors))} failed after "
+            f"{RETRY_ATTEMPTS} attempts — keeping previous {PUBLIC_FILE.name} + {PRIVATE_FILE.name}",
+            file=sys.stderr,
+        )
+        return 0
 
     collected.sort(key=lambda e: e["start"])
 

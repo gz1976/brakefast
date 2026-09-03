@@ -21,6 +21,7 @@ def _configure_paths(monkeypatch, tmp_path):
     monkeypatch.setattr(telemetry, "CURATED_PATH", output / "curated-articles.json")
     monkeypatch.setattr(telemetry, "ENRICHED_PATH", output / "enriched-articles.json")
     monkeypatch.setattr(telemetry, "FINAL_PATH", output / "final-data.json")
+    monkeypatch.setattr(telemetry, "CALENDAR_STATUS_PATH", output / "calendar-fetch-status.json")
     return output, public
 
 
@@ -213,3 +214,48 @@ def test_history_summary_carries_llm_status(monkeypatch, tmp_path):
     assert history[0]["edition_date"] == "2026-09-01"
     assert history[0]["publish_status"] == "partial"
     assert history[0]["llm_status"] == "failed"
+
+
+# ---------------------------------------------------------------------------
+# Kalender-Fetch (Befund 02.09.2026: HTTP 500 beim ICS-Abruf, Edition ohne
+# Termine, Validierung gruen, Telemetrie ohne Warnung).
+# ---------------------------------------------------------------------------
+
+def _calendar_status(output, **overrides):
+    status = {
+        "sources": 1, "attempts": 3, "failed_sources": ["privat"],
+        "errors": {"privat": "HTTP 500 Internal Server Error"}, "kept_previous": True,
+    }
+    status.update(overrides)
+    (output / "calendar-fetch-status.json").write_text(json.dumps(status))
+
+
+def test_calendar_fetch_failure_is_a_warning_but_does_not_degrade_the_run(monkeypatch, tmp_path):
+    output, public = _configure_paths(monkeypatch, tmp_path)
+    _calendar_status(output)
+
+    run = _fresh_published_run(output, public, _successful_entries())
+
+    assert run["publish_status"] == "ok"
+    assert run["failing_step"] is None
+    assert run["warnings"] == [
+        "calendar: source 'privat' failed after 3 attempts "
+        "(HTTP 500 Internal Server Error); previous calendar files kept"
+    ]
+
+
+def test_calendar_fetch_failure_without_previous_files_says_so(monkeypatch, tmp_path):
+    output, _public = _configure_paths(monkeypatch, tmp_path)
+    _calendar_status(output, errors={"privat": "URLError: timed out"}, kept_previous=False)
+
+    assert telemetry.collect_warnings([]) == [
+        "calendar: source 'privat' failed after 3 attempts (URLError: timed out); "
+        "no previous calendar files, edition has no events"
+    ]
+
+
+def test_successful_calendar_fetch_adds_no_warning(monkeypatch, tmp_path):
+    output, _public = _configure_paths(monkeypatch, tmp_path)
+    _calendar_status(output, failed_sources=[], errors={}, kept_previous=False)
+
+    assert telemetry.collect_warnings([]) == []

@@ -163,6 +163,9 @@ log "Step 0: Fetching Google Calendar events..."
 CALENDAR_SCRIPT="${SCRIPT_DIR}/fetch-calendar.py"
 CALENDAR_JSON="${BRAKEFAST_DIR}/output/calendar-events.json"
 CALENDAR_PRIVATE_JSON="${BRAKEFAST_DIR}/output/calendar-events-private.json"
+CALENDAR_STATUS="${BRAKEFAST_DIR}/output/calendar-fetch-status.json"
+# Fetch-Status von gestern darf nicht in die heutige Telemetrie einfliessen.
+rm -f -- "$CALENDAR_STATUS"
 
 # Self-heal icalendar deps for the private ICS-URL fetcher
 if ! python3 -c "import icalendar, recurring_ical_events" 2>/dev/null; then
@@ -173,9 +176,9 @@ if [ -f "$CALENDAR_SCRIPT" ]; then
   if python3 "$CALENDAR_SCRIPT" 2>&1 | tee -a "$LOG_FILE"; then
     log "Step 0: Calendar events fetched"
   else
-    log "WARN: Calendar fetch failed, using empty arrays"
-    echo "[]" > "$CALENDAR_JSON"
-    echo "[]" > "$CALENDAR_PRIVATE_JSON"
+    log "WARN: Calendar fetch script failed, keeping previous calendar files"
+    [ -f "$CALENDAR_JSON" ] || echo "[]" > "$CALENDAR_JSON"
+    [ -f "$CALENDAR_PRIVATE_JSON" ] || echo "[]" > "$CALENDAR_PRIVATE_JSON"
   fi
 else
   log "WARN: Calendar script not found, using empty arrays"

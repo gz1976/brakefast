@@ -25,6 +25,7 @@ FALLBACK_MARKER = OUTPUT_DIR / ".fallback_used"
 CURATED_PATH = OUTPUT_DIR / "curated-articles.json"
 ENRICHED_PATH = OUTPUT_DIR / "enriched-articles.json"
 FINAL_PATH = OUTPUT_DIR / "final-data.json"
+CALENDAR_STATUS_PATH = OUTPUT_DIR / "calendar-fetch-status.json"
 HISTORY_LIMIT = 14
 
 STEP_ORDER = [
@@ -132,6 +133,24 @@ def _describe_failed_step(entry: dict[str, Any]) -> str:
     return text
 
 
+def calendar_warnings() -> list[str]:
+    """One warning per calendar source that failed every fetch attempt (fetch-calendar.py)."""
+    status = _read_json(CALENDAR_STATUS_PATH, {})
+    failed = status.get("failed_sources") if isinstance(status, dict) else None
+    if not isinstance(failed, list):
+        return []
+    errors = status.get("errors") if isinstance(status.get("errors"), dict) else {}
+    outcome = (
+        "previous calendar files kept" if status.get("kept_previous")
+        else "no previous calendar files, edition has no events"
+    )
+    return [
+        f"calendar: source '{kind}' failed after {status.get('attempts', '?')} attempts "
+        f"({errors.get(kind, 'unknown error')}); {outcome}"
+        for kind in failed
+    ]
+
+
 def collect_warnings(entries: list[dict[str, Any]], limit: int = 25) -> list[str]:
     """Collect only structured current-run warnings; never expose raw logs."""
     warnings: list[str] = []
@@ -141,6 +160,7 @@ def collect_warnings(entries: list[dict[str, Any]], limit: int = 25) -> list[str
     meta_warnings = final_data.get("meta", {}).get("warnings", []) if isinstance(final_data, dict) else []
     if isinstance(meta_warnings, list):
         warnings.extend(_redact_warning(item) for item in meta_warnings if item)
+    warnings.extend(_redact_warning(item) for item in calendar_warnings())
 
     for entry in entries:
         if not step_succeeded(entry):
