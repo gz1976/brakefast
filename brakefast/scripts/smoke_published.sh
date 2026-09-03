@@ -9,7 +9,9 @@ LOCK=/docker/brakefast-pipeline/app/brakefast/output/brakefast-daily.lock
 HOST_CRON=/etc/cron.d/brakefast-direct
 # C5+ prueft die OpenClaw-eigene Cron-Liste auf konkurrierende BrakeFast-Jobs;
 # der Agent laeuft bis Phase 3 der Migration weiter im OpenClaw-Container.
-AGENT_CONTAINER=openclaw-xfcd-openclaw-1
+# Per Umgebungsvariable ueberschreibbar; fehlt der Container (Phase 4), wird
+# die Pruefung uebersprungen statt als Fehler gewertet.
+AGENT_CONTAINER=${BRAKEFAST_AGENT_CONTAINER:-openclaw-xfcd-openclaw-1}
 
 FAILED=0
 pass() { echo "PASS  $1"; }
@@ -107,10 +109,14 @@ else
   fail "C5: direct 05:30 host cron missing"
 fi
 
-CRON_JSON=$(docker exec -u node -e HOME=/data "$AGENT_CONTAINER" openclaw cron list --json 2>/dev/null || true)
-if [ -z "$CRON_JSON" ]; then
-  fail "C5+: OpenClaw cron list unavailable"
+if [ "$(docker inspect -f '{{.State.Running}}' "$AGENT_CONTAINER" 2>/dev/null)" != "true" ]; then
+  note "C5+: agent container $AGENT_CONTAINER not running — OpenClaw cron check skipped"
+  CRON_JSON=""
 else
+  CRON_JSON=$(docker exec -u node -e HOME=/data "$AGENT_CONTAINER" openclaw cron list --json 2>/dev/null || true)
+  [ -n "$CRON_JSON" ] || fail "C5+: OpenClaw cron list unavailable"
+fi
+if [ -n "$CRON_JSON" ]; then
   BRAKEFAST_AGENT_JOBS=$(printf '%s' "$CRON_JSON" | jq '[
     (.jobs // .)[]?
     | select(((.name // "") + " " + (.payload.message // "")) | test("BrakeFast|brakefast"))
