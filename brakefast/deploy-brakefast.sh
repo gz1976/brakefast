@@ -97,6 +97,13 @@ fi
 echo ""
 echo "Uploading scripts..."
 ssh -o ConnectTimeout=15 "$SERVER" "mkdir -p $REMOTE_TMP"
+# Remove the remote tmp dir on every exit, also when a later step fails under set -e
+cleanup_remote_tmp() {
+  trap - EXIT
+  ssh "$SERVER" "case '$REMOTE_TMP' in /tmp/brakefast-deploy-*) rm -rf -- '$REMOTE_TMP' ;; *) exit 2 ;; esac" ||
+    echo "WARNING: could not remove $REMOTE_TMP on $SERVER"
+}
+trap cleanup_remote_tmp EXIT
 scp -q "${DEPLOY_FILES[@]}" "${SERVER}:${REMOTE_TMP}/"
 echo "  Uploaded ${#DEPLOY_FILES[@]} production files"
 
@@ -107,6 +114,7 @@ if [ "$DEPLOY_SOURCES" -eq 1 ] && [ -f "$SOURCES_FILE" ]; then
 fi
 
 # Copy from host tmp to host-mapped container volume, then fix permissions
+# (chown via find under sudo: the SSH user cannot list $HOST_SCRIPTS, a glob would stay literal)
 echo ""
 echo "Installing into container..."
 ssh "$SERVER" "
@@ -114,7 +122,7 @@ ssh "$SERVER" "
   sudo cp -a '$HOST_SCRIPTS/.' '$HOST_BACKUPS/$DEPLOY_STAMP/' &&
   sudo sh -c \"sha256sum '$HOST_BACKUPS/$DEPLOY_STAMP/'*.py '$HOST_BACKUPS/$DEPLOY_STAMP/'*.sh > '$HOST_BACKUPS/$DEPLOY_STAMP/SHA256SUMS.before' 2>/dev/null\" &&
   sudo cp ${REMOTE_TMP}/*.py ${REMOTE_TMP}/*.sh ${HOST_SCRIPTS}/ &&
-  sudo chown 1000:1000 ${HOST_SCRIPTS}/*.py ${HOST_SCRIPTS}/*.sh &&
+  sudo find '$HOST_SCRIPTS' -maxdepth 1 \( -name '*.py' -o -name '*.sh' \) -exec chown 1000:1000 {} + &&
   echo '  Scripts installed with node:node (uid 1000) permissions' &&
   echo '  Backup: $HOST_BACKUPS/$DEPLOY_STAMP'
 "
@@ -132,7 +140,7 @@ if [ "$DEPLOY_SOURCES" -eq 1 ]; then
 fi
 
 # Cleanup
-ssh "$SERVER" "case '$REMOTE_TMP' in /tmp/brakefast-deploy-*) rm -rf -- '$REMOTE_TMP' ;; *) exit 2 ;; esac"
+cleanup_remote_tmp
 
 # Verify deployment
 echo ""

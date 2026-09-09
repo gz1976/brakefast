@@ -112,15 +112,9 @@ cd ~/Projects/BrakeFast
 
 Das Script prüft Syntax, legt ein datiertes Backup unter
 `…/brakefast/deploy-backups/` an, kopiert nach dem Host-Pfad und setzt
-Owner `1000:1000` (Container-User `node`).
-
-Falls `chown` mit Glob fehlschlägt (Verzeichnis für `gerhard` nicht
-listbar, Glob bleibt literal):
-
-```bash
-ssh otto-vps "sudo find /docker/openclaw-xfcd/data/.openclaw/workspace/brakefast/scripts \
-  -maxdepth 1 \( -name '*.py' -o -name '*.sh' \) -exec chown 1000:1000 {} +"
-```
+Owner `1000:1000` (Container-User `node`). Das `chown` läuft als
+`sudo find … -exec chown`, weil das Verzeichnis für `gerhard` nicht
+listbar ist und ein Glob dort literal bliebe.
 
 **Goldene Regel:** nie direkt im Container editieren.
 
