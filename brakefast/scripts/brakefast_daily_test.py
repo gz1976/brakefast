@@ -120,3 +120,10 @@ def test_crashed_calendar_fetch_keeps_the_previous_calendar_files():
 
     assert '[ -f "$CALENDAR_JSON" ] || echo "[]" > "$CALENDAR_JSON"' in text
     assert '[ -f "$CALENDAR_PRIVATE_JSON" ] || echo "[]" > "$CALENDAR_PRIVATE_JSON"' in text
+
+
+def test_spec_step_hands_its_budget_to_the_engine():
+    """Die Engine verteilt das Wall-Clock-Budget des Schritts als Deadline ueber die Provider-Kette."""
+    text = SCRIPT.read_text()
+
+    assert 'BRAKEFAST_SPEC_TIMEOUT_SEC="$SPEC_TIMEOUT_SEC" timeout --signal=TERM --kill-after=15 "$SPEC_TIMEOUT_SEC"' in text

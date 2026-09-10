@@ -10,6 +10,7 @@ import os
 import re
 import sys
 import threading
+import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone
 from email.utils import parsedate_to_datetime
@@ -36,6 +37,23 @@ MAX_ENRICHMENT_WORKERS = 16
 # Artikel Arbeitsverlust bei hartem SIGKILL ist vertretbar, seit der Lauf ins
 # Zeitbudget passt.
 CHECKPOINT_EVERY = 5
+
+# Spec-Generierung: brakefast-daily.sh setzt dem Schritt ein Wall-Clock-Budget
+# (BRAKEFAST_SPEC_TIMEOUT_SEC, Default wie dort 300 s). Die Provider-Kette
+# bekommt dieses Budget minus Reserve fuer Parsen/Validieren als Deadline,
+# jeder einzelne Versuch hoechstens SPEC_ATTEMPT_TIMEOUT_SEC.
+DEFAULT_SPEC_BUDGET_SEC = 300
+SPEC_BUDGET_MARGIN_SEC = 30
+SPEC_ATTEMPT_TIMEOUT_SEC = 150
+
+
+def _spec_budget_seconds() -> int:
+    raw = os.environ.get("BRAKEFAST_SPEC_TIMEOUT_SEC", "")
+    try:
+        budget = int(raw)
+    except (TypeError, ValueError):
+        return DEFAULT_SPEC_BUDGET_SEC
+    return budget if budget > 0 else DEFAULT_SPEC_BUDGET_SEC
 
 
 def _enrichment_workers() -> int:
@@ -985,7 +1003,13 @@ Antworte NUR mit dem JSON, kein Reasoning-Text, kein Markdown-Wrapper."""
         print("ERROR: No LLM providers available for curation spec", file=sys.stderr)
         return 1
 
-    print(f"Generating curation spec via LLM ({client.describe_chain()})...", file=sys.stderr)
+    budget = _spec_budget_seconds()
+    deadline = time.monotonic() + max(budget - SPEC_BUDGET_MARGIN_SEC, SPEC_BUDGET_MARGIN_SEC)
+    print(
+        f"Generating curation spec via LLM ({client.describe_chain()}) "
+        f"within {budget}s budget, up to {SPEC_ATTEMPT_TIMEOUT_SEC}s per attempt...",
+        file=sys.stderr,
+    )
     response = client.complete_json(
         messages=[
             {"role": "system", "content": "Du bist ein JSON-Generator. Antworte ausschliesslich mit validem JSON."},
@@ -993,7 +1017,8 @@ Antworte NUR mit dem JSON, kein Reasoning-Text, kein Markdown-Wrapper."""
         ],
         temperature=0.3,
         response_format={"type": "json_object"},
-        timeout=150,
+        timeout=SPEC_ATTEMPT_TIMEOUT_SEC,
+        deadline=deadline,
     )
 
     if response is None:

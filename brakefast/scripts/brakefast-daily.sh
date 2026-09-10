@@ -289,7 +289,9 @@ LLM_CURATION=0
 SPEC_TIMEOUT_SEC="${BRAKEFAST_SPEC_TIMEOUT_SEC:-300}"
 if [ -f "$ENGINE_SCRIPT" ] && [ -f "$ENRICHED_FILE" ]; then
   log "Step 2a: Generating LLM curation spec (timeout ${SPEC_TIMEOUT_SEC}s)..."
-  if timeout --signal=TERM --kill-after=15 "$SPEC_TIMEOUT_SEC" \
+  # Die Engine bekommt dasselbe Budget und verteilt es als Deadline ueber die
+  # Provider-Kette, statt dass der letzte Versuch vom timeout abgeschossen wird.
+  if BRAKEFAST_SPEC_TIMEOUT_SEC="$SPEC_TIMEOUT_SEC" timeout --signal=TERM --kill-after=15 "$SPEC_TIMEOUT_SEC" \
        python3 "$ENGINE_SCRIPT" --curation-spec "$ENRICHED_FILE" "$SPEC_FILE" 2>&1 | tee -a "$LOG_FILE"; then
     if [ -f "$SPEC_FILE" ] && [ -s "$SPEC_FILE" ]; then
       log "Step 2a: LLM curation spec generated"

@@ -405,3 +405,59 @@ if __name__ == "__main__":
         globals()[name]()
         print(f"  ok  {name}")
     print(f"ALL {len(names)} TESTS PASS")
+
+
+# ---------------------------------------------------------------------------
+# Spec-Generierung: Budget des Shell-Schritts (BRAKEFAST_SPEC_TIMEOUT_SEC)
+# wird als Deadline an die Provider-Kette gereicht.
+# ---------------------------------------------------------------------------
+
+import time  # noqa: E402
+
+
+def test_spec_budget_comes_from_the_same_env_as_the_shell_step():
+    saved = os.environ.get("BRAKEFAST_SPEC_TIMEOUT_SEC")
+    try:
+        for raw, want in (("600", 600), ("300", 300), ("abc", 300), ("", 300), ("0", 300), ("-5", 300)):
+            os.environ["BRAKEFAST_SPEC_TIMEOUT_SEC"] = raw
+            assert engine._spec_budget_seconds() == want, (raw, engine._spec_budget_seconds())
+        os.environ.pop("BRAKEFAST_SPEC_TIMEOUT_SEC", None)
+        assert engine._spec_budget_seconds() == 300
+    finally:
+        if saved is None:
+            os.environ.pop("BRAKEFAST_SPEC_TIMEOUT_SEC", None)
+        else:
+            os.environ["BRAKEFAST_SPEC_TIMEOUT_SEC"] = saved
+
+
+def test_curation_spec_passes_a_deadline_inside_the_budget():
+    tmp_dir = Path(tempfile.mkdtemp())
+    enriched = tmp_dir / "enriched.json"
+    enriched.write_text(json.dumps({"categories": {"ai": {"articles": [
+        {"title": "ai-0", "source": "Q", "summary": "Text", "published_at": "2026-09-10T05:00:00Z"},
+    ]}}}))
+    calls: list[dict] = []
+
+    class _RecordingClient(_FakeClient):
+        def complete_json(self, **kwargs):
+            calls.append(kwargs)
+            return None
+
+    saved_client, saved_env = engine.OpenClawChatClient, os.environ.get("BRAKEFAST_SPEC_TIMEOUT_SEC")
+    engine.OpenClawChatClient = lambda: _RecordingClient(content=None)
+    os.environ["BRAKEFAST_SPEC_TIMEOUT_SEC"] = "600"
+    try:
+        started = time.monotonic()
+        rc = engine.generate_curation_spec(enriched, tmp_dir / "spec.json")
+    finally:
+        engine.OpenClawChatClient = saved_client
+        if saved_env is None:
+            os.environ.pop("BRAKEFAST_SPEC_TIMEOUT_SEC", None)
+        else:
+            os.environ["BRAKEFAST_SPEC_TIMEOUT_SEC"] = saved_env
+
+    assert rc == 1
+    assert len(calls) == 1
+    assert calls[0]["timeout"] == 150
+    budget_left = calls[0]["deadline"] - started
+    assert 570 <= budget_left < 571, budget_left  # 600 s minus 30 s Reserve, plus Messzeit

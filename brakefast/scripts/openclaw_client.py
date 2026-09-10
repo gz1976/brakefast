@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import json
 import logging
+import time
 import urllib.error
 import urllib.request
 from dataclasses import dataclass
@@ -13,6 +14,10 @@ from typing import Any
 log = logging.getLogger("brakefast.enrichment")
 
 from openclaw_runtime import ProviderConfig, get_text_provider_chain
+
+# Unter diesem Rest-Zeitfenster wird ein Provider gar nicht mehr versucht:
+# die Spec-Antworten brauchen auch im besten Fall einige Sekunden.
+MIN_ATTEMPT_SEC = 20
 
 
 @dataclass
@@ -44,9 +49,28 @@ class OpenClawChatClient:
         temperature: float = 0.2,
         response_format: dict[str, Any] | None = None,
         timeout: int = 40,
+        deadline: float | None = None,
     ) -> ChatResponse | None:
+        """Provider der Reihe nach versuchen; `timeout` gilt pro Versuch.
+
+        `deadline` (time.monotonic()) begrenzt die ganze Kette: ein Versuch
+        bekommt hoechstens die Restzeit bis dahin, und Provider ohne
+        brauchbares Zeitfenster werden uebersprungen. Befund 03./10.09.2026:
+        vier Provider x 150 s sprengten das 600-s-Budget des Shell-Schritts,
+        der vierte Versuch wurde vom Wall-Clock-Timeout abgeschossen.
+        """
         errors: list[str] = []
         for i, provider in enumerate(self.providers):
+            attempt_timeout: float = timeout
+            if deadline is not None:
+                remaining = deadline - time.monotonic()
+                if remaining < MIN_ATTEMPT_SEC:
+                    left = max(remaining, 0)
+                    log.warning("Provider %s skipped (attempt %d/%d): only %.0fs of the deadline left",
+                                provider.label, i + 1, len(self.providers), left)
+                    errors.append(f"{provider.label}: skipped (deadline, {left:.0f}s left)")
+                    continue
+                attempt_timeout = min(timeout, remaining)
             payload = {
                 "model": provider.model,
                 "messages": messages,
@@ -55,7 +79,7 @@ class OpenClawChatClient:
             if response_format:
                 normalized_payload["response_format"] = response_format
             try:
-                response = self._call_provider(provider, normalized_payload, timeout=timeout)
+                response = self._call_provider(provider, normalized_payload, timeout=attempt_timeout)
                 if response is not None:
                     self.last_error = ""
                     log.info("Provider %s succeeded (attempt %d/%d)",
@@ -76,7 +100,7 @@ class OpenClawChatClient:
         provider: ProviderConfig,
         payload: dict[str, Any],
         *,
-        timeout: int,
+        timeout: float,
     ) -> ChatResponse | None:
         headers = {
             "Authorization": f"Bearer {provider.api_key}",
