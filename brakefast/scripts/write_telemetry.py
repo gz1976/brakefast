@@ -59,7 +59,9 @@ def step_succeeded(entry: dict[str, Any]) -> bool:
         # gelten als nicht bestanden, auch wenn die Edition publiziert wurde.
         return entry.get("status") == "complete"
     if name == "curation":
-        return entry.get("mode") in ("llm", "auto-fallback", "auto")
+        # "auto" und "auto-fallback" heissen: Edition ohne LLM-Kuratierung
+        # (Spec fehlgeschlagen oder Timeout) -> partial, nicht ok (10.09.2026).
+        return entry.get("mode") == "llm"
     if name in ("validation", "publish"):
         return bool(entry.get("passed", True))
     if name == "smoke-test":
@@ -120,7 +122,10 @@ def _redact_warning(value: Any) -> str:
 
 
 def _describe_failed_step(entry: dict[str, Any]) -> str:
-    text = f"{entry.get('step', 'unknown')}: {entry.get('status', 'failed')}"
+    step = entry.get("step", "unknown")
+    if step == "curation":
+        return f"curation: {entry.get('mode', 'failed')} (edition not LLM-curated)"
+    text = f"{step}: {entry.get('status', 'failed')}"
     llm_status = entry.get("llm_status")
     if llm_status:
         text += (

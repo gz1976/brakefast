@@ -168,7 +168,8 @@ def test_degraded_enrichment_marks_run_partial_and_exposes_llm_status(monkeypatc
     assert run["llm_status"] == "failed"
     assert run["warnings"] == [
         "enrichment: degraded (llm_status=failed, 0/62 LLM calls usable; "
-        "last error: teamo-pro:deepseek-v4-pro: request failed: HTTP 401)"
+        "last error: teamo-pro:deepseek-v4-pro: request failed: HTTP 401)",
+        "curation: auto (edition not LLM-curated)",
     ]
 
 
@@ -259,3 +260,28 @@ def test_successful_calendar_fetch_adds_no_warning(monkeypatch, tmp_path):
     _calendar_status(output, failed_sources=[], errors={}, kept_previous=False)
 
     assert telemetry.collect_warnings([]) == []
+
+
+def test_auto_curation_marks_run_partial(monkeypatch, tmp_path):
+    """Entscheidung 10.09.2026: eine Edition ohne LLM-Kuratierung ist nur partial."""
+    output, public = _configure_paths(monkeypatch, tmp_path)
+    entries = _successful_entries()
+    entries[2] = {"step": "curation", "mode": "auto"}
+
+    run = _fresh_published_run(output, public, entries)
+
+    assert run["publish_status"] == "partial"
+    assert run["failing_step"] == "curation"
+    assert run["warnings"] == ["curation: auto (edition not LLM-curated)"]
+
+
+def test_auto_fallback_curation_marks_run_partial(monkeypatch, tmp_path):
+    output, public = _configure_paths(monkeypatch, tmp_path)
+    entries = _successful_entries()
+    entries[2] = {"step": "curation", "mode": "auto-fallback"}
+
+    run = _fresh_published_run(output, public, entries)
+
+    assert run["publish_status"] == "partial"
+    assert run["failing_step"] == "curation"
+    assert run["warnings"] == ["curation: auto-fallback (edition not LLM-curated)"]
