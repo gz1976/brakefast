@@ -461,3 +461,115 @@ def test_curation_spec_passes_a_deadline_inside_the_budget():
     assert calls[0]["timeout"] == 150
     budget_left = calls[0]["deadline"] - started
     assert 570 <= budget_left < 571, budget_left  # 600 s minus 30 s Reserve, plus Messzeit
+
+
+# ---------------------------------------------------------------------------
+# Eigene Provider-Kette fuer die Kurations-Spec (BRAKEFAST_SPEC_PROVIDER_CHAIN).
+# ---------------------------------------------------------------------------
+
+import contextlib  # noqa: E402
+import io  # noqa: E402
+
+
+class _ChainRecordingClient(_FakeClient):
+    """Merkt sich, mit welcher Kette die Engine den Client baut."""
+
+    def __init__(self, providers=None, **kwargs):
+        super().__init__(**kwargs)
+        self.providers = providers
+
+    def describe_chain(self):
+        if self.providers:
+            return " -> ".join(p.label for p in self.providers)
+        return "text-a -> text-b"
+
+
+def _with_env(**values):
+    saved = {key: os.environ.get(key) for key in values}
+    for key, value in values.items():
+        if value is None:
+            os.environ.pop(key, None)
+        else:
+            os.environ[key] = value
+    return saved
+
+
+def _restore_env(saved):
+    for key, value in saved.items():
+        if value is None:
+            os.environ.pop(key, None)
+        else:
+            os.environ[key] = value
+
+
+def _spec_chain_json(*names):
+    return json.dumps([
+        {"name": name, "base_url": "http://example.invalid/v1", "api_key": "k", "model": f"model-{name}"}
+        for name in names
+    ])
+
+
+def test_spec_client_uses_the_text_chain_without_spec_variable():
+    saved_client = engine.OpenClawChatClient
+    saved_env = _with_env(BRAKEFAST_SPEC_PROVIDER_CHAIN=None)
+    engine.OpenClawChatClient = _ChainRecordingClient
+    try:
+        client, source = engine._spec_client()
+    finally:
+        engine.OpenClawChatClient = saved_client
+        _restore_env(saved_env)
+
+    assert client.providers is None
+    assert source == "text chain"
+
+
+def test_spec_client_prefers_the_spec_chain():
+    saved_client = engine.OpenClawChatClient
+    saved_env = _with_env(BRAKEFAST_SPEC_PROVIDER_CHAIN=_spec_chain_json("flash", "mini"))
+    engine.OpenClawChatClient = _ChainRecordingClient
+    try:
+        client, source = engine._spec_client()
+    finally:
+        engine.OpenClawChatClient = saved_client
+        _restore_env(saved_env)
+
+    assert [p.label for p in client.providers] == ["flash:model-flash", "mini:model-mini"]
+    assert source == "spec chain"
+
+
+def test_spec_client_warns_and_falls_back_when_spec_chain_is_unusable():
+    saved_client = engine.OpenClawChatClient
+    saved_env = _with_env(BRAKEFAST_SPEC_PROVIDER_CHAIN=json.dumps([{"name": "no-key", "base_url": "http://x", "model": "m"}]))
+    engine.OpenClawChatClient = _ChainRecordingClient
+    captured = io.StringIO()
+    try:
+        with contextlib.redirect_stderr(captured):
+            client, source = engine._spec_client()
+    finally:
+        engine.OpenClawChatClient = saved_client
+        _restore_env(saved_env)
+
+    assert client.providers is None
+    assert source == "text chain"
+    assert "WARN: BRAKEFAST_SPEC_PROVIDER_CHAIN" in captured.getvalue()
+
+
+def test_curation_spec_reports_which_chain_it_used():
+    tmp_dir = Path(tempfile.mkdtemp())
+    enriched = tmp_dir / "enriched.json"
+    enriched.write_text(json.dumps({"categories": {"ai": {"articles": [
+        {"title": "ai-0", "source": "Q", "summary": "Text", "published_at": "2026-09-10T05:00:00Z"},
+    ]}}}))
+    saved_client = engine.OpenClawChatClient
+    saved_env = _with_env(BRAKEFAST_SPEC_PROVIDER_CHAIN=_spec_chain_json("flash", "mini"))
+    engine.OpenClawChatClient = _ChainRecordingClient
+    captured = io.StringIO()
+    try:
+        with contextlib.redirect_stderr(captured):
+            rc = engine.generate_curation_spec(enriched, tmp_dir / "spec.json")
+    finally:
+        engine.OpenClawChatClient = saved_client
+        _restore_env(saved_env)
+
+    assert rc == 1  # Fake-Client liefert nichts; hier zaehlt nur die Kettenwahl
+    assert "spec chain: flash:model-flash -> mini:model-mini" in captured.getvalue()

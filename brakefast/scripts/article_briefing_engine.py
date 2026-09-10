@@ -21,6 +21,7 @@ from typing import Any
 from article_extractors import extract_article_payload, normalize_url, smart_truncate, split_sentences
 from article_quality import classify_content_quality, score_image_candidate, score_summary
 from openclaw_client import OpenClawChatClient
+from openclaw_runtime import get_spec_provider_chain
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 BRAKEFAST_DIR = SCRIPT_DIR.parent
@@ -902,6 +903,19 @@ def format_curation_article_list(article_index: list[dict[str, Any]]) -> str:
     return "\n".join(lines)
 
 
+def _spec_client() -> tuple[OpenClawChatClient, str]:
+    """Client fuer die Kurations-Spec: eigene Kette aus BRAKEFAST_SPEC_PROVIDER_CHAIN, sonst Text-Kette."""
+    if os.environ.get("BRAKEFAST_SPEC_PROVIDER_CHAIN", "").strip():
+        providers = get_spec_provider_chain()
+        if providers:
+            return OpenClawChatClient(providers=providers), "spec chain"
+        print(
+            "WARN: BRAKEFAST_SPEC_PROVIDER_CHAIN is set but yields no usable provider; using the text chain",
+            file=sys.stderr,
+        )
+    return OpenClawChatClient(), "text chain"
+
+
 def generate_curation_spec(enriched_path: Path, spec_output: Path) -> int:
     """Use LLM to generate a curation spec from enriched articles.
 
@@ -998,7 +1012,7 @@ F. SONST: Deutsche Quellen bevorzugen. ki_modelle: 2-3 neue Modelle/Tools aus AI
 
 Antworte NUR mit dem JSON, kein Reasoning-Text, kein Markdown-Wrapper."""
 
-    client = OpenClawChatClient()
+    client, chain_source = _spec_client()
     if not client.enabled:
         print("ERROR: No LLM providers available for curation spec", file=sys.stderr)
         return 1
@@ -1006,7 +1020,7 @@ Antworte NUR mit dem JSON, kein Reasoning-Text, kein Markdown-Wrapper."""
     budget = _spec_budget_seconds()
     deadline = time.monotonic() + max(budget - SPEC_BUDGET_MARGIN_SEC, SPEC_BUDGET_MARGIN_SEC)
     print(
-        f"Generating curation spec via LLM ({client.describe_chain()}) "
+        f"Generating curation spec via LLM ({chain_source}: {client.describe_chain()}) "
         f"within {budget}s budget, up to {SPEC_ATTEMPT_TIMEOUT_SEC}s per attempt...",
         file=sys.stderr,
     )

@@ -256,18 +256,38 @@ def _default_text_providers() -> list[ProviderConfig]:
     return _dedupe_providers(providers)
 
 
+def _explicit_chain(env_key: str, kind: str) -> list[ProviderConfig] | None:
+    """Provider-Kette aus einer JSON-Liste in der Umgebung; None, wenn keine Liste gesetzt ist."""
+    explicit_chain = parse_json_env(env_key)
+    if not isinstance(explicit_chain, list):
+        return None
+    providers = [
+        provider
+        for entry in explicit_chain
+        if isinstance(entry, dict)
+        for provider in [_provider_from_dict(entry, kind)]
+        if provider
+    ]
+    return _dedupe_providers(providers)
+
+
 def get_text_provider_chain() -> list[ProviderConfig]:
-    explicit_chain = parse_json_env("BRAKEFAST_LLM_PROVIDER_CHAIN")
-    if isinstance(explicit_chain, list):
-        providers = [
-            provider
-            for entry in explicit_chain
-            if isinstance(entry, dict)
-            for provider in [_provider_from_dict(entry, "text")]
-            if provider
-        ]
-        return _dedupe_providers(providers)
+    explicit = _explicit_chain("BRAKEFAST_LLM_PROVIDER_CHAIN", "text")
+    if explicit is not None:
+        return explicit
     return _default_text_providers()
+
+
+def get_spec_provider_chain() -> list[ProviderConfig]:
+    """Eigene Kette fuer die Kurations-Spec aus BRAKEFAST_SPEC_PROVIDER_CHAIN.
+
+    Gleiches JSON-Format wie BRAKEFAST_LLM_PROVIDER_CHAIN. Leer, wenn die
+    Variable fehlt oder keinen brauchbaren Provider ergibt — der Aufrufer
+    faellt dann auf die Text-Kette zurueck. Hintergrund 10.09.2026: teamo-pro
+    steht vorn in der Text-Kette und lieferte in drei Wochen keine einzige
+    Spec (immer im Zeitfenster haengen), beim Enrichment arbeitet es gut.
+    """
+    return _explicit_chain("BRAKEFAST_SPEC_PROVIDER_CHAIN", "text") or []
 
 
 def _default_image_providers() -> list[ProviderConfig]:
